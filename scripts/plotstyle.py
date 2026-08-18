@@ -83,7 +83,7 @@ def label_lines(ax, series, t, log_x=False, fracs=None):
     if len(series) > MAX_DIRECT_LABELS:
         return
     if fracs is None:
-        fracs = np.linspace(0.55, 0.97, len(series)) if len(series) > 1 else [0.9]
+        fracs = np.linspace(0.42, 0.86, len(series)) if len(series) > 1 else [0.8]
     for (label, xs, ys), frac in zip(series, fracs):
         xs = np.asarray(xs, dtype=float)
         ys = np.asarray(ys, dtype=float)

@@ -4,14 +4,10 @@ import numpy as np
 import pytest
 
 from ligo_backaction.gaussian import (
-    apply_loss,
-    apply_symplectic,
     fd_squeeze_angle,
     gaussian_qfi_lambda,
-    gaussian_qfi_mean,
     homodyne_noise_spectrum,
     rotation_matrix,
-    run_gaussian_channel,
     shear_matrix,
     shear_to_squeeze_rotation,
     squeeze_matrix,

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .channels import ChannelSpec, effective_support, output_and_derivative, run_channel
+from .channels import ChannelSpec, effective_support, output_and_derivative
 from .ifo import qfi_h_from_qfi_lambda
 from .operators import as_density_matrix, quad_op, variance
 

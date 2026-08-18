@@ -6,7 +6,7 @@ import pytest
 from ligo_backaction.channels import ChannelSpec, dephasing_map, loss_map, output_and_derivative, run_channel
 from ligo_backaction.convergence import converge, converged_qfi, suggested_cutoff, tail_population
 from ligo_backaction.gaussian import gaussian_qfi_lambda, squeezed_vacuum_gaussian, coherent_gaussian, vacuum
-from ligo_backaction.operators import backaction_unitary, p_op, signal_unitary, squeeze_op, x_op
+from ligo_backaction.operators import backaction_unitary, p_op, signal_unitary, x_op
 from ligo_backaction.optimize import optimal_no_backaction_state
 from ligo_backaction.qfi import pure_state_qfi, qfi_lambda, purity
 from ligo_backaction.states import STATE_FAMILIES, make_state, mean_photon_number

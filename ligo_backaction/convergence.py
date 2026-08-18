@@ -15,7 +15,7 @@ from typing import Callable, Sequence
 
 import numpy as np
 
-from .operators import as_density_matrix, number
+from .operators import as_density_matrix
 
 __all__ = ["ConvergenceResult", "converge", "converged_qfi", "tail_population", "suggested_cutoff"]
 

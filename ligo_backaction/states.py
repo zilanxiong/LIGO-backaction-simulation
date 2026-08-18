@@ -21,7 +21,7 @@ from __future__ import annotations
 import numpy as np
 from scipy.optimize import brentq
 
-from .operators import annihilation, coherent_ket, number, squeeze_op
+from .operators import coherent_ket, number, squeeze_op
 
 __all__ = [
     "STATE_FAMILIES",

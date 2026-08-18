@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import os
 import sys
 import time
 from pathlib import Path
@@ -33,16 +32,13 @@ from ligo_backaction import (  # noqa: E402
     IFOParams,
     converge,
     fd_squeeze_angle,
-    gaussian_qfi_lambda,
     homodyne_noise_spectrum,
     make_state,
     optimal_no_backaction_state,
     optimize_state_for_channel,
     optimal_squeeze_angle,
-    pure_state_qfi,
     qfi_h_from_qfi_lambda,
     qfi_lambda,
-    squeezed_vacuum_gaussian,
     suggested_cutoff,
     total_qfi,
     weighted_inverse_cost,

@@ -28,9 +28,9 @@ Channel orderings
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import lru_cache
-from typing import Callable, Sequence
+from typing import Callable
 
 import numpy as np
 from scipy.special import gammaln
@@ -40,7 +40,6 @@ from .operators import (
     as_density_matrix,
     backaction_unitary,
     joint_unitary,
-    number,
     quad_op,
     signal_unitary,
 )

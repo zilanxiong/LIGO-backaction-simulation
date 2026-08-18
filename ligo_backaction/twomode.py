@@ -28,9 +28,8 @@ import numpy as np
 from scipy.linalg import expm
 
 from .channels import loss_map
-from .operators import annihilation, as_density_matrix, displace_op, squeeze_op, x_op
-from .qfi import qfi_from_rho_drho
-from .states import make_state, normalize
+from .operators import annihilation, as_density_matrix, displace_op, x_op
+from .states import normalize
 
 __all__ = [
     "TwoModeSpec",
