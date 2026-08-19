@@ -1,4 +1,24 @@
-# QFI of optical states under radiation-pressure back-action
+# LIGO back-action simulation
+
+Radiation-pressure back-action and the quantum Fisher information of optical
+probe states, for the project *"use the channel description to test QFI for
+states under radiation pressure"*.
+
+## Repository map
+
+| directory | what it is |
+|---|---|
+| `quantum-sensing-py/` | the group's single-mode sensing package (QuTiP + numpy, CPU). Channel dynamics, SLD/QFI, state reconstruction, GKP states. **Radiation pressure now lives here** in `radiation_pressure.py`, with probe states in `probe_states.py` and a cutoff checker in `convergence.py`. |
+| `quantum-sensing-jl/` | the Julia original, including the GPU/CUDA path and classical Fisher information. Untouched. |
+| `ligo_backaction/` | an independent verification track: a Gaussian covariance-matrix implementation of the same channel that is exact for Gaussian states, plus analytic benchmarks (SQL, variational readout, FD squeezing). Used to validate `quantum-sensing-py` numbers, not to replace them. |
+| `scripts/`, `results/`, `FINDINGS.md` | study runners, tables and figures, and the written-up answers. |
+
+Start at [`quantum-sensing-py/README.md`](quantum-sensing-py/README.md) for the
+back-action channel, and [`FINDINGS.md`](FINDINGS.md) for results.
+
+---
+
+## The verification track (`ligo_backaction`)
 
 Simulation code for the project *"use the channel description to test QFI for
 states under radiation pressure"*: how much information about a
