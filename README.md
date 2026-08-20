@@ -13,8 +13,17 @@ states under radiation pressure"*.
 | `ligo_backaction/` | an independent verification track: a Gaussian covariance-matrix implementation of the same channel that is exact for Gaussian states, plus analytic benchmarks (SQL, variational readout, FD squeezing). Used to validate `quantum-sensing-py` numbers, not to replace them. |
 | `scripts/`, `results/`, `FINDINGS.md` | study runners, tables and figures, and the written-up answers. |
 
-Start at [`quantum-sensing-py/README.md`](quantum-sensing-py/README.md) for the
-back-action channel, and [`FINDINGS.md`](FINDINGS.md) for results.
+Results live in two places:
+
+* [`results/backaction/RESULTS.md`](results/backaction/RESULTS.md) — the
+  back-action study run on the `quantum_sensing` channel (channel orderings,
+  loss placement, phase noise, probe states, photon-number scaling).
+* [`FINDINGS.md`](FINDINGS.md) — the earlier study on the independent Gaussian
+  verification track, including the interferometer calibration, the broadband
+  cost metrics and the two-frequency additivity sandbox.
+
+Reproduce with `python scripts/run_backaction_study.py` (~4 min) and
+`python scripts/run_study.py` (~6 min).
 
 ---
 

@@ -1,0 +1,161 @@
+config,state,nbar,qfi_epsilon_a,cutoff,converged
+"no back-action, lossless",coherent,0.25,3.9999999992000004,73,True
+"no back-action, lossless",coherent,0.5,3.999999999200004,73,True
+"no back-action, lossless",coherent,1.0,3.999999999200006,73,True
+"no back-action, lossless",coherent,2.0,3.999999999200003,73,True
+"no back-action, lossless",coherent,4.0,3.999999999200001,73,True
+"no back-action, lossless",coherent,6.0,3.999999999200002,103,True
+"no back-action, lossless",squeezed,0.25,10.472135949516304,73,True
+"no back-action, lossless",squeezed,0.5,14.928203219132964,73,True
+"no back-action, lossless",squeezed,1.0,23.313708470259773,73,True
+"no back-action, lossless",squeezed,2.0,39.59591744124065,99,True
+"no back-action, lossless",squeezed,4.0,71.7770867214419,181,True
+"no back-action, lossless",squeezed,6.0,103.84592365653515,256,True
+"no back-action, lossless",fock,0.25,3.9999999991999995,73,True
+"no back-action, lossless",fock,0.5,3.9999999991999995,73,True
+"no back-action, lossless",fock,1.0,11.999999994399996,73,True
+"no back-action, lossless",fock,2.0,19.999999984799995,73,True
+"no back-action, lossless",fock,4.0,35.99999995120004,73,True
+"no back-action, lossless",fock,6.0,51.99999989839994,103,True
+"no back-action, lossless",cat_even,0.25,10.174507577713632,73,True
+"no back-action, lossless",cat_even,0.5,14.173618545169017,73,True
+"no back-action, lossless",cat_even,1.0,21.597429103666364,73,True
+"no back-action, lossless",cat_even,2.0,36.52270506258937,73,True
+"no back-action, lossless",cat_even,4.0,68.02136221839538,73,True
+"no back-action, lossless",cat_even,6.0,100.00058941464513,103,True
+"no back-action, lossless",cat_odd,1.0,11.99999999440799,73,True
+"no back-action, lossless",cat_odd,2.0,35.32006433938746,73,True
+"no back-action, lossless",cat_odd,4.0,67.97842137366244,73,True
+"no back-action, lossless",cat_odd,6.0,99.99940972583789,103,True
+"no back-action, lossless",squeezed_cat,0.25,10.470526687365851,73,True
+"no back-action, lossless",squeezed_cat,0.5,14.925023941221998,73,True
+"no back-action, lossless",squeezed_cat,1.0,23.308723708932494,73,True
+"no back-action, lossless",squeezed_cat,2.0,39.590034083346886,73,True
+"no back-action, lossless",squeezed_cat,4.0,71.77185176241444,134,True
+"no back-action, lossless",squeezed_cat,6.0,103.84154483753072,189,True
+"no back-action, lossless",opt_no_ba,0.25,10.472135949516298,73,True
+"no back-action, lossless",opt_no_ba,0.5,14.928203219132946,73,True
+"no back-action, lossless",opt_no_ba,1.0,23.313708471667084,73,True
+"no back-action, lossless",opt_no_ba,2.0,39.595915539499074,73,True
+"no back-action, lossless",opt_no_ba,4.0,71.7770389012863,99,True
+"no back-action, lossless",opt_no_ba,6.0,103.84527036775185,103,True
+"BA kappa=1, lossless",coherent,0.25,3.999999999178053,73,True
+"BA kappa=1, lossless",coherent,0.5,3.99999999920905,73,True
+"BA kappa=1, lossless",coherent,1.0,3.9999999991814965,73,True
+"BA kappa=1, lossless",coherent,2.0,3.9999999991636823,88,True
+"BA kappa=1, lossless",coherent,4.0,3.999999999236017,146,True
+"BA kappa=1, lossless",coherent,6.0,3.9999999991628186,206,True
+"BA kappa=1, lossless",squeezed,0.25,10.472135949515803,73,True
+"BA kappa=1, lossless",squeezed,0.5,14.928203219124319,73,True
+"BA kappa=1, lossless",squeezed,1.0,23.313708470237128,73,True
+"BA kappa=1, lossless",squeezed,2.0,39.59591462640153,88,True
+"BA kappa=1, lossless",squeezed,4.0,71.7770872874371,198,True
+"BA kappa=1, lossless",squeezed,6.0,103.84592478464134,279,True
+"BA kappa=1, lossless",fock,0.25,3.9999999992130553,73,True
+"BA kappa=1, lossless",fock,0.5,3.9999999992130553,73,True
+"BA kappa=1, lossless",fock,1.0,11.999999994417108,73,True
+"BA kappa=1, lossless",fock,2.0,19.999999984795316,88,True
+"BA kappa=1, lossless",fock,4.0,35.9999999511818,146,True
+"BA kappa=1, lossless",fock,6.0,51.99999989841438,206,True
+"BA kappa=1, lossless",cat_even,0.25,10.174507577715296,73,True
+"BA kappa=1, lossless",cat_even,0.5,14.173618545159632,73,True
+"BA kappa=1, lossless",cat_even,1.0,21.597429103635044,73,True
+"BA kappa=1, lossless",cat_even,2.0,36.52270506247353,88,True
+"BA kappa=1, lossless",cat_even,4.0,68.02136221843314,146,True
+"BA kappa=1, lossless",cat_even,6.0,100.0005894147417,206,True
+"BA kappa=1, lossless",cat_odd,1.0,11.999999994425103,73,True
+"BA kappa=1, lossless",cat_odd,2.0,35.32006433922429,88,True
+"BA kappa=1, lossless",cat_odd,4.0,67.97842137378439,146,True
+"BA kappa=1, lossless",cat_odd,6.0,99.9994097256414,206,True
+"BA kappa=1, lossless",squeezed_cat,0.25,10.470526687365178,73,True
+"BA kappa=1, lossless",squeezed_cat,0.5,14.925023941212984,73,True
+"BA kappa=1, lossless",squeezed_cat,1.0,23.308723708910634,73,True
+"BA kappa=1, lossless",squeezed_cat,2.0,39.59003465241177,88,True
+"BA kappa=1, lossless",squeezed_cat,4.0,71.7718519875549,146,True
+"BA kappa=1, lossless",squeezed_cat,6.0,103.8415452689185,206,True
+"BA kappa=1, lossless",opt_no_ba,0.25,10.472135949515792,73,True
+"BA kappa=1, lossless",opt_no_ba,0.5,14.92820321912431,73,True
+"BA kappa=1, lossless",opt_no_ba,1.0,23.313708471644393,73,True
+"BA kappa=1, lossless",opt_no_ba,2.0,39.595917740935036,88,True
+"BA kappa=1, lossless",opt_no_ba,4.0,71.77708706754302,146,True
+"BA kappa=1, lossless",opt_no_ba,6.0,103.84592471946823,206,True
+"BA kappa=1, detection eta=0.9",coherent,0.25,3.3027522033092396,73,True
+"BA kappa=1, detection eta=0.9",coherent,0.5,3.3027522033222345,73,True
+"BA kappa=1, detection eta=0.9",coherent,1.0,3.3027522032536085,73,True
+"BA kappa=1, detection eta=0.9",coherent,2.0,3.302752203298736,88,True
+"BA kappa=1, detection eta=0.9",coherent,4.0,3.3027522033458774,146,True
+"BA kappa=1, detection eta=0.9",coherent,6.0,3.302752203309981,206,True
+"BA kappa=1, detection eta=0.9",squeezed,0.25,6.6703951000441,73,True
+"BA kappa=1, detection eta=0.9",squeezed,0.5,8.214243182434736,73,True
+"BA kappa=1, detection eta=0.9",squeezed,1.0,10.211464952521721,99,True
+"BA kappa=1, detection eta=0.9",squeezed,2.0,12.421994843385134,161,True
+"BA kappa=1, detection eta=0.9",squeezed,4.0,14.42654580579675,268,True
+"BA kappa=1, detection eta=0.9",squeezed,6.0,15.368807403630791,377,True
+"BA kappa=1, detection eta=0.9",fock,0.25,3.302752203328503,73,True
+"BA kappa=1, detection eta=0.9",fock,0.5,3.302752203328503,73,True
+"BA kappa=1, detection eta=0.9",fock,1.0,7.1200331340761505,73,True
+"BA kappa=1, detection eta=0.9",fock,2.0,9.426248370650558,88,True
+"BA kappa=1, detection eta=0.9",fock,4.0,12.438982041086481,146,True
+"BA kappa=1, detection eta=0.9",fock,6.0,14.407461633761994,206,True
+"BA kappa=1, detection eta=0.9",cat_even,0.25,6.520639484106232,73,True
+"BA kappa=1, detection eta=0.9",cat_even,0.5,7.827102524763479,73,True
+"BA kappa=1, detection eta=0.9",cat_even,1.0,9.120131962776927,73,True
+"BA kappa=1, detection eta=0.9",cat_even,2.0,9.131799110713777,88,True
+"BA kappa=1, detection eta=0.9",cat_even,4.0,6.494192575610705,146,True
+"BA kappa=1, detection eta=0.9",cat_even,6.0,4.67505415466859,206,True
+"BA kappa=1, detection eta=0.9",cat_odd,1.0,7.120033134078552,73,True
+"BA kappa=1, detection eta=0.9",cat_odd,2.0,9.018471836999886,88,True
+"BA kappa=1, detection eta=0.9",cat_odd,4.0,6.4849888629489065,146,True
+"BA kappa=1, detection eta=0.9",cat_odd,6.0,4.6747131173370855,206,True
+"BA kappa=1, detection eta=0.9",squeezed_cat,0.25,6.669367258206033,73,True
+"BA kappa=1, detection eta=0.9",squeezed_cat,0.5,8.211308291937517,73,True
+"BA kappa=1, detection eta=0.9",squeezed_cat,1.0,10.202715382295306,99,True
+"BA kappa=1, detection eta=0.9",squeezed_cat,2.0,12.400690533972934,161,True
+"BA kappa=1, detection eta=0.9",squeezed_cat,4.0,14.39136457503331,198,True
+"BA kappa=1, detection eta=0.9",squeezed_cat,6.0,15.329821780976838,377,True
+"BA kappa=1, detection eta=0.9",opt_no_ba,0.25,6.670395100044087,73,True
+"BA kappa=1, detection eta=0.9",opt_no_ba,0.5,8.214243182434693,73,True
+"BA kappa=1, detection eta=0.9",opt_no_ba,1.0,10.21146495247338,99,True
+"BA kappa=1, detection eta=0.9",opt_no_ba,2.0,12.421994843370214,161,True
+"BA kappa=1, detection eta=0.9",opt_no_ba,4.0,14.426545805965457,268,True
+"BA kappa=1, detection eta=0.9",opt_no_ba,6.0,15.3688074034308,377,True
+"BA kappa=2, detection eta=0.9",coherent,0.25,2.647058796891934,92,True
+"BA kappa=2, detection eta=0.9",coherent,0.5,2.647058796845631,110,True
+"BA kappa=2, detection eta=0.9",coherent,1.0,2.647058796874566,146,True
+"BA kappa=2, detection eta=0.9",coherent,2.0,2.6470587968816406,219,True
+"BA kappa=2, detection eta=0.9",coherent,4.0,2.6470587968794357,365,True
+"BA kappa=2, detection eta=0.9",coherent,6.0,2.64705879693801,511,True
+"BA kappa=2, detection eta=0.9",squeezed,0.25,4.3505355961120005,125,True
+"BA kappa=2, detection eta=0.9",squeezed,0.5,4.934279801676419,202,True
+"BA kappa=2, detection eta=0.9",squeezed,1.0,5.564720038441016,268,True
+"BA kappa=2, detection eta=0.9",squeezed,2.0,6.138331589099705,400,True
+"BA kappa=2, detection eta=0.9",squeezed,4.0,6.573017333415149,493,True
+"BA kappa=2, detection eta=0.9",squeezed,6.0,6.75468426139287,700,True
+"BA kappa=2, detection eta=0.9",fock,0.25,2.647058796890404,92,True
+"BA kappa=2, detection eta=0.9",fock,0.5,2.647058796887598,110,True
+"BA kappa=2, detection eta=0.9",fock,1.0,4.478315904382084,146,True
+"BA kappa=2, detection eta=0.9",fock,2.0,5.728020182322386,219,True
+"BA kappa=2, detection eta=0.9",fock,4.0,7.723700448986574,365,True
+"BA kappa=2, detection eta=0.9",fock,6.0,9.302196534170923,511,True
+"BA kappa=2, detection eta=0.9",cat_even,0.25,4.2573918439913365,92,True
+"BA kappa=2, detection eta=0.9",cat_even,0.5,4.668243814367199,110,True
+"BA kappa=2, detection eta=0.9",cat_even,1.0,4.778173867736029,146,True
+"BA kappa=2, detection eta=0.9",cat_even,2.0,4.0908837344041,219,True
+"BA kappa=2, detection eta=0.9",cat_even,4.0,3.0128514201055636,365,True
+"BA kappa=2, detection eta=0.9",cat_even,6.0,2.723540884379936,511,True
+"BA kappa=2, detection eta=0.9",cat_odd,1.0,4.478315904382643,146,True
+"BA kappa=2, detection eta=0.9",cat_odd,2.0,4.027498096026075,219,True
+"BA kappa=2, detection eta=0.9",cat_odd,4.0,3.0076105462191047,365,True
+"BA kappa=2, detection eta=0.9",cat_odd,6.0,2.7234257297501845,511,True
+"BA kappa=2, detection eta=0.9",squeezed_cat,0.25,4.349846600228563,125,True
+"BA kappa=2, detection eta=0.9",squeezed_cat,0.5,4.93236065217213,202,True
+"BA kappa=2, detection eta=0.9",squeezed_cat,1.0,5.560088327233052,268,True
+"BA kappa=2, detection eta=0.9",squeezed_cat,2.0,6.130134942588951,296,True
+"BA kappa=2, detection eta=0.9",squeezed_cat,4.0,6.563053580948399,493,True
+"BA kappa=2, detection eta=0.9",squeezed_cat,6.0,6.74519968813861,511,True
+"BA kappa=2, detection eta=0.9",opt_no_ba,0.25,4.350535596112001,125,True
+"BA kappa=2, detection eta=0.9",opt_no_ba,0.5,4.934279801676393,202,True
+"BA kappa=2, detection eta=0.9",opt_no_ba,1.0,5.564720038440079,268,True
+"BA kappa=2, detection eta=0.9",opt_no_ba,2.0,6.138331589099624,400,True
+"BA kappa=2, detection eta=0.9",opt_no_ba,4.0,6.573017333415087,493,True
+"BA kappa=2, detection eta=0.9",opt_no_ba,6.0,6.754684261389669,700,True

@@ -1,4 +1,10 @@
-# Findings
+# Findings — Gaussian verification track
+
+> The back-action study run on the group's own `quantum_sensing` channel is in
+> [`results/backaction/RESULTS.md`](results/backaction/RESULTS.md).  This
+> document covers the independent `ligo_backaction` track, which additionally
+> carries the interferometer calibration, the broadband cost metrics and the
+> two-frequency additivity sandbox.  The two agree on every result they share.
 
 Answers this code gives to the questions in the project plan. Every number
 below comes from `results/*.csv`, reproduced by `python scripts/run_study.py`.
