@@ -220,6 +220,24 @@ def _support(*mats, rtol=1e-15):
     return idx
 
 
+def _kraus_order(rho, tol=1e-14):
+    """Highest Kraus order that can contribute to the loss sum.
+
+    ``K_k`` annihilates ``k`` photons, so orders above the occupied photon number
+    contribute nothing.  Bounding by the cumulative population from the top is
+    far tighter than bounding by numerical support: the *truncated* shear leaves
+    round-off-level amplitude across the whole space, which would otherwise force
+    the sum to run to the cutoff.
+    """
+    diag = np.abs(np.real(np.diag(rho)))
+    total = diag.sum()
+    if total <= 0:
+        return 0
+    tail = np.cumsum(diag[::-1])[::-1]
+    keep = np.nonzero(tail > tol * total)[0]
+    return int(keep[-1]) if keep.size else 0
+
+
 def _loss_exact(rho, eta):
     """Bosonic loss of transmissivity ``eta``, applied as a shifted-diagonal sum.
 
@@ -237,7 +255,7 @@ def _loss_exact(rho, eta):
         return out
     w = _loss_weights(N, eta)
     out = np.zeros_like(rho, dtype=complex)
-    for k in range(_support(rho) + 1):
+    for k in range(_kraus_order(rho) + 1):
         size = N - k
         wk = w[k, :size]
         out[:size, :size] += rho[k:, k:] * (wk[:, None] * wk[None, :])

@@ -27,6 +27,8 @@ optimisation code's convention, and it is inconsistent with ``n_to_r`` in the
 same module.  Mixing the two silently corrupts any squeezing comparison.
 """
 
+from functools import lru_cache
+
 import numpy as np
 import qutip as qt
 from scipy.optimize import brentq
@@ -80,6 +82,20 @@ def coherent_state(N_basis, nbar):
     return _coherent_ket(N_basis, np.sqrt(max(nbar, 0.0)))
 
 
+@lru_cache(maxsize=128)
+def _squeeze_array(N_basis, z):
+    """``qt.squeeze`` exponentiates a dense operator; cache it.
+
+    The cutoff ladder rebuilds every probe state at each rung, and at
+    ``N_basis`` in the hundreds that exponential dominates the run time.
+    """
+    return qt.squeeze(N_basis, z).full()
+
+
+def _squeeze_op(N_basis, z):
+    return qt.Qobj(_squeeze_array(N_basis, float(z)))
+
+
 def squeezed_vacuum(N_basis, nbar):
     r"""Squeezed vacuum with :math:`\sinh^2 r = \bar n`, anti-squeezed in :math:`x`.
 
@@ -87,7 +103,7 @@ def squeezed_vacuum(N_basis, nbar):
     real ``z > 0``, so ``z = -r`` gives :math:`\mathrm{Var}(x) = e^{2r}/2`.
     """
     r = np.arcsinh(np.sqrt(max(nbar, 0.0)))
-    return qt.squeeze(N_basis, -r) * _vacuum(N_basis)
+    return _squeeze_op(N_basis, -r) * _vacuum(N_basis)
 
 
 def fock_state(N_basis, nbar):
@@ -141,7 +157,7 @@ def squeezed_cat(N_basis, nbar, squeeze_fraction=0.5, parity="even"):
     if nbar <= 0:
         return _vacuum(N_basis)
     r = np.arcsinh(np.sqrt(squeeze_fraction * nbar))
-    S = qt.squeeze(N_basis, -r)
+    S = _squeeze_op(N_basis, -r)
 
     def ket(alpha):
         return (S * _cat_ket(N_basis, alpha, parity)).unit()
@@ -157,6 +173,30 @@ def squeezed_cat(N_basis, nbar, squeeze_fraction=0.5, parity="even"):
         if hi > np.sqrt(N_basis):
             raise ValueError(f"cannot reach nbar={nbar} with cutoff N_basis={N_basis}")
     return ket(brentq(f, lo, hi, xtol=1e-12, rtol=1e-13))
+
+
+@lru_cache(maxsize=128)
+def _optimal_no_backaction_array(N_basis, nbar):
+    """Cached: the multiplier root-find diagonalises an N x N matrix per iteration."""
+    from .radiation_pressure import x_quadrature
+
+    x2 = (x_quadrature(N_basis) ** 2).full().real
+    n_diag = np.arange(N_basis, dtype=float)
+
+    def top_eigvec(mu):
+        w, v = np.linalg.eigh(x2 - mu * np.diag(n_diag))
+        return v[:, -1]
+
+    def f(mu):
+        return float(np.sum(n_diag * np.abs(top_eigvec(mu)) ** 2)) - nbar
+
+    lo, hi = 1e-6, 1.0
+    while f(hi) > 0 and hi < 200.0:
+        hi *= 2.0
+    while f(lo) < 0 and lo > 1e-12:
+        lo /= 4.0
+    v = top_eigvec(brentq(f, lo, hi, xtol=1e-12, rtol=1e-12))
+    return v / np.linalg.norm(v)
 
 
 def optimal_no_backaction(N_basis, nbar):
@@ -180,27 +220,7 @@ def optimal_no_backaction(N_basis, nbar):
     """
     if nbar <= 0:
         return _vacuum(N_basis)
-
-    from .radiation_pressure import x_quadrature
-
-    x2 = (x_quadrature(N_basis) ** 2).full().real
-    n_diag = np.arange(N_basis, dtype=float)
-
-    def top_eigvec(mu):
-        w, v = np.linalg.eigh(x2 - mu * np.diag(n_diag))
-        return v[:, -1]
-
-    def f(mu):
-        v = top_eigvec(mu)
-        return float(np.sum(n_diag * np.abs(v) ** 2)) - nbar
-
-    lo, hi = 1e-6, 1.0
-    while f(hi) > 0 and hi < 200.0:
-        hi *= 2.0
-    while f(lo) < 0 and lo > 1e-12:
-        lo /= 4.0
-    v = top_eigvec(brentq(f, lo, hi, xtol=1e-14, rtol=1e-14))
-    return qt.Qobj(v.reshape(-1, 1)).unit()
+    return qt.Qobj(_optimal_no_backaction_array(N_basis, float(nbar)).reshape(-1, 1))
 
 
 STATE_FAMILIES = {
@@ -226,12 +246,22 @@ STATE_LABELS = {
 }
 
 
-def make_state(name, N_basis, nbar):
-    """Build a probe state by family name (see :data:`STATE_FAMILIES`)."""
+@lru_cache(maxsize=256)
+def _make_state_array(name, N_basis, nbar):
     try:
         builder = STATE_FAMILIES[name]
     except KeyError as exc:
         raise KeyError(
             f"unknown state family {name!r}; choose from {sorted(STATE_FAMILIES)}"
         ) from exc
-    return builder(N_basis, nbar)
+    return builder(N_basis, nbar).full()
+
+
+def make_state(name, N_basis, nbar):
+    """Build a probe state by family name (see :data:`STATE_FAMILIES`).
+
+    Cached on ``(name, N_basis, nbar)``: cutoff ladders rebuild the same state at
+    several cutoffs repeatedly, and the cat constructors root-find over it.
+    A fresh ``Qobj`` is returned each call, so callers cannot alias the cache.
+    """
+    return qt.Qobj(_make_state_array(name, int(N_basis), float(nbar)).copy())
