@@ -20,7 +20,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backaction-qfi"))
 
 from plotstyle import THEMES, finish, label_lines, legend_below, theme  # noqa: E402
 

@@ -16,7 +16,8 @@ the cutoff used and its convergence flag are written into every CSV row.
 
 Usage::
 
-    python scripts/run_backaction_study.py [--quick] [--outdir results/backaction]
+    python backaction-qfi/run_study.py [--quick]
+    python backaction-qfi/make_figures.py
 """
 
 import argparse
@@ -27,10 +28,10 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / "quantum-sensing-py"))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import quantum_sensing as qs  # noqa: E402
 from quantum_sensing.convergence import converged_qfi  # noqa: E402
@@ -230,7 +231,7 @@ def study_nbar_scaling(outdir, nbars, configs):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--outdir", default="results/backaction")
+    ap.add_argument("--outdir", default=str(HERE / "results"))
     ap.add_argument("--quick", action="store_true")
     args = ap.parse_args()
     outdir = Path(args.outdir)

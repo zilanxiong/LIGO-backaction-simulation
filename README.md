@@ -4,26 +4,28 @@ Radiation-pressure back-action and the quantum Fisher information of optical
 probe states, for the project *"use the channel description to test QFI for
 states under radiation pressure"*.
 
+## Start here
+
+**[`backaction-qfi/`](backaction-qfi/) — the consolidated study: code, data,
+figures and write-up for QFI under radiation pressure.** That folder answers the
+project to-do list end to end and is the thing to read first.
+
 ## Repository map
 
 | directory | what it is |
 |---|---|
-| `quantum-sensing-py/` | the group's single-mode sensing package (QuTiP + numpy, CPU). Channel dynamics, SLD/QFI, state reconstruction, GKP states. **Radiation pressure now lives here** in `radiation_pressure.py`, with probe states in `probe_states.py` and a cutoff checker in `convergence.py`. |
-| `quantum-sensing-jl/` | the Julia original, including the GPU/CUDA path and classical Fisher information. Untouched. |
-| `ligo_backaction/` | an independent verification track: a Gaussian covariance-matrix implementation of the same channel that is exact for Gaussian states, plus analytic benchmarks (SQL, variational readout, FD squeezing). Used to validate `quantum-sensing-py` numbers, not to replace them. |
-| `scripts/`, `results/`, `FINDINGS.md` | study runners, tables and figures, and the written-up answers. |
+| `backaction-qfi/` | **the study**: runner, figure script, CSVs, figures and the report |
+| `quantum-sensing-py/` | the group's single-mode sensing package. Radiation pressure lives here in `quantum_sensing/radiation_pressure.py`, with probe states in `probe_states.py` and the cutoff checker in `convergence.py` |
+| `quantum-sensing-jl/` | the Julia original, including the GPU/CUDA path and classical Fisher information. Untouched |
+| `ligo_backaction/` | an independent verification track: a Gaussian covariance-matrix implementation of the same channel, exact for Gaussian states, plus analytic benchmarks (SQL, variational readout, FD squeezing). Used to validate the numbers, not to replace them |
+| `tests/` | 267 tests across both tracks |
+| `scripts/`, `results/`, `FINDINGS.md` | the earlier broadband study on the verification track: interferometer calibration, cost metrics, two-frequency additivity |
 
-Results live in two places:
-
-* [`results/backaction/RESULTS.md`](results/backaction/RESULTS.md) — the
-  back-action study run on the `quantum_sensing` channel (channel orderings,
-  loss placement, phase noise, probe states, photon-number scaling).
-* [`FINDINGS.md`](FINDINGS.md) — the earlier study on the independent Gaussian
-  verification track, including the interferometer calibration, the broadband
-  cost metrics and the two-frequency additivity sandbox.
-
-Reproduce with `python scripts/run_backaction_study.py` (~4 min) and
-`python scripts/run_study.py` (~6 min).
+```bash
+pip install -r requirements.txt
+python backaction-qfi/run_study.py && python backaction-qfi/make_figures.py
+pytest -q
+```
 
 ---
 
