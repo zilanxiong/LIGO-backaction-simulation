@@ -1,18 +1,22 @@
 # QFI of optical states under radiation-pressure back-action
 
-Self-contained study folder: code, data and results for testing the quantum
-Fisher information of probe states passing through a single-mode sensing channel
-with ponderomotive back-action.
-
-Built on the group's existing `quantum_sensing` package — the radiation-pressure
-unitary is added to its dynamics rather than reimplemented alongside it.
+Fully self-contained study folder: every piece of code needed to reproduce these
+results lives here. Nothing outside this directory is imported.
 
 ```bash
-pip install -r ../requirements.txt
-python backaction-qfi/run_study.py       # ~4 min, writes results/*.csv
-python backaction-qfi/make_figures.py    # writes results/*.png
-pytest tests/test_radiation_pressure.py  # 110 tests, ~35 s
+pip install numpy scipy qutip matplotlib pytest
+python backaction-qfi/run_study.py      # ~5 min, writes results/*.csv
+python backaction-qfi/make_figures.py   # writes results/*.png
+pytest backaction-qfi                   # 108 tests, ~25 s
 ```
+
+The radiation-pressure unitary is added to the group's existing single-mode
+sensing channel rather than reimplemented alongside it: `dynamics.py`,
+`sld.py` and `conversions.py` are **verbatim copies of the group's
+`quantum_sensing` modules**, and `get_state_single_mode_ba` extends
+`get_state_single_mode` with `kappa` and `ordering` while keeping its signature
+and noise staging. With `kappa = 0` it reproduces the original bit for bit —
+that is a test, and it is why the copies are here rather than paraphrased.
 
 ---
 
@@ -21,24 +25,30 @@ pytest tests/test_radiation_pressure.py  # 110 tests, ~35 s
 | | |
 |---|---|
 | **Channel** | BA1 (radiation pressure → displacement sensing), BA2 (sensing → radiation pressure), BA3 (simultaneous — the physical case), each with injection loss (loss → BA), detection loss (BA → loss) and phase noise (phase noise → BA → loss) |
-| **States** | coherent, squeezed, even/odd cat, squeezed cat, Fock, and the optimum without back-action — all at fixed mean photon number ⟨n⟩ |
+| **States** | coherent, squeezed, even/odd cat, squeezed cat, Fock — all at fixed mean photon number ⟨n⟩ |
 | **Reported** | QFI per configuration, and the ⟨n⟩ scaling exponent |
 
-## Where the code lives
+## Contents
 
-The physics went into the group's package so it is usable outside this study:
-
-| file | what it adds |
+| file | what it is |
 |---|---|
-| `quantum-sensing-py/quantum_sensing/radiation_pressure.py` | the back-action unitary `U_BA = exp(−i κ x̂²/2)` and `get_state_single_mode_ba`, which extends `get_state_single_mode` with `kappa` and `ordering` |
-| `quantum-sensing-py/quantum_sensing/probe_states.py` | the probe states, each solved to a target ⟨n⟩ by root finding |
-| `quantum-sensing-py/quantum_sensing/convergence.py` | the automated Fock-cutoff convergence check |
-| `backaction-qfi/run_study.py` | the study runner (this folder) |
-| `backaction-qfi/make_figures.py` | the figures (this folder) |
-| `tests/test_radiation_pressure.py` | 110 tests: operator algebra, orderings, loss placement, closed-form results, agreement with an independent Gaussian covariance track |
+| `radiation_pressure.py` | **new** — the back-action unitary `U_BA = exp(−i κ x̂²/2)` and `get_state_single_mode_ba` |
+| `probe_states.py` | **new** — probe states, each solved to a target ⟨n⟩ by root finding |
+| `convergence.py` | **new** — the automated Fock-cutoff convergence check |
+| `gaussian_reference.py` | **new** — an independent covariance-matrix implementation of the same channel, exact for Gaussian states, used only to check the Fock code |
+| `dynamics.py`, `sld.py`, `conversions.py` | *verbatim copies* of the group's `quantum_sensing` modules — the sensing channel, the SLD/QFI routine, and the unit conversions |
+| `run_study.py` | the study runner |
+| `make_figures.py`, `plotstyle.py` | the figures |
+| `test_backaction.py`, `conftest.py` | 108 tests, runnable with `pytest backaction-qfi` |
+| `results/` | CSVs and figures |
 
-`get_state_single_mode_ba` keeps the signature and three-stage noise staging of
-`get_state_single_mode`, and with `kappa = 0` reproduces it bit for bit (a test).
+The group's own tree at `../quantum-sensing-py/` is **untouched** — byte-identical
+to `main`. (Note for whoever maintains it: as shipped it cannot be imported,
+because the modules sit directly in the hyphenated `quantum-sensing-py/` while
+`__init__.py` uses `from quantum_sensing.X import Y` and `pyproject.toml`
+declares `include = ["quantum_sensing*"]`. Moving the `.py` files into a
+`quantum_sensing/` subdirectory fixes it. That is not done here, to keep the
+group's copy unmodified.)
 
 ## Method
 
@@ -58,25 +68,25 @@ U_BA(κ) = exp(−i κ x̂² / 2)
 
 equivalently a squeeze plus rotation with `e^r − e^-r = κ`.
 
-The package's sensing Hamiltonian is
+The sensing Hamiltonian is
 `H = Δ n̂ + ε_a(a†+a) + i ε_p(a†−a)`. Since `(a†+a) = √2 x̂`, **`ε_a` is the
 gravitational-wave signal quadrature** and is the estimated parameter
 throughout. `ε_p` drives `√2 p̂` and is used only as a deliberately
 non-commuting reference. Convert to the dimensionless displacement `λ` with
 `F_λ = F_{ε_a} / 2`.
 
-Loss uses the package's own `loss_to_kappa`; phase noise uses `phirms_to_chi`.
+Loss uses the group's own `loss_to_kappa`; phase noise uses `phirms_to_chi`.
 Both are applied as closed-form maps by default (`solver="exact"`), which agree
-with the package's `mesolve` integrator to 1e-10 — `solver="mesolve"` still runs
-the integrator unchanged. The closed forms are needed because `mesolve`
+with the `mesolve` integrator to 1e-10 — `solver="mesolve"` still runs the
+integrator unchanged. The closed forms are needed because `mesolve`
 propagates an N²-dimensional Liouvillian, which cannot reach the cutoffs the
 shear demands.
 
 **Every number below went through the cutoff convergence check.** This matters
-more than it sounds: at the package default `N_basis = 20`, the QFI is wrong by
+more than it sounds: at the default `N_basis = 20`, the QFI is wrong by
 **202 %** for an even cat at ⟨n⟩ = 4 (κ = 1.5, η = 0.9), and by 95 % for
-squeezed vacuum. The `converged` column in every CSV flags the two points
-(of ~600) that did not converge.
+squeezed vacuum. The `converged` column in every CSV flags the single point
+(of ~500) that did not converge.
 
 ---
 
@@ -222,9 +232,10 @@ cats it is small.
 
 ## Validation
 
-`tests/test_radiation_pressure.py` (110 tests) checks against two independent
-references — closed-form Gaussian results, and the covariance-matrix track in
-`ligo_backaction/`, which is exact for Gaussian states:
+`test_backaction.py` (108 tests, `pytest backaction-qfi`) checks against two
+independent references — closed-form Gaussian results, and `gaussian_reference.py`,
+a covariance-matrix implementation of the same channel that shares no code with
+the Fock track and is exact for Gaussian states:
 
 * `U_BA† x̂ U_BA = x̂` and `U_BA† p̂ U_BA = p̂ − κ x̂`, and the shear's
   squeeze–rotation decomposition with `e^r − e^-r = κ`;
@@ -232,24 +243,31 @@ references — closed-form Gaussian results, and the covariance-matrix track in
 * `solver="exact"` and `solver="mesolve"` agree to 1e-10;
 * the closed-form vacuum result `2·2η/(1+η(1−η)κ²)`;
 * injection loss κ-independent, detection loss monotonically decreasing;
-* every state hits its target ⟨n⟩, and the no-back-action optimum reproduces
-  `F_λ = 2(2n̄+1+2√(n̄(n̄+1)))` and is squeezed vacuum to overlap 1e-4;
-* agreement with the Gaussian track across orderings, losses and quadratures.
+* every state hits its target ⟨n⟩ to 1e-6;
+* squeezed vacuum is confirmed to be the exact maximiser of `Var(x)` at fixed
+  ⟨n⟩ (a Lagrange-multiplier eigenproblem giving
+  `F_λ = 2(2n̄+1+2√(n̄(n̄+1)))`), which is why it leads every lossless ranking;
+* agreement with `gaussian_reference` across orderings, losses and quadratures.
+
+## Still to do
+
+* **"States optimised without back-action from previous code."** Deliberately
+  *not* reported here. Those states come from the group's earlier optimisation
+  runs and need the `consolidated_data` directory
+  (`quantum_sensing.states.set_data_dir`, then `get_best_qfi_envelope` /
+  `reconstruct_state`), which was not available when this was run. The analytic
+  optimum is not a substitute: maximising `Var(x)` at fixed ⟨n⟩ provably gives
+  squeezed vacuum, so reporting it would just duplicate the `squeezed` row and
+  look like an independent result when it is not. `probe_states.py` keeps
+  `optimal_no_backaction` as the closed-form reference for when the real states
+  arrive, but it is absent from `STATE_FAMILIES` and appears in no scan.
 
 ## Caveats
 
-* **"States optimised without back-action from previous code" is a stand-in.**
-  `opt_no_ba` is the *analytic* optimum (maximise `Var(x)` at fixed ⟨n⟩ via a
-  Lagrange-multiplier eigenproblem), which provably is squeezed vacuum — hence
-  it tracks the `squeezed` row to five digits everywhere. That is a consistency
-  check, not an independent probe. The real optimised states live in
-  `quantum_sensing.states` (`get_best_qfi_envelope`, `reconstruct_state`) and
-  need the `consolidated_data` directory via `set_data_dir()`. **Point me at
-  that directory and this row becomes a genuine data point.**
-* **Two unconverged points** of ~600: `squeezed` and `opt_no_ba` at ⟨n⟩ = 2,
-  κ = 3, `eta_out = 0.95`, both capped at `N_basis = 700` with a last relative
-  change of 5.6e−6. Values are good to ~1e−5 but missed the
-  two-consecutive-rungs criterion; the `converged` column flags them.
+* **One unconverged point** of ~500: `squeezed` at ⟨n⟩ = 2, κ = 3,
+  `eta_out = 0.95`, capped at `N_basis = 700` with a last relative change of
+  5.6e−6. The value is good to ~1e−5 but missed the two-consecutive-rungs
+  criterion; the `converged` column flags it.
 * **Convention warning.** `conversions.r_to_var` returns `exp(−r²)`, not
   `exp(−2r)`; its docstring flags it as the optimisation code's convention, but
   it is inconsistent with `n_to_r` in the same module. The states here use the
@@ -257,5 +275,5 @@ references — closed-form Gaussian results, and the covariance-matrix track in
 * The QFI is a bound over all measurements. Nothing here says a homodyne, or any
   realisable readout, attains it.
 * This is one sideband frequency at a time. Per-frequency additivity, the
-  interferometer calibration `κ(Ω)` and the broadband cost metrics are in
-  [`../FINDINGS.md`](../FINDINGS.md) on the Gaussian verification track.
+  interferometer calibration `κ(Ω)` and the broadband cost metrics are outside
+  this folder, in [`../FINDINGS.md`](../FINDINGS.md).

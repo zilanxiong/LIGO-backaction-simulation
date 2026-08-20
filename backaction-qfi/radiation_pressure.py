@@ -1,7 +1,7 @@
 """
 Radiation-pressure (ponderomotive) back-action on the single-mode sensing channel.
 
-Extends :mod:`quantum_sensing.dynamics` with the linearised opto-mechanical
+Extends :mod:`dynamics` with the linearised opto-mechanical
 back-action of a free-mass interferometer at one sideband frequency, keeping the
 noise-stage structure, the unit conversions and the QuTiP types of the existing
 package.
@@ -32,7 +32,7 @@ which is equivalently a squeeze plus a rotation with
 
 Relation to the existing sensing Hamiltonian
 --------------------------------------------
-:func:`quantum_sensing.dynamics.get_state_single_mode` uses
+:func:`dynamics.get_state_single_mode` uses
 
 .. math::   H = \\Delta\\,\\hat n + \\epsilon_a (a^\\dagger + a) + i\\,\\epsilon_p (a^\\dagger - a),
 
@@ -70,7 +70,7 @@ import qutip as qt
 from scipy.linalg import expm
 from scipy.special import gammaln
 
-from .conversions import loss_to_kappa, phirms_to_chi
+from conversions import loss_to_kappa, phirms_to_chi
 
 __all__ = [
     "ORDERINGS",
@@ -87,7 +87,7 @@ __all__ = [
 ORDERINGS = ("none", "BA1", "BA2", "BA3")
 
 #: ``"exact"`` uses closed-form maps; ``"mesolve"`` uses the QuTiP integrator that
-#: :mod:`quantum_sensing.dynamics` uses.  They implement the same channel -- see
+#: :mod:`dynamics` uses.  They implement the same channel -- see
 #: ``test_exact_and_mesolve_solvers_agree`` -- but "exact" is orders of magnitude
 #: faster at the cutoffs radiation pressure needs, where the integrator has to
 #: propagate an N^2-dimensional Liouvillian.
@@ -171,7 +171,7 @@ def suggested_cutoff(nbar, kappa, safety=8.0):
     The shear multiplies the :math:`p` variance by up to :math:`1 + \kappa^2`, so
     the output photon number grows roughly like
     :math:`(1 + \kappa^2)(\bar n + 1)`.  This is only a starting point for
-    :func:`quantum_sensing.convergence.converge`, never a substitute for it: the
+    :func:`convergence.converge`, never a substitute for it: the
     package default ``N_basis=20`` is adequate for displacement and rotation but
     badly inadequate once radiation pressure is switched on.
     """
@@ -242,7 +242,7 @@ def _loss_exact(rho, eta):
     """Bosonic loss of transmissivity ``eta``, applied as a shifted-diagonal sum.
 
     Equivalent to damping with ``loss_to_kappa(1 - eta)`` over unit time, which is
-    what :mod:`quantum_sensing.dynamics` does, but O(support * N^2) instead of an
+    what :mod:`dynamics` does, but O(support * N^2) instead of an
     N^2-dimensional ODE.
     """
     eta = float(eta)
@@ -356,7 +356,7 @@ def get_state_single_mode_ba(
     Single-mode sensing channel *with* radiation-pressure back-action.
 
     Same signature and staging as
-    :func:`quantum_sensing.dynamics.get_state_single_mode`, plus ``kappa`` and
+    :func:`dynamics.get_state_single_mode`, plus ``kappa`` and
     ``ordering``.  With ``kappa = 0`` (or ``ordering="none"``) it reduces to that
     function exactly.
 
@@ -375,11 +375,11 @@ def get_state_single_mode_ba(
         Where radiation pressure sits relative to the signal.  ``"BA3"`` is the
         physical case and is the default.
     Delta, epsilon_a, epsilon_p, eta_*, pn_*, sigma_*, t_final, N_basis, rho
-        As in :func:`quantum_sensing.dynamics.get_state_single_mode`.
+        As in :func:`dynamics.get_state_single_mode`.
         ``epsilon_a`` is the gravitational-wave signal quadrature.
     solver : {"exact", "mesolve"}
         ``"exact"`` (default) applies closed-form maps; ``"mesolve"`` reproduces
-        the integrator used by :mod:`quantum_sensing.dynamics`.  The two agree to
+        the integrator used by :mod:`dynamics`.  The two agree to
         solver tolerance, but only ``"exact"`` is usable at the cutoffs radiation
         pressure requires.  In-channel noise (``eta_ch``, ``pn_ch``, ``sigma_a``,
         ``sigma_p``) has no closed form here and always uses the integrator.

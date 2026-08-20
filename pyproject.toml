@@ -17,4 +17,4 @@ dev = ["pytest>=7.0", "matplotlib>=3.7"]
 packages = ["ligo_backaction"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "backaction-qfi"]

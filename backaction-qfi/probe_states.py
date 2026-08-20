@@ -20,8 +20,8 @@ most from radiation pressure once loss is present.
 Convention note
 ---------------
 Squeezing uses the textbook relation :math:`\\bar n = \\sinh^2 r`, matching
-:func:`quantum_sensing.conversions.n_to_r`.  It deliberately does **not** use
-:func:`quantum_sensing.conversions.r_to_var`, which returns :math:`e^{-r^2}`
+:func:`conversions.n_to_r`.  It deliberately does **not** use
+:func:`conversions.r_to_var`, which returns :math:`e^{-r^2}`
 rather than :math:`e^{-2r}` -- that function documents itself as following the
 optimisation code's convention, and it is inconsistent with ``n_to_r`` in the
 same module.  Mixing the two silently corrupts any squeezing comparison.
@@ -178,7 +178,7 @@ def squeezed_cat(N_basis, nbar, squeeze_fraction=0.5, parity="even"):
 @lru_cache(maxsize=128)
 def _optimal_no_backaction_array(N_basis, nbar):
     """Cached: the multiplier root-find diagonalises an N x N matrix per iteration."""
-    from .radiation_pressure import x_quadrature
+    from radiation_pressure import x_quadrature
 
     x2 = (x_quadrature(N_basis) ** 2).full().real
     n_diag = np.arange(N_basis, dtype=float)
@@ -212,11 +212,18 @@ def optimal_no_backaction(N_basis, nbar):
     one-dimensional root find rather than by gradient descent.  The answer is
     the squeezed vacuum with :math:`\sinh^2 r = \bar n`.
 
-    This is the analytic stand-in for "states optimised without back-action from
-    previous code".  The saved optimisation results in
-    :mod:`quantum_sensing.states` (``get_best_qfi_envelope``,
-    ``reconstruct_state``) are the real thing and need a data directory; see
-    :func:`quantum_sensing.states.set_data_dir`.
+    **Not a reported probe.**  It is deliberately absent from
+    :data:`STATE_FAMILIES`, so it never appears in a state scan.  The real
+    "states optimised without back-action from previous code" come from the
+    group's earlier optimisation runs (``quantum_sensing.states``:
+    ``get_best_qfi_envelope``, ``reconstruct_state``) and need the
+    ``consolidated_data`` directory via ``set_data_dir``.  Reporting this
+    analytic optimum in their place would be misleading -- it provably *is*
+    squeezed vacuum, so it would just duplicate that row.
+
+    It is kept because it is the correct closed-form answer and a useful check:
+    it proves squeezed vacuum maximises the displacement QFI at fixed photon
+    number, which is why squeezed vacuum leads every lossless ranking here.
     """
     if nbar <= 0:
         return _vacuum(N_basis)
@@ -231,7 +238,6 @@ STATE_FAMILIES = {
     "cat_even": lambda N, nbar: cat_state(N, nbar, "even"),
     "cat_odd": lambda N, nbar: cat_state(N, nbar, "odd"),
     "squeezed_cat": lambda N, nbar: squeezed_cat(N, nbar, 0.5),
-    "opt_no_ba": optimal_no_backaction,
 }
 
 STATE_LABELS = {
@@ -242,7 +248,6 @@ STATE_LABELS = {
     "cat_even": "even cat",
     "cat_odd": "odd cat",
     "squeezed_cat": "squeezed cat",
-    "opt_no_ba": "opt. (no BA)",
 }
 
 

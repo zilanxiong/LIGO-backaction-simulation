@@ -33,12 +33,6 @@ config,state,nbar,qfi_epsilon_a,cutoff,converged
 "no back-action, lossless",squeezed_cat,2.0,39.590034083346886,73,True
 "no back-action, lossless",squeezed_cat,4.0,71.77185176241444,134,True
 "no back-action, lossless",squeezed_cat,6.0,103.84154483753072,189,True
-"no back-action, lossless",opt_no_ba,0.25,10.472135949516298,73,True
-"no back-action, lossless",opt_no_ba,0.5,14.928203219132946,73,True
-"no back-action, lossless",opt_no_ba,1.0,23.313708471667084,73,True
-"no back-action, lossless",opt_no_ba,2.0,39.595915539499074,73,True
-"no back-action, lossless",opt_no_ba,4.0,71.7770389012863,99,True
-"no back-action, lossless",opt_no_ba,6.0,103.84527036775185,103,True
 "BA kappa=1, lossless",coherent,0.25,3.999999999178053,73,True
 "BA kappa=1, lossless",coherent,0.5,3.99999999920905,73,True
 "BA kappa=1, lossless",coherent,1.0,3.9999999991814965,73,True
@@ -73,12 +67,6 @@ config,state,nbar,qfi_epsilon_a,cutoff,converged
 "BA kappa=1, lossless",squeezed_cat,2.0,39.59003465241177,88,True
 "BA kappa=1, lossless",squeezed_cat,4.0,71.7718519875549,146,True
 "BA kappa=1, lossless",squeezed_cat,6.0,103.8415452689185,206,True
-"BA kappa=1, lossless",opt_no_ba,0.25,10.472135949515792,73,True
-"BA kappa=1, lossless",opt_no_ba,0.5,14.92820321912431,73,True
-"BA kappa=1, lossless",opt_no_ba,1.0,23.313708471644393,73,True
-"BA kappa=1, lossless",opt_no_ba,2.0,39.595917740935036,88,True
-"BA kappa=1, lossless",opt_no_ba,4.0,71.77708706754302,146,True
-"BA kappa=1, lossless",opt_no_ba,6.0,103.84592471946823,206,True
 "BA kappa=1, detection eta=0.9",coherent,0.25,3.3027522033092396,73,True
 "BA kappa=1, detection eta=0.9",coherent,0.5,3.3027522033222345,73,True
 "BA kappa=1, detection eta=0.9",coherent,1.0,3.3027522032536085,73,True
@@ -113,12 +101,6 @@ config,state,nbar,qfi_epsilon_a,cutoff,converged
 "BA kappa=1, detection eta=0.9",squeezed_cat,2.0,12.400690533972934,161,True
 "BA kappa=1, detection eta=0.9",squeezed_cat,4.0,14.39136457503331,198,True
 "BA kappa=1, detection eta=0.9",squeezed_cat,6.0,15.329821780976838,377,True
-"BA kappa=1, detection eta=0.9",opt_no_ba,0.25,6.670395100044087,73,True
-"BA kappa=1, detection eta=0.9",opt_no_ba,0.5,8.214243182434693,73,True
-"BA kappa=1, detection eta=0.9",opt_no_ba,1.0,10.21146495247338,99,True
-"BA kappa=1, detection eta=0.9",opt_no_ba,2.0,12.421994843370214,161,True
-"BA kappa=1, detection eta=0.9",opt_no_ba,4.0,14.426545805965457,268,True
-"BA kappa=1, detection eta=0.9",opt_no_ba,6.0,15.3688074034308,377,True
 "BA kappa=2, detection eta=0.9",coherent,0.25,2.647058796891934,92,True
 "BA kappa=2, detection eta=0.9",coherent,0.5,2.647058796845631,110,True
 "BA kappa=2, detection eta=0.9",coherent,1.0,2.647058796874566,146,True
@@ -153,9 +135,3 @@ config,state,nbar,qfi_epsilon_a,cutoff,converged
 "BA kappa=2, detection eta=0.9",squeezed_cat,2.0,6.130134942588951,296,True
 "BA kappa=2, detection eta=0.9",squeezed_cat,4.0,6.563053580948399,493,True
 "BA kappa=2, detection eta=0.9",squeezed_cat,6.0,6.74519968813861,511,True
-"BA kappa=2, detection eta=0.9",opt_no_ba,0.25,4.350535596112001,125,True
-"BA kappa=2, detection eta=0.9",opt_no_ba,0.5,4.934279801676393,202,True
-"BA kappa=2, detection eta=0.9",opt_no_ba,1.0,5.564720038440079,268,True
-"BA kappa=2, detection eta=0.9",opt_no_ba,2.0,6.138331589099624,400,True
-"BA kappa=2, detection eta=0.9",opt_no_ba,4.0,6.573017333415087,493,True
-"BA kappa=2, detection eta=0.9",opt_no_ba,6.0,6.754684261389669,700,True

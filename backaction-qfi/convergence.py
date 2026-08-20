@@ -98,7 +98,7 @@ def converged_qfi(state_builder, channel, param_type="epsilon_a", param_value=0.
         :func:`quantum_sensing.radiation_pressure.get_state_single_mode_ba`.
     param_type, param_value : str, float
         Estimated parameter and the operating point, as in
-        :func:`quantum_sensing.sld.calculate_qfi`.
+        :func:`sld.calculate_qfi`.
     **channel_kwargs
         Forwarded to ``channel`` (``kappa``, ``ordering``, ``eta_out``, ...).
 
@@ -106,7 +106,7 @@ def converged_qfi(state_builder, channel, param_type="epsilon_a", param_value=0.
     -------
     ConvergenceResult
     """
-    from .sld import calculate_qfi
+    from sld import calculate_qfi
 
     def value(N_basis):
         return calculate_qfi(

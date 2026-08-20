@@ -1,10 +1,13 @@
-"""Back-action channel in ``quantum_sensing``: algebra, orderings, loss placement.
+"""Back-action channel: algebra, orderings, loss placement, states.
+
+Run with ``pytest backaction-qfi``.
 
 Two independent references are used:
 
 * closed-form Gaussian results (derived in the module docstrings), and
-* the covariance-matrix track in :mod:`ligo_backaction`, which is exact for
-  Gaussian states.
+* :mod:`gaussian_reference`, a covariance-matrix implementation of the same
+  channel that shares no code with the Fock track and is exact for Gaussian
+  states.
 
 The QFI here is always for ``epsilon_a`` -- the signal quadrature of the group's
 sensing Hamiltonian.  Its relation to the dimensionless displacement ``lambda``
@@ -16,10 +19,21 @@ import numpy as np
 import pytest
 import qutip as qt
 
-from quantum_sensing.convergence import converge, converged_qfi, tail_population
-from quantum_sensing.dynamics import get_state_single_mode
-from quantum_sensing.probe_states import STATE_FAMILIES, make_state, mean_photon_number
-from quantum_sensing.radiation_pressure import (
+from convergence import converge, converged_qfi, tail_population
+from dynamics import get_state_single_mode
+from gaussian_reference import (
+    EPS_A_PER_LAMBDA,
+    gaussian_qfi_lambda,
+    squeezed_vacuum_moments,
+    vacuum,
+)
+from probe_states import (
+    STATE_FAMILIES,
+    make_state,
+    mean_photon_number,
+    optimal_no_backaction,
+)
+from radiation_pressure import (
     ORDERINGS,
     backaction_unitary,
     get_state_single_mode_ba,
@@ -28,12 +42,7 @@ from quantum_sensing.radiation_pressure import (
     suggested_cutoff,
     x_quadrature,
 )
-from quantum_sensing.sld import calculate_qfi, calculate_sld
-
-from ligo_backaction import ChannelSpec, gaussian_qfi_lambda, squeezed_vacuum_gaussian, vacuum
-
-#: F_{epsilon_a} = EPS_A_PER_LAMBDA * t_final**2 * F_lambda
-EPS_A_PER_LAMBDA = 2.0
+from sld import calculate_qfi, calculate_sld
 
 KAPPAS = [0.0, 0.5, 1.0, 2.0, 3.0]
 
@@ -117,10 +126,15 @@ def test_states_hit_their_target_photon_number(family, nbar):
 
 
 def test_optimal_no_backaction_state_is_squeezed_vacuum():
-    """max Var(x) at fixed <n> gives F_lambda = 2(2n+1+2 sqrt(n(n+1)))."""
+    """max Var(x) at fixed <n> gives F_lambda = 2(2n+1+2 sqrt(n(n+1))).
+
+    ``optimal_no_backaction`` is not a reported probe (it is absent from
+    STATE_FAMILIES); this pins the closed-form result it encodes, which is what
+    makes squeezed vacuum the leader of every lossless ranking.
+    """
     for nbar in (0.5, 1.0, 3.0):
         N = int(40 + 25 * nbar)
-        opt = make_state("opt_no_ba", N, nbar)
+        opt = optimal_no_backaction(N, nbar)
         theory = EPS_A_PER_LAMBDA * 2 * (2 * nbar + 1 + 2 * np.sqrt(nbar * (nbar + 1)))
         assert qfi(opt, kappa=0.0, ordering="none") == pytest.approx(theory, rel=1e-5)
         overlap = abs(complex(make_state("squeezed", N, nbar).dag() * opt))
@@ -229,23 +243,25 @@ def test_phase_noise_then_backaction_then_loss_degrades_monotonically():
 @pytest.mark.parametrize("kappa", [0.0, 1.0, 2.0])
 @pytest.mark.parametrize("ordering", ["none", "BA1", "BA2", "BA3"])
 @pytest.mark.parametrize("eta_in,eta_out", [(1.0, 1.0), (0.7, 1.0), (1.0, 0.7), (0.85, 0.9)])
-def test_matches_the_gaussian_track(kappa, ordering, eta_in, eta_out):
+def test_matches_the_gaussian_reference(kappa, ordering, eta_in, eta_out):
     nbar = 1.0
     N = 220 + 60 * int(kappa)
-    spec = ChannelSpec(kappa=kappa, ordering=ordering, eta_in=eta_in, eta_out=eta_out)
+    cov, dmean = squeezed_vacuum_moments(nbar)
     expected = EPS_A_PER_LAMBDA * gaussian_qfi_lambda(
-        squeezed_vacuum_gaussian(np.arcsinh(np.sqrt(nbar))), spec
+        cov, dmean, kappa=kappa, ordering=ordering, eta_in=eta_in, eta_out=eta_out
     )
     got = qfi(make_state("squeezed", N, nbar), kappa=kappa, ordering=ordering,
               eta_in=eta_in, eta_out=eta_out, N_basis=N)
     assert got == pytest.approx(expected, rel=3e-5)
 
 
-def test_vacuum_matches_the_gaussian_track_under_backaction():
+def test_vacuum_matches_the_gaussian_reference_under_backaction():
     for kappa in KAPPAS:
         N = 40 + int(60 * kappa)
-        spec = ChannelSpec(kappa=kappa, ordering="BA1", eta_out=0.8)
-        expected = EPS_A_PER_LAMBDA * gaussian_qfi_lambda(vacuum(), spec)
+        cov, dmean = vacuum()
+        expected = EPS_A_PER_LAMBDA * gaussian_qfi_lambda(
+            cov, dmean, kappa=kappa, ordering="BA1", eta_out=0.8
+        )
         got = qfi(make_state("vacuum", N, 0.0), kappa=kappa, ordering="BA1", eta_out=0.8, N_basis=N)
         assert got == pytest.approx(expected, rel=1e-6)
 

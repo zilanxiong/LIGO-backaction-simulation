@@ -29,19 +29,18 @@ from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(ROOT / "quantum-sensing-py"))
 
-import quantum_sensing as qs  # noqa: E402
-from quantum_sensing.convergence import converged_qfi  # noqa: E402
-from quantum_sensing.radiation_pressure import (  # noqa: E402
-    get_state_single_mode_ba,
-    suggested_cutoff,
-)
+from convergence import converged_qfi  # noqa: E402
+from probe_states import STATE_LABELS, make_state  # noqa: E402
+from radiation_pressure import get_state_single_mode_ba, suggested_cutoff  # noqa: E402
 
-FAMILIES = ["coherent", "squeezed", "fock", "cat_even", "cat_odd", "squeezed_cat", "opt_no_ba"]
-LABELS = qs.STATE_LABELS
+# The "optimum without back-action" probe is deliberately absent: the real
+# optimised states come from the previous optimisation runs and need the
+# consolidated_data directory (quantum_sensing.states.set_data_dir).  Rather
+# than report an analytic stand-in, that row is deferred.
+FAMILIES = ["coherent", "squeezed", "fock", "cat_even", "cat_odd", "squeezed_cat"]
+LABELS = STATE_LABELS
 MAX_CUTOFF = 700
 
 
@@ -63,7 +62,7 @@ def qfi(family, nbar, rtol=3e-4, **channel):
         n = int(np.ceil(n * 1.35))
     ladder.append(MAX_CUTOFF)
     res = converged_qfi(
-        lambda N: qs.make_state(family, N, nbar),
+        lambda N: make_state(family, N, nbar),
         get_state_single_mode_ba,
         param_type="epsilon_a",
         cutoffs=ladder,
@@ -95,10 +94,10 @@ def study_orderings(outdir, nbar, kappas):
                   f"|BA-BA3| max {spread:.1e}")
 
     # Non-commuting reference: signal in the amplitude quadrature.
-    from quantum_sensing.sld import calculate_qfi
+    from sld import calculate_qfi
     for family in ["squeezed", "cat_even"]:
         N = 250
-        psi = qs.make_state(family, N, nbar)
+        psi = make_state(family, N, nbar)
         vals = {}
         for ordering in ("none", "BA1", "BA2", "BA3"):
             vals[ordering] = calculate_qfi(

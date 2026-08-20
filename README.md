@@ -14,17 +14,18 @@ project to-do list end to end and is the thing to read first.
 
 | directory | what it is |
 |---|---|
-| `backaction-qfi/` | **the study**: runner, figure script, CSVs, figures and the report |
-| `quantum-sensing-py/` | the group's single-mode sensing package. Radiation pressure lives here in `quantum_sensing/radiation_pressure.py`, with probe states in `probe_states.py` and the cutoff checker in `convergence.py` |
+| `backaction-qfi/` | **the study — fully self-contained**: channel, probe states, convergence check, runner, figures, tests, results and the report. Nothing outside it is imported |
+| `quantum-sensing-py/` | the group's single-mode sensing package, **untouched** (byte-identical to `main`). `backaction-qfi/` carries verbatim copies of the three modules it needs |
 | `quantum-sensing-jl/` | the Julia original, including the GPU/CUDA path and classical Fisher information. Untouched |
 | `ligo_backaction/` | an independent verification track: a Gaussian covariance-matrix implementation of the same channel, exact for Gaussian states, plus analytic benchmarks (SQL, variational readout, FD squeezing). Used to validate the numbers, not to replace them |
-| `tests/` | 267 tests across both tracks |
+| `tests/` | 157 tests for the verification track (the study's own 108 live in `backaction-qfi/`); 265 in total |
 | `scripts/`, `results/`, `FINDINGS.md` | the earlier broadband study on the verification track: interferometer calibration, cost metrics, two-frequency additivity |
 
 ```bash
 pip install -r requirements.txt
 python backaction-qfi/run_study.py && python backaction-qfi/make_figures.py
-pytest -q
+pytest backaction-qfi   # the study's own tests
+pytest -q               # everything
 ```
 
 ---

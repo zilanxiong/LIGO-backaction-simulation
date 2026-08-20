@@ -33,9 +33,8 @@ LABELS = {
     "cat_even": "even cat",
     "cat_odd": "odd cat",
     "squeezed_cat": "squeezed cat",
-    "opt_no_ba": "opt. (no BA)",
 }
-ORDER = ["coherent", "squeezed", "fock", "cat_even", "cat_odd", "squeezed_cat", "opt_no_ba"]
+ORDER = ["coherent", "squeezed", "fock", "cat_even", "cat_odd", "squeezed_cat"]
 
 
 def read(path):
@@ -159,7 +158,7 @@ def fig_states_vs_kappa(d, out):
             fig.suptitle(r"Probe states at fixed $\bar n = 2$: flat without loss, "
                          r"ranking inverts with it", y=1.0)
             fig.subplots_adjust(wspace=0.1)
-            legend_below(fig, axes[0], ncol=7)
+            legend_below(fig, axes[0], ncol=6)
             finish(fig, str(out / "fig4_states_vs_kappa"), name)
 
 
@@ -192,7 +191,7 @@ def fig_nbar_scaling(d, out):
             fig.suptitle(r"Photon-number scaling: linear without loss, saturating or "
                          r"$\it{falling}$ with back-action plus loss", y=1.02)
             fig.subplots_adjust(wspace=0.1)
-            legend_below(fig, axes[0], ncol=7)
+            legend_below(fig, axes[0], ncol=6)
             finish(fig, str(out / "fig5_nbar_scaling"), name)
 
 

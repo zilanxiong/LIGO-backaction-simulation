@@ -1,5 +1,4 @@
-"""Quantum sensing: dynamics, QFI/CFI, SLD, state reconstruction, GKP states,
-and radiation-pressure back-action."""
+"""Quantum sensing: dynamics, QFI/CFI, SLD, state reconstruction, and GKP states."""
 
 from quantum_sensing.conversions import (
     loss_to_kappa, kappa_to_loss,
@@ -31,21 +30,4 @@ from quantum_sensing.states import (
 from quantum_sensing.gkp import (
     discrete_q, gkp_s_values, gkp, num_state,
     gkp_fock_coeff, gkp_fock,
-)
-
-from quantum_sensing.radiation_pressure import (
-    ORDERINGS,
-    x_quadrature, p_quadrature,
-    backaction_hamiltonian, backaction_unitary, shear_as_squeeze_rotation,
-    suggested_cutoff, get_state_single_mode_ba,
-)
-
-from quantum_sensing.probe_states import (
-    STATE_FAMILIES, STATE_LABELS, make_state, mean_photon_number,
-    coherent_state, squeezed_vacuum, fock_state, cat_state, squeezed_cat,
-    optimal_no_backaction,
-)
-
-from quantum_sensing.convergence import (
-    ConvergenceResult, converge, converged_qfi, tail_population,
 )
