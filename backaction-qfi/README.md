@@ -20,7 +20,7 @@ and noise staging. With `kappa = 0` it reproduces the original bit for bit.
 
 | | |
 |---|---|
-| **Channel** | BA1 (radiation pressure → displacement sensing), BA2 (sensing → radiation pressure), BA3 (simultaneous — the physical case), each with injection loss (loss → BA), detection loss (BA → loss) and phase noise (phase noise → BA → loss) |
+| **Channel** | BA1 (radiation pressure → displacement sensing), BA2 (sensing → radiation pressure), BA3 (simultaneous — the physical case), each with injection loss (loss → BA), concurrent loss (loss *during* BA), detection loss (BA → loss) and phase noise (phase noise → BA → loss) |
 | **States** | coherent, squeezed, even/odd cat, squeezed cat, Fock — all at fixed mean photon number ⟨n⟩ |
 | **Reported** | QFI per configuration, and the ⟨n⟩ scaling exponent |
 
@@ -71,6 +71,14 @@ throughout. `ε_p` drives `√2 p̂` and is used only as a deliberately
 non-commuting reference. Convert to the dimensionless displacement `λ` with
 `F_λ = F_{ε_a} / 2`.
 
+Concurrent loss and dephasing have no single closed-form map, so they are
+evolved by Strang splitting with one Richardson step — the splitting error is
+cleanly `O(1/n²)` (measured: the error falls by exactly 4.00 per doubling of
+`n`), which the extrapolation turns into `O(1/n⁴)`. That agrees with `mesolve`
+to 1e-6 across 36 state/config/ordering comparisons and is what makes the case
+affordable at all: the integrator costs 4.5 s at `N_basis = 160` and scales as
+an N²-dimensional Liouvillian. `sigma_a`/`sigma_p` still use the integrator.
+
 Loss uses the group's own `loss_to_kappa`; phase noise uses `phirms_to_chi`.
 Both are applied as closed-form maps by default (`solver="exact"`), which agree
 with the `mesolve` integrator to 1e-10 — `solver="mesolve"` still runs the
@@ -105,13 +113,9 @@ whole output density matrix is identical across the three orderings, not just
 the QFI (max `|ρᵢ − ρⱼ|` ≈ 4e−16). It survives `eta_in`/`eta_out` and
 `pn_in`/`pn_out` because those act strictly before or after the interaction.
 
-**It does not survive dissipation acting *during* the interaction.** With
-`eta_ch` or `pn_ch` the Lindblad operators (`a`, `n̂`) do not commute with the
-shear, and the orderings separate even for `ε_a` — at `eta_ch = 0.8`, κ = 1.5,
-an even cat at ⟨n⟩ = 2 gives BA1 3.402, BA2 8.343, BA3 5.133, with BA3 again
-bracketed. Every result in this report uses stage-separated loss
-(`eta_in`/`eta_out`), so the equality holds throughout; concurrent loss is the
-more realistic model and is the obvious next thing to run.
+**It does not survive dissipation acting *during* the interaction** — see
+§2b, where the orderings separate by up to 6× and BA3 is bracketed by BA1
+and BA2, which is the behaviour the project plan describes.
 
 **The bounding picture belongs to the non-commuting case.** Estimating `ε_p`
 instead separates the orderings by 48×, and BA3 is then bracketed:
@@ -130,12 +134,17 @@ is redundant — one suffices. With concurrent loss it is not.
 
 `results/loss_placement.csv`, η = 0.8, κ = 0 → 3.
 
-| state | injection (loss → BA) | detection (BA → loss) |
-|---|---|---|
-| squeezed | 14.244 → **14.244** (flat) | 11.395 → 1.571 (÷7.3) |
-| even cat | 9.318 → **9.318** (flat) | 7.455 → 1.360 (÷5.5) |
-| Fock | 9.404 → **9.404** (flat) | 7.524 → 2.330 (÷3.2) |
-| coherent | 4.000 → **4.000** (flat) | 3.200 → 1.311 (÷2.4) |
+| state | injection (loss → BA) | concurrent (loss *during* BA) | detection (BA → loss) |
+|---|---|---|---|
+| squeezed | 14.244 → **14.244** (flat) | 12.754 → 3.967 (÷3.2) | 11.395 → 1.571 (÷7.3) |
+| even cat | 9.318 → **9.318** (flat) | 8.343 → 2.746 (÷3.0) | 7.455 → 1.360 (÷5.5) |
+| Fock | 9.404 → **9.404** (flat) | 8.420 → 3.789 (÷2.2) | 7.524 → 2.330 (÷3.2) |
+| coherent | 4.000 → **4.000** (flat) | 3.581 → 2.330 (÷1.5) | 3.200 → 1.311 (÷2.4) |
+
+Concurrent loss lands **between** the two extremes for every state — as it
+should, since loss spread through the interaction is partly "before" and partly
+"after" the shear. It is also the realistic model: in an interferometer the two
+processes are not separable in time.
 
 Injection loss gives a QFI **exactly independent of κ**: loss degrades the
 input, and the shear that follows is a unitary leaving the generator alone
@@ -150,6 +159,38 @@ F_{ε_a} = 2 · 2η / (1 + η(1−η) κ²)
 
 *Practical consequence:* readout-side loss is qualitatively worse than
 injection-side loss under back-action. A single "total loss" figure hides it.
+
+### 2b. Concurrent loss is where BA1 and BA2 really do bound BA3
+
+![concurrent orderings](results/fig6_concurrent_orderings.png)
+
+`results/concurrent_orderings.csv`, ⟨n⟩ = 2, `eta_ch = 0.8`.
+
+| state | κ | BA1 | BA2 | BA3 | spread | BA3 bracketed |
+|---|---|---|---|---|---|---|
+| squeezed | 0.5 | 10.867 | 12.754 | 12.015 | 1.89 | yes |
+| squeezed | 1.5 | 4.976 | 12.754 | 8.209 | 7.78 | yes |
+| squeezed | 3.0 | 1.760 | 12.754 | 3.967 | 10.99 | yes |
+| even cat | 3.0 | 1.522 | 8.343 | 2.746 | 6.82 | yes |
+| Fock | 3.0 | 2.608 | 8.420 | 3.789 | 5.81 | yes |
+
+**BA3 is bracketed in all 9 cases**, and the bracket is wide — a factor 6 at
+κ = 3 for squeezed vacuum. This is the configuration the project plan has in
+mind: once loss and radiation pressure overlap in time, where you put the shear
+genuinely matters, and the two sequential orderings are the extremes.
+
+Two structural features worth reading off:
+
+* **BA2 is exactly flat in κ** (12.754 at every κ for squeezed vacuum). In BA2
+  the whole shear lands *after* the lossy sensing, so it is a QFI-preserving
+  unitary applied last — the QFI cannot depend on κ at all. It is the best case,
+  and a useful internal check.
+* **BA1 is the worst case** — the full shear acts before any of the loss, so
+  every bit of the inflated `p` variance is exposed to it. BA3, spreading the
+  shear through the interaction, sits in between.
+
+So the ordering question is not academic after all; it was only degenerate
+because the earlier runs idealised loss into separate stages.
 
 ### 3. Phase noise → back-action → detection loss
 
@@ -269,10 +310,14 @@ the Fock track and is exact for Gaussian states:
 
 ## Caveats
 
-* **One unconverged point** of ~500: `squeezed` at ⟨n⟩ = 2, κ = 3,
-  `eta_out = 0.95`, capped at `N_basis = 700` with a last relative change of
-  5.6e−6. The value is good to ~1e−5 but missed the two-consecutive-rungs
-  criterion; the `converged` column flags it.
+* **Four unconverged points** of 491, all flagged in the `converged` column.
+  One is `squeezed` at ⟨n⟩ = 2, κ = 3, `eta_out = 0.95` (capped at
+  `N_basis = 700`, last relative change 5.6e−6 — good to ~1e−5, it just missed
+  the two-consecutive-rungs criterion). The other three are `squeezed` at κ = 3
+  under **concurrent** loss, capped at `N_basis = 340` with last relative
+  changes of 1.1e−3 and 4.6e−3, so those three numbers are good to about three
+  digits rather than six. The concurrent path carries a lower cutoff cap because
+  it costs more per cutoff; raising it is a pure compute question.
 * **Convention warning.** `conversions.r_to_var` returns `exp(−r²)`, not
   `exp(−2r)`; its docstring flags it as the optimisation code's convention, but
   it is inconsistent with `n_to_r` in the same module. The states here use the

@@ -226,7 +226,7 @@ def fig_concurrent_orderings(d, out):
                 ax.set_xlabel(r"$\kappa$")
                 ax.set_title(LABELS[st])
             axes[0].set_ylabel(r"$\mathcal{F}_{\epsilon_a}$")
-            fig.suptitle(r"Loss acting *during* the interaction separates the orderings "
+            fig.suptitle(r"Loss acting $\it{during}$ the interaction separates the orderings "
                          r"($\eta_{\rm ch}=0.8$); BA3 stays bracketed", y=1.0)
             fig.subplots_adjust(wspace=0.12)
             legend_below(fig, axes[0], ncol=4)
