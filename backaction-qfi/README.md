@@ -1,8 +1,5 @@
 # QFI of optical states under radiation-pressure back-action
 
-Fully self-contained study folder: every piece of code needed to reproduce these
-results lives here. Nothing outside this directory is imported.
-
 ```bash
 pip install numpy scipy qutip matplotlib pytest
 python backaction-qfi/run_study.py      # ~5 min, writes results/*.csv
@@ -10,13 +7,12 @@ python backaction-qfi/make_figures.py   # writes results/*.png
 pytest backaction-qfi                   # 108 tests, ~25 s
 ```
 
-The radiation-pressure unitary is added to the group's existing single-mode
+The radiation-pressure unitary is added to the existing single-mode
 sensing channel rather than reimplemented alongside it: `dynamics.py`,
-`sld.py` and `conversions.py` are **verbatim copies of the group's
+`sld.py` and `conversions.py` are **copies of the original
 `quantum_sensing` modules**, and `get_state_single_mode_ba` extends
 `get_state_single_mode` with `kappa` and `ordering` while keeping its signature
-and noise staging. With `kappa = 0` it reproduces the original bit for bit —
-that is a test, and it is why the copies are here rather than paraphrased.
+and noise staging. With `kappa = 0` it reproduces the original bit for bit.
 
 ---
 
