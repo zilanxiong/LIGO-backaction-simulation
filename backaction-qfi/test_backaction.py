@@ -151,12 +151,35 @@ def test_optimal_no_backaction_state_is_squeezed_vacuum():
 @pytest.mark.parametrize("family", ["squeezed", "cat_even", "coherent", "fock"])
 def test_orderings_coincide_for_the_physical_signal_quadrature(family):
     """epsilon_a and the back-action generator are both functions of x, so they
-    commute and BA1 = BA2 = BA3 exactly -- even with loss and phase noise."""
+    commute and BA1 = BA2 = BA3 exactly.
+
+    Loss and phase noise here are stage-separated (eta_in/eta_out, pn_in/pn_out),
+    acting strictly before or after the interaction, so they cannot break it.
+    In-channel dissipation does -- see
+    ``test_orderings_differ_when_dissipation_acts_during_the_interaction``.
+    """
     N = 200
     psi = make_state(family, N, 1.5)
     common = dict(kappa=1.4, eta_in=0.9, eta_out=0.8, pn_in=0.05, N_basis=N)
     vals = [qfi(psi, ordering=o, **common) for o in ("BA1", "BA2", "BA3")]
     assert np.allclose(vals, vals[0], rtol=1e-8)
+
+
+@pytest.mark.parametrize("noise", [dict(eta_ch=0.8), dict(pn_ch=0.3)])
+def test_orderings_differ_when_dissipation_acts_during_the_interaction(noise):
+    """The orderings coincide only while the noise is stage-separated.
+
+    eta_in/eta_out/pn_in/pn_out act before or after the opto-mechanical
+    interaction, so they cannot spoil the commutation of the two generators.
+    eta_ch and pn_ch act *during* it, and their Lindblad operators (a and n)
+    do not commute with the shear -- so even in the physical signal quadrature
+    the three orderings separate, with BA3 again bracketed by BA1 and BA2.
+    """
+    N = 150
+    psi = make_state("cat_even", N, 2.0)
+    v = {o: qfi(psi, kappa=1.5, ordering=o, **noise) for o in ("BA1", "BA2", "BA3")}
+    assert abs(v["BA1"] - v["BA2"]) > 1e-2
+    assert min(v["BA1"], v["BA2"]) - 1e-9 <= v["BA3"] <= max(v["BA1"], v["BA2"]) + 1e-9
 
 
 def test_orderings_differ_and_ba3_is_bounded_for_a_non_commuting_signal():
