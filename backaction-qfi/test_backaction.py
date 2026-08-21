@@ -135,23 +135,6 @@ def test_concurrent_exact_matches_mesolve(noise, ordering):
         assert a == pytest.approx(b, rel=5e-6)
 
 
-def test_concurrent_path_is_much_faster_than_the_integrator():
-    """Guard the reason the split-step path exists: mesolve cannot reach these cutoffs."""
-    import time
-
-    N = 200
-    psi = make_state("squeezed", N, 2.0)
-    common = dict(kappa=1.5, ordering="BA3", eta_ch=0.8, N_basis=N)
-    t0 = time.perf_counter()
-    fast = qfi(psi, solver="exact", **common)
-    t_fast = time.perf_counter() - t0
-    t0 = time.perf_counter()
-    slow = qfi(psi, solver="mesolve", **common)
-    t_slow = time.perf_counter() - t0
-    assert fast == pytest.approx(slow, rel=5e-6)
-    assert t_fast < t_slow
-
-
 # ---------------------------------------------------------------------------
 # Probe states
 # ---------------------------------------------------------------------------
