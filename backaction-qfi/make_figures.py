@@ -104,15 +104,19 @@ def fig_loss_placement(d, out):
             fig, ax = plt.subplots(figsize=(6.6, 4.2))
             for s in states:
                 c = t["series"][ORDER.index(s)]
-                for placement, ls in (("injection", "-"), ("detection", (0, (5, 2)))):
+                for placement, ls in (("injection", "-"), ("concurrent", (0, (1, 1.6))),
+                                      ("detection", (0, (5, 2)))):
+                    if (s, placement) not in data:
+                        continue
                     xs, ys = data[(s, placement)]
                     ax.plot(xs, ys, color=c, ls=ls,
-                            label=f"{LABELS[s]}, {placement}" if placement == "injection" else None)
+                            label=LABELS[s] if placement == "injection" else None)
             ax.set_yscale("log")
             ax.set_xlabel(r"opto-mechanical coupling  $\kappa$")
             ax.set_ylabel(r"$\mathcal{F}_{\epsilon_a}$")
-            ax.set_title("Injection loss is flat in $\\kappa$; detection loss is not\n"
-                         "(solid: loss $\\to$ BA;  dashed: BA $\\to$ loss;  $\\eta=0.8$)")
+            ax.set_title("Where the loss sits decides how much back-action costs\n"
+                         "(solid: loss $\\to$ BA;  dotted: loss *during* BA;  "
+                         "dashed: BA $\\to$ loss;  $\\eta=0.8$)")
             legend_below(fig, ax, ncol=4)
             finish(fig, str(out / "fig2_loss_placement"), name)
 
@@ -195,13 +199,47 @@ def fig_nbar_scaling(d, out):
             finish(fig, str(out / "fig5_nbar_scaling"), name)
 
 
+def fig_concurrent_orderings(d, out):
+    """With loss acting during the interaction, BA1/BA2/BA3 separate and BA3 is bracketed."""
+    path = d / "concurrent_orderings.csv"
+    if not path.exists():
+        print("  fig_concurrent_orderings skipped (no concurrent_orderings.csv)")
+        return
+    rows = read(path)
+    states = sorted({r["state"] for r in rows}, key=lambda s: ORDER.index(s))
+    for name in THEMES:
+        with theme(name) as t:
+            fig, axes = plt.subplots(1, len(states), figsize=(3.4 * len(states), 3.6), sharey=True)
+            axes = np.atleast_1d(axes)
+            for ax, st in zip(axes, states):
+                data = series(rows, ("ordering",), "kappa", "qfi_epsilon_a",
+                              where=lambda r, s0=st: r["state"] == s0)
+                xs = data[("BA1",)][0]
+                lo = np.minimum(data[("BA1",)][1], data[("BA2",)][1])
+                hi = np.maximum(data[("BA1",)][1], data[("BA2",)][1])
+                # The band is the claim: BA1 and BA2 bound BA3.
+                ax.fill_between(xs, lo, hi, color=t["series"][0], alpha=0.15, lw=0,
+                                label="between BA1 and BA2")
+                for i, o in enumerate(("BA1", "BA2", "BA3")):
+                    x, y = data[(o,)]
+                    ax.plot(x, y, color=t["series"][i], marker="o", markersize=4, label=o)
+                ax.set_xlabel(r"$\kappa$")
+                ax.set_title(LABELS[st])
+            axes[0].set_ylabel(r"$\mathcal{F}_{\epsilon_a}$")
+            fig.suptitle(r"Loss acting *during* the interaction separates the orderings "
+                         r"($\eta_{\rm ch}=0.8$); BA3 stays bracketed", y=1.0)
+            fig.subplots_adjust(wspace=0.12)
+            legend_below(fig, axes[0], ncol=4)
+            finish(fig, str(out / "fig6_concurrent_orderings"), name)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", default=str(HERE / "results"))
     args = ap.parse_args()
     d = Path(args.dir)
     for fn in (fig_orderings, fig_loss_placement, fig_phase_noise,
-               fig_states_vs_kappa, fig_nbar_scaling):
+               fig_states_vs_kappa, fig_nbar_scaling, fig_concurrent_orderings):
         fn(d, d)
         print(f"  {fn.__name__} ok")
     print(f"figures -> {d}/")

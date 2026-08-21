@@ -298,6 +298,69 @@ def _quadratic_unitary(N_basis, kappa, c_x, c_p, Delta, t):
     return expm(-1j * t * H)
 
 
+def _concurrent_exact(rho, N_basis, kappa, c_x, c_p, Delta, t_final,
+                      eta_ch, pn_ch, n_steps):
+    r"""Back-action, signal and dissipation acting *together*, by Strang splitting.
+
+    The three concurrent pieces each have an exact closed form, and both
+    dissipators compose exactly under time splitting -- loss of transmissivity
+    :math:`\eta` is :math:`n` steps of :math:`\eta^{1/n}`, and dephasing of
+    strength :math:`\sigma` is :math:`n` steps of :math:`\sigma/\sqrt n`.  So the
+    only error is the Trotter split between the Hamiltonian and the dissipator,
+    which Strang ordering makes :math:`O((t/n)^2)`.
+
+    This exists because the alternative -- handing the whole thing to
+    ``mesolve`` -- propagates an :math:`N^2`-dimensional Liouvillian and cannot
+    reach the cutoffs the shear demands.  Checked against ``mesolve`` in
+    ``test_concurrent_exact_matches_mesolve``.
+    """
+    eta_half = eta_ch ** (0.5 / n_steps)
+    pn_half = pn_ch / np.sqrt(2.0 * n_steps)
+    eta_full = eta_ch ** (1.0 / n_steps)
+    pn_full = pn_ch / np.sqrt(n_steps)
+    U = _quadratic_unitary(N_basis, kappa / n_steps, c_x, c_p, Delta, t_final / n_steps)
+    Ud = U.conj().T
+
+    def dissipate(arr, eta, pn):
+        return _loss_exact(_dephasing_exact(arr, pn), eta)
+
+    arr = dissipate(rho, eta_half, pn_half)
+    for k in range(n_steps):
+        arr = U @ arr @ Ud
+        arr = dissipate(arr, eta_half, pn_half) if k == n_steps - 1 else dissipate(arr, eta_full, pn_full)
+    return arr
+
+
+def _project_to_state(arr):
+    """Nearest valid density matrix: Hermitian, positive, unit trace.
+
+    Richardson extrapolation is a signed combination of two density matrices, so
+    it can leave eigenvalues a few 1e-9 below zero.  The QFI sums
+    ``|drho_ij|^2 / (p_i + p_j)``, where a small *negative* denominator is far
+    worse than a small positive one, so the extrapolated matrix is projected
+    back before use.
+    """
+    arr = 0.5 * (arr + arr.conj().T)
+    w, v = np.linalg.eigh(arr)
+    if w.min() >= 0.0:
+        return arr
+    w = np.clip(w, 0.0, None)
+    out = (v * w) @ v.conj().T
+    return out / np.trace(out).real
+
+
+def _auto_trotter_steps(kappa, c_x, c_p, Delta, t_final, eta_ch, pn_ch):
+    """Step count for the Strang split, from how fast each concurrent piece acts.
+
+    Scaled off the largest generator strength over the interaction; the floor of
+    64 keeps short/weak channels comfortably converged, and the result is
+    validated against ``mesolve`` rather than assumed.
+    """
+    strength = abs(kappa) + t_final * (abs(c_x) + abs(c_p) + abs(Delta))
+    strength += abs(np.log(max(eta_ch, 1e-12))) + pn_ch**2
+    return int(max(24, np.ceil(10 * strength)))
+
+
 def _ensure_dm(state):
     return qt.ket2dm(state) if state.isket else state
 
@@ -351,6 +414,7 @@ def get_state_single_mode_ba(
     N_basis=20,
     rho=None,
     solver="exact",
+    n_trotter=None,
 ):
     """
     Single-mode sensing channel *with* radiation-pressure back-action.
@@ -381,8 +445,12 @@ def get_state_single_mode_ba(
         ``"exact"`` (default) applies closed-form maps; ``"mesolve"`` reproduces
         the integrator used by :mod:`dynamics`.  The two agree to
         solver tolerance, but only ``"exact"`` is usable at the cutoffs radiation
-        pressure requires.  In-channel noise (``eta_ch``, ``pn_ch``, ``sigma_a``,
-        ``sigma_p``) has no closed form here and always uses the integrator.
+        pressure requires.  Concurrent loss and dephasing (``eta_ch``, ``pn_ch``)
+        are handled exactly by Strang splitting; ``sigma_a``/``sigma_p`` have no
+        closed-form map and always fall back to the integrator.
+    n_trotter : int, optional
+        Strang steps for the concurrent path.  ``None`` picks a count from the
+        generator strengths.
 
     Returns
     -------
@@ -423,10 +491,35 @@ def get_state_single_mode_ba(
         res = qt.mesolve(H_sense, state, [0.0, t_final], L_ch, options=_SOLVER_OPTIONS)
         return res.states[-1]
 
-    use_exact = solver == "exact" and not L_ch
     c_x, c_p = np.sqrt(2.0) * epsilon_a, np.sqrt(2.0) * epsilon_p
+    # sigma_a / sigma_p have no closed-form map here, so they force the integrator;
+    # concurrent loss and dephasing are handled exactly by Strang splitting.
+    concurrent = (eta_ch < 1.0) or (pn_ch > 0.0)
+    exotic = (sigma_a > 0.0) or (sigma_p > 0.0)
+    use_exact = solver == "exact" and not exotic
 
-    if use_exact:
+    if use_exact and concurrent:
+        n = n_trotter or _auto_trotter_steps(kappa if ordering == "BA3" else 0.0,
+                                             c_x, c_p, Delta, t_final, eta_ch, pn_ch)
+        arr = rho1.full()
+        if ordering == "BA1":  # the whole shear lands before the interaction
+            U0 = _backaction_unitary_cached(N_basis, float(kappa))
+            arr = U0 @ arr @ U0.conj().T
+        ba_now = kappa if ordering == "BA3" else 0.0
+        # The Strang error is cleanly O(1/n^2) (verified: the error falls by a
+        # factor 4.00 per doubling), so one Richardson step on the density
+        # matrix buys O(1/n^4) for 1.5x the work of the 2n run alone.
+        low = _concurrent_exact(arr, N_basis, ba_now, c_x, c_p, Delta, t_final,
+                                eta_ch, pn_ch, n)
+        high = _concurrent_exact(arr, N_basis, ba_now, c_x, c_p, Delta, t_final,
+                                 eta_ch, pn_ch, 2 * n)
+        arr = (4.0 * high - low) / 3.0
+        arr = _project_to_state(arr)
+        if ordering == "BA2":  # ...or after it
+            U0 = _backaction_unitary_cached(N_basis, float(kappa))
+            arr = U0 @ arr @ U0.conj().T
+        rho2 = qt.Qobj(arr)
+    elif use_exact:
         ba = kappa if ordering == "BA3" else 0.0
         U_sense = _quadratic_unitary(N_basis, ba, c_x, c_p, Delta, t_final)
         if ordering == "none" or kappa == 0.0 or ordering == "BA3":

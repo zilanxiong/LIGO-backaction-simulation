@@ -42,6 +42,8 @@ from radiation_pressure import get_state_single_mode_ba, suggested_cutoff  # noq
 FAMILIES = ["coherent", "squeezed", "fock", "cat_even", "cat_odd", "squeezed_cat"]
 LABELS = STATE_LABELS
 MAX_CUTOFF = 700
+#: Concurrent-loss runs cost more per cutoff but converge sooner (loss damps the tail).
+CONCURRENT_CUTOFF = 340
 
 
 def write_csv(path, header, rows):
@@ -53,9 +55,19 @@ def write_csv(path, header, rows):
     print(f"  wrote {path}")
 
 
-def qfi(family, nbar, rtol=3e-4, **channel):
-    """Convergence-checked QFI for ``epsilon_a``.  Returns (value, cutoff, converged)."""
+def qfi(family, nbar, rtol=3e-4, max_cutoff=None, **channel):
+    """Convergence-checked QFI for ``epsilon_a``.  Returns (value, cutoff, converged).
+
+    ``max_cutoff`` overrides the global cap.  Concurrent-loss runs use a lower
+    one: the split-step evolution costs more per cutoff, and loss acting during
+    the interaction damps the high-Fock tail, so they converge sooner anyway.
+    """
+    MAX_CUTOFF = max_cutoff or globals()["MAX_CUTOFF"]
     n0 = min(max(suggested_cutoff(nbar, channel.get("kappa", 0.0)), 40), MAX_CUTOFF)
+    # The ladder needs at least three rungs, or n_stable=2 can never be satisfied
+    # and the point is flagged unconverged however well it actually converged.
+    # That bites whenever the rule-of-thumb start sits close to the cap.
+    n0 = min(n0, max(40, int(MAX_CUTOFF / 1.35**2)))
     ladder, n = [], n0
     while n < MAX_CUTOFF:
         ladder.append(n)
@@ -118,21 +130,55 @@ def study_orderings(outdir, nbar, kappas):
 # B. Loss placement
 # ---------------------------------------------------------------------------
 def study_loss_placement(outdir, nbar, kappas, eta):
-    print(f"[B] Injection loss (loss -> BA) vs detection loss (BA -> loss), eta = {eta}")
+    print(f"[B] Loss placement: injection (loss -> BA), concurrent (loss during BA), "
+          f"detection (BA -> loss), eta = {eta}")
     rows = []
+    placements = (
+        ("injection", dict(eta_in=eta), None),
+        ("concurrent", dict(eta_ch=eta), CONCURRENT_CUTOFF),
+        ("detection", dict(eta_out=eta), None),
+    )
     for family in ["squeezed", "cat_even", "fock", "coherent"]:
         line = {}
-        for placement, kw in (("injection", dict(eta_in=eta)), ("detection", dict(eta_out=eta))):
+        for placement, kw, cap in placements:
             vals = []
             for kappa in kappas:
-                v, N, ok = qfi(family, nbar, kappa=kappa, ordering="BA3", **kw)
+                v, N, ok = qfi(family, nbar, kappa=kappa, ordering="BA3", max_cutoff=cap, **kw)
                 vals.append(v)
                 rows.append([family, placement, kappa, v, N, ok])
             line[placement] = vals
-        print(f"    {family:>12} injection {line['injection'][0]:7.4f} -> {line['injection'][-1]:7.4f}"
-              f"   detection {line['detection'][0]:7.4f} -> {line['detection'][-1]:7.4f}")
+        print(f"    {family:>12} " + "   ".join(
+            f"{p} {line[p][0]:7.4f}->{line[p][-1]:7.4f}" for p, _, _ in placements))
     write_csv(outdir / "loss_placement.csv",
               ["state", "loss_placement", "kappa", "qfi_epsilon_a", "cutoff", "converged"], rows)
+
+
+def study_concurrent_orderings(outdir, nbar, kappas, eta):
+    """BA1/BA2/BA3 when dissipation acts *during* the interaction.
+
+    With stage-separated loss the three orderings coincide exactly, because the
+    signal and back-action generators commute.  Concurrent loss breaks that: the
+    Lindblad operator does not commute with the shear, so the orderings separate
+    even in the physical signal quadrature -- and BA3 is bracketed by BA1/BA2,
+    which is the configuration the project plan describes.
+    """
+    print(f"[B2] Orderings under concurrent loss (eta_ch = {eta})")
+    rows = []
+    for family in ["squeezed", "cat_even", "fock"]:
+        for kappa in kappas:
+            vals = {}
+            for ordering in ("BA1", "BA2", "BA3"):
+                v, N, ok = qfi(family, nbar, kappa=kappa, ordering=ordering,
+                               eta_ch=eta, max_cutoff=CONCURRENT_CUTOFF)
+                vals[ordering] = v
+                rows.append([family, kappa, ordering, v, N, ok])
+            lo, hi = min(vals["BA1"], vals["BA2"]), max(vals["BA1"], vals["BA2"])
+            bracketed = lo - 1e-9 <= vals["BA3"] <= hi + 1e-9
+            print(f"    {family:>12} kappa={kappa:4.2f}  BA1 {vals['BA1']:8.4f}  "
+                  f"BA2 {vals['BA2']:8.4f}  BA3 {vals['BA3']:8.4f}  "
+                  f"spread {hi - lo:7.4f}  BA3 bracketed: {bracketed}")
+    write_csv(outdir / "concurrent_orderings.csv",
+              ["state", "kappa", "ordering", "qfi_epsilon_a", "cutoff", "converged"], rows)
 
 
 # ---------------------------------------------------------------------------
@@ -257,6 +303,7 @@ def main():
     t0 = time.time()
     study_orderings(outdir, nbar, [0.5, 1.5] if args.quick else [0.5, 1.5, 3.0])
     study_loss_placement(outdir, nbar, kappas, 0.8)
+    study_concurrent_orderings(outdir, nbar, [0.5, 1.5, 3.0] if not args.quick else [1.5], 0.8)
     study_phase_noise(outdir, nbar, sigmas, kappa=1.0, eta=0.9)
     study_states(outdir, nbar, kappas, etas)
     study_nbar_scaling(outdir, nbars, configs)
