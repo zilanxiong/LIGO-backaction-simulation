@@ -38,13 +38,6 @@ and noise staging. With `kappa = 0` it reproduces the original bit for bit.
 | `test_backaction.py`, `conftest.py` | 108 tests, runnable with `pytest backaction-qfi` |
 | `results/` | CSVs and figures |
 
-The group's own tree at `../quantum-sensing-py/` is **untouched** — byte-identical
-to `main`. (Note for whoever maintains it: as shipped it cannot be imported,
-because the modules sit directly in the hyphenated `quantum-sensing-py/` while
-`__init__.py` uses `from quantum_sensing.X import Y` and `pyproject.toml`
-declares `include = ["quantum_sensing*"]`. Moving the `.py` files into a
-`quantum_sensing/` subdirectory fixes it. That is not done here, to keep the
-group's copy unmodified.)
 
 ## Method
 
