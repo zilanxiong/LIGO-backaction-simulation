@@ -107,11 +107,31 @@ squeezed vacuum. The `converged` column in every CSV flags the four points
 
 ## Results
 
-### 1. BA1, BA2 and BA3 coincide — they do not merely bound each other
+**Which loss model each section uses.** This matters more than it looks: the
+orderings collapse onto one number under stage-separated loss and separate under
+concurrent loss, so every result below is tagged.
+
+| section | loss model | parameters |
+|---|---|---|
+| 1. orderings | **stage-separated** | `eta_out` |
+| 2. loss placement | all three | `eta_in` / `eta_ch` / `eta_out` |
+| 2b. orderings under concurrent loss | **concurrent** | `eta_ch` |
+| 3. phase noise | **stage-separated** | `pn_in`, `eta_out` |
+| 4. probe states vs κ | **stage-separated** | `eta_out` |
+| 5. ⟨n⟩ scaling | **stage-separated** | `eta_out` |
+
+*Stage-separated* means loss and phase noise act strictly **before**
+(`eta_in`, `pn_in`) or **after** (`eta_out`, `pn_out`) the opto-mechanical
+interaction. *Concurrent* (`eta_ch`, `pn_ch`) means they act **during** it,
+alongside the Hamiltonian — the realistic model for an interferometer, where the
+two processes are not separable in time.
+
+### 1. BA1, BA2 and BA3 coincide under stage-separated loss — they do not merely bound each other
 
 ![orderings](results/fig1_orderings.png)
 
-`results/orderings.csv`, ⟨n⟩ = 2, `eta_out = 0.9`.
+`results/orderings.csv`, ⟨n⟩ = 2, **detection loss** `eta_out = 0.9` — i.e.
+stage-separated. For the concurrent case see §2b, where this degeneracy lifts.
 
 | state | κ | no BA | BA1 | BA2 | BA3 | max\|BAᵢ − BA3\| |
 |---|---|---|---|---|---|---|
@@ -175,7 +195,8 @@ injection-side loss under back-action. A single "total loss" figure hides it.
 
 ![concurrent orderings](results/fig6_concurrent_orderings.png)
 
-`results/concurrent_orderings.csv`, ⟨n⟩ = 2, `eta_ch = 0.8`.
+`results/concurrent_orderings.csv`, ⟨n⟩ = 2, **concurrent loss** `eta_ch = 0.8`
+— loss acting *during* the interaction, in contrast to every other section.
 
 | state | κ | BA1 | BA2 | BA3 | spread | BA3 bracketed |
 |---|---|---|---|---|---|---|
@@ -207,7 +228,9 @@ because the earlier runs idealised loss into separate stages.
 
 ![phase noise](results/fig3_phase_noise.png)
 
-`results/phase_noise.csv`, κ = 1, `eta_out = 0.9`.
+`results/phase_noise.csv`, κ = 1, `eta_out = 0.9`, `pn_in` scanned — all
+**stage-separated** (input phase noise before the interaction, detection loss
+after). Ordering is `BA3`, which under this loss model equals BA1 and BA2.
 
 | σ_φ (rad) | 0.0 | 0.1 | 0.2 | 0.3 | 0.5 |
 |---|---|---|---|---|---|
@@ -227,7 +250,9 @@ because the earlier runs idealised loss into separate stages.
 
 ![states vs kappa](results/fig4_states_vs_kappa.png)
 
-`results/states_vs_kappa.csv`.
+`results/states_vs_kappa.csv`. **Stage-separated detection loss** (`eta_out`),
+ordering `BA3` — which under this loss model equals BA1 and BA2, so the ranking
+here is ordering-independent. Under concurrent loss it would not be.
 
 **η = 1 — every state is exactly flat in κ.** Radiation pressure on its own
 costs nothing: it is unitary and commutes with the signal generator, so it only
@@ -258,7 +283,8 @@ drives the back-action.
 
 ![nbar scaling](results/fig5_nbar_scaling.png)
 
-`results/nbar_scaling.csv`, `results/nbar_scaling_fits.csv`. `α_local` is the
+`results/nbar_scaling.csv`, `results/nbar_scaling_fits.csv`. **Stage-separated
+detection loss** (`eta_out`) throughout, ordering `BA3`. `α_local` is the
 log–log slope between the top two grid points (⟨n⟩ = 4 and 6); α = 1 is
 shot-noise-like for this displacement QFI.
 

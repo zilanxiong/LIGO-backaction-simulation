@@ -83,7 +83,8 @@ def fig_orderings(d, out):
                             + w * len(left) / len(right) / 2, right[s],
                             width=w * len(left) / len(right) * 0.9,
                             color=t["series"][ORDER.index(s)], label=LABELS[s])
-            axes[0].set_title(rf"signal in $p$ (physical), $\kappa={kappa:g}$" "\nBA1 = BA2 = BA3")
+            axes[0].set_title(rf"signal in $p$ (physical), $\kappa={kappa:g}$, detection loss"
+                              "\nBA1 = BA2 = BA3")
             axes[1].set_title("signal in $x$ (non-commuting)\nBA3 bracketed by BA1, BA2")
             for ax in axes:
                 ax.set_xticks(np.arange(4))
@@ -159,8 +160,8 @@ def fig_states_vs_kappa(d, out):
                 ax.set_xlabel(r"$\kappa$")
                 ax.set_title(rf"$\eta_{{\rm out}} = {eta:g}$")
             axes[0].set_ylabel(r"$\mathcal{F}_{\epsilon_a}$")
-            fig.suptitle(r"Probe states at fixed $\bar n = 2$: flat without loss, "
-                         r"ranking inverts with it", y=1.0)
+            fig.suptitle(r"Probe states at fixed $\bar n = 2$, detection loss: flat at "
+                         r"$\eta = 1$, ranking inverts once loss is on", y=1.0)
             fig.subplots_adjust(wspace=0.1)
             legend_below(fig, axes[0], ncol=6)
             finish(fig, str(out / "fig4_states_vs_kappa"), name)
