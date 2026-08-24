@@ -115,7 +115,7 @@ def fig_loss_placement(d, out):
             ax.set_xlabel(r"opto-mechanical coupling  $\kappa$")
             ax.set_ylabel(r"$\mathcal{F}_{\epsilon_a}$")
             ax.set_title("Where the loss sits decides how much back-action costs\n"
-                         "(solid: loss $\\to$ BA;  dotted: loss *during* BA;  "
+                         "(solid: loss $\\to$ BA;  dotted: loss $\\it{during}$ BA;  "
                          "dashed: BA $\\to$ loss;  $\\eta=0.8$)")
             legend_below(fig, ax, ncol=4)
             finish(fig, str(out / "fig2_loss_placement"), name)

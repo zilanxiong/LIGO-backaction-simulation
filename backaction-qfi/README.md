@@ -89,8 +89,8 @@ shear demands.
 **Every number below went through the cutoff convergence check.** This matters
 more than it sounds: at the default `N_basis = 20`, the QFI is wrong by
 **202 %** for an even cat at ⟨n⟩ = 4 (κ = 1.5, η = 0.9), and by 95 % for
-squeezed vacuum. The `converged` column in every CSV flags the single point
-(of ~500) that did not converge.
+squeezed vacuum. The `converged` column in every CSV flags the four points
+(of 491) that did not converge; see Caveats.
 
 ---
 
