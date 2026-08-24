@@ -126,7 +126,7 @@ the QFI (max `|ρᵢ − ρⱼ|` ≈ 4e−16). It survives `eta_in`/`eta_out` an
 
 **It does not survive dissipation acting *during* the interaction** — see
 §2b, where the orderings separate by up to 6× and BA3 is bracketed by BA1
-and BA2, which is the behaviour the project plan describes.
+and BA2, which is the behaviour we expected.
 
 **The bounding picture belongs to the non-commuting case.** Estimating `ε_p`
 instead separates the orderings by 48×, and BA3 is then bracketed:
