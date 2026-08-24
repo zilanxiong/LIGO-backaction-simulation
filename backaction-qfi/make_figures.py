@@ -123,27 +123,55 @@ def fig_loss_placement(d, out):
 
 
 def fig_phase_noise(d, out):
+    """Phase noise -> BA -> detection loss, plus evidence that BA1/BA2/BA3 coincide here."""
     rows = read(d / "phase_noise.csv")
-    # All three orderings are recorded and coincide under this loss model; plot one.
-    if rows and "ordering" in rows[0]:
-        rows = [r for r in rows if r["ordering"] == "BA3"]
-    data = series(rows, ("state",), "sigma_phi_rad", "qfi_epsilon_a")
+    has_ordering = bool(rows) and "ordering" in rows[0]
+    main = [r for r in rows if r["ordering"] == "BA3"] if has_ordering else rows
+    data = series(main, ("state",), "sigma_phi_rad", "qfi_epsilon_a")
     states = sorted({k[0] for k in data}, key=lambda s: ORDER.index(s))
+
+    spread = {}
+    if has_ordering:
+        for st in states:
+            per = {o: series([r for r in rows if r["state"] == st and r["ordering"] == o],
+                             ("state",), "sigma_phi_rad", "qfi_epsilon_a")[(st,)]
+                   for o in ("BA1", "BA2", "BA3")}
+            xs = per["BA3"][0]
+            stack = np.vstack([per[o][1] for o in ("BA1", "BA2", "BA3")])
+            spread[st] = (xs, stack.max(axis=0) - stack.min(axis=0))
+
     for name in THEMES:
         with theme(name) as t:
-            fig, ax = plt.subplots(figsize=(6.4, 4.2))
+            ncols = 2 if spread else 1
+            fig, axes = plt.subplots(1, ncols, figsize=(5.6 * ncols, 4.2))
+            axes = np.atleast_1d(axes)
+            ax = axes[0]
             drawn = []
-            for s in states:
-                xs, ys = data[(s,)]
-                ax.plot(xs, ys, color=t["series"][ORDER.index(s)], label=LABELS[s])
-                drawn.append((LABELS[s], xs, ys))
+            for st in states:
+                xs, ys = data[(st,)]
+                ax.plot(xs, ys, color=t["series"][ORDER.index(st)], label=LABELS[st])
+                drawn.append((LABELS[st], xs, ys))
             label_lines(ax, drawn, t)
             ax.set_xlabel(r"input phase noise  $\sigma_\phi$  [rad]")
             ax.set_ylabel(r"$\mathcal{F}_{\epsilon_a}$")
             ax.set_title("Phase noise $\\to$ back-action $\\to$ detection loss\n"
                          "the Fock state is exactly flat; the cat overtakes squeezing")
+            if spread:
+                ax2 = axes[1]
+                for st in states:
+                    xs, dy = spread[st]
+                    ax2.semilogy(xs, np.maximum(dy, 1e-16), color=t["series"][ORDER.index(st)],
+                                 marker="o", markersize=4, label=LABELS[st])
+                ax2.axhline(1e-6, color=t["muted"], lw=1.0, ls=(0, (4, 3)))
+                ax2.annotate("1e-6", (0.01, 1.3e-6), color=t["muted"], fontsize=8)
+                ax2.set_xlabel(r"input phase noise  $\sigma_\phi$  [rad]")
+                ax2.set_ylabel(r"$\max_{ij}|\mathcal{F}_{\rm BA_i} - \mathcal{F}_{\rm BA_j}|$")
+                ax2.set_ylim(1e-14, 1e-4)
+                ax2.set_title("all three orderings were run\n"
+                              "they agree to ~1e-11, far below any effect here")
             legend_below(fig, ax, ncol=4)
-            finish(fig, str(out / "fig3_phase_noise"), name)
+            fig.subplots_adjust(wspace=0.32)
+            finish(fig, str(out / "fig4_phase_noise"), name)
 
 
 def fig_states_vs_kappa(d, out):
@@ -167,7 +195,7 @@ def fig_states_vs_kappa(d, out):
                          r"$\eta = 1$, ranking inverts once loss is on", y=1.0)
             fig.subplots_adjust(wspace=0.1)
             legend_below(fig, axes[0], ncol=6)
-            finish(fig, str(out / "fig4_states_vs_kappa"), name)
+            finish(fig, str(out / "fig5_states_vs_kappa"), name)
 
 
 def fig_nbar_scaling(d, out):
@@ -200,7 +228,7 @@ def fig_nbar_scaling(d, out):
                          r"$\it{falling}$ with back-action plus loss", y=1.02)
             fig.subplots_adjust(wspace=0.1)
             legend_below(fig, axes[0], ncol=6)
-            finish(fig, str(out / "fig5_nbar_scaling"), name)
+            finish(fig, str(out / "fig6_nbar_scaling"), name)
 
 
 def fig_concurrent_orderings(d, out):
@@ -234,7 +262,7 @@ def fig_concurrent_orderings(d, out):
                          r"($\eta_{\rm ch}=0.8$); BA3 stays bracketed", y=1.0)
             fig.subplots_adjust(wspace=0.12)
             legend_below(fig, axes[0], ncol=4)
-            finish(fig, str(out / "fig6_concurrent_orderings"), name)
+            finish(fig, str(out / "fig3_concurrent_orderings"), name)
 
 
 def main():
@@ -242,8 +270,8 @@ def main():
     ap.add_argument("--dir", default=str(HERE / "results"))
     args = ap.parse_args()
     d = Path(args.dir)
-    for fn in (fig_orderings, fig_loss_placement, fig_phase_noise,
-               fig_states_vs_kappa, fig_nbar_scaling, fig_concurrent_orderings):
+    for fn in (fig_orderings, fig_loss_placement, fig_concurrent_orderings,
+               fig_phase_noise, fig_states_vs_kappa, fig_nbar_scaling):
         fn(d, d)
         print(f"  {fn.__name__} ok")
     print(f"figures -> {d}/")

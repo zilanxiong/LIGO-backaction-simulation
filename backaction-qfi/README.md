@@ -193,7 +193,7 @@ injection-side loss under back-action. A single "total loss" figure hides it.
 
 ### 2b. Concurrent loss is where BA1 and BA2 really do bound BA3
 
-![concurrent orderings](results/fig6_concurrent_orderings.png)
+![concurrent orderings](results/fig3_concurrent_orderings.png)
 
 `results/concurrent_orderings.csv`, ⟨n⟩ = 2, **concurrent loss** `eta_ch = 0.8`
 — loss acting *during* the interaction, in contrast to every other section.
@@ -226,7 +226,7 @@ because the earlier runs idealised loss into separate stages.
 
 ### 3. Phase noise → back-action → detection loss
 
-![phase noise](results/fig3_phase_noise.png)
+![phase noise](results/fig4_phase_noise.png)
 
 `results/phase_noise.csv`, κ = 1, `eta_out = 0.9`, `pn_in` scanned — all
 **stage-separated** (input phase noise before the interaction, detection loss
@@ -250,7 +250,7 @@ figure plots `BA3`.
 
 ### 4. Probe states at fixed ⟨n⟩ = 2
 
-![states vs kappa](results/fig4_states_vs_kappa.png)
+![states vs kappa](results/fig5_states_vs_kappa.png)
 
 `results/states_vs_kappa.csv`. **Stage-separated detection loss** (`eta_out`),
 ordering `BA3` — which under this loss model equals BA1 and BA2, so the ranking
@@ -283,7 +283,7 @@ drives the back-action.
 
 ### 5. ⟨n⟩ scaling
 
-![nbar scaling](results/fig5_nbar_scaling.png)
+![nbar scaling](results/fig6_nbar_scaling.png)
 
 `results/nbar_scaling.csv`, `results/nbar_scaling_fits.csv`. **Stage-separated
 detection loss** (`eta_out`) throughout, ordering `BA3`. `α_local` is the
