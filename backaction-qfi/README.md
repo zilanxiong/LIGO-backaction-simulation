@@ -107,7 +107,7 @@ squeezed vacuum. The `converged` column in every CSV flags the four points
 
 ## Results
 
-**Which loss model each section uses.** This matters more than it looks: the
+**Which loss model each section uses.** The
 orderings collapse onto one number under stage-separated loss and separate under
 concurrent loss, so every result below is tagged.
 
