@@ -64,13 +64,31 @@ throughout. `ε_p` drives `√2 p̂` and is used only as a deliberately
 non-commuting reference. Convert to the dimensionless displacement `λ` with
 `F_λ = F_{ε_a} / 2`.
 
-Concurrent loss and dephasing have no single closed-form map, so they are
-evolved by Strang splitting with one Richardson step — the splitting error is
-cleanly `O(1/n²)` (measured: the error falls by exactly 4.00 per doubling of
-`n`), which the extrapolation turns into `O(1/n⁴)`. That agrees with `mesolve`
-to 1e-6 across 36 state/config/ordering comparisons and is what makes the case
-affordable at all: the integrator costs 4.5 s at `N_basis = 160` and scales as
-an N²-dimensional Liouvillian. `sigma_a`/`sigma_p` still use the integrator.
+**Concurrent loss and dephasing.** The three pieces of the channel each have an
+exact cheap form in the Fock basis on their own — the unitary is a single phase
+in the `x̂` eigenbasis, loss is a shifted-diagonal sum, dephasing is an
+elementwise multiply. What they cannot do is simply be multiplied together when
+they act at the same time: the Lindblad operator `a` does not commute with
+`x̂²`, so `e^{A+B} ≠ e^A e^B`.
+
+That is a statement about cost, not about solvability. The exact answer is
+`exp(𝓛T)` for the full Liouvillian, and it is used here as a reference at small
+cutoffs — it reproduces the split-step result to 8e−9. But `𝓛` is an N²×N²
+superoperator and a dense exponential is `O(N⁶)`: 0.1 s at `N_basis = 20`, 27 s
+at 60, and ~1.3e10 entries (~200 GB) at the `N_basis ≈ 340` the shear forces.
+It does not run out of patience, it runs out of memory.
+
+(For a *Gaussian* probe there is a genuine closed form in elementary functions:
+the drift `A = −(γ/2)I + K` is scalar plus nilpotent, so `e^{At} = e^{−γt/2}(I + Kt)`
+exactly and the covariance integrals are elementary. That does not help here,
+because the probes are cats and Fock states, for which the Fock representation
+is forced.)
+
+So the concurrent case is evolved by **Strang splitting with one Richardson
+step**, at `O(N³)` per step. The splitting error is cleanly `O(1/n²)`
+(measured: the error falls by exactly 4.00 per doubling of `n`), which the
+extrapolation turns into `O(1/n⁴)`. That agrees with `mesolve` to 1e-6 across 36
+state/config/ordering comparisons. `sigma_a`/`sigma_p` still use the integrator.
 
 Loss uses the group's own `loss_to_kappa`; phase noise uses `phirms_to_chi`.
 Both are applied as closed-form maps by default (`solver="exact"`), which agree
