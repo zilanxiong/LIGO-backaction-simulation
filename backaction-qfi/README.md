@@ -230,7 +230,9 @@ because the earlier runs idealised loss into separate stages.
 
 `results/phase_noise.csv`, κ = 1, `eta_out = 0.9`, `pn_in` scanned — all
 **stage-separated** (input phase noise before the interaction, detection loss
-after). Ordering is `BA3`, which under this loss model equals BA1 and BA2.
+after). **All three orderings are recorded**, and they agree to 8e−12 (Fock)
+through 6.9e−11 (coherent), so the table below is ordering-independent; the
+figure plots `BA3`.
 
 | σ_φ (rad) | 0.0 | 0.1 | 0.2 | 0.3 | 0.5 |
 |---|---|---|---|---|---|

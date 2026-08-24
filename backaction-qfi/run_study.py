@@ -185,17 +185,31 @@ def study_concurrent_orderings(outdir, nbar, kappas, eta):
 # C. Phase noise -> BA -> loss
 # ---------------------------------------------------------------------------
 def study_phase_noise(outdir, nbar, sigmas, kappa, eta):
-    print(f"[C] Phase noise -> BA(kappa={kappa}) -> detection loss(eta={eta})")
+    """Phase noise -> back-action -> detection loss, for all three orderings.
+
+    The project plan asks for "phase noise -> BA1/2 -> loss", so all three
+    orderings are recorded rather than just the physical one.  Under this
+    stage-separated loss model they coincide exactly, and the printed spread is
+    the evidence for that rather than an appeal to the separate unit test.
+    """
+    print(f"[C] Phase noise -> BA(kappa={kappa}) -> detection loss(eta={eta}), all orderings")
     rows = []
     for family in ["squeezed", "cat_even", "coherent", "fock"]:
-        vals = []
-        for sigma in sigmas:
-            v, N, ok = qfi(family, nbar, kappa=kappa, ordering="BA3", pn_in=float(sigma), eta_out=eta)
-            vals.append(v)
-            rows.append([family, float(sigma), v, N, ok])
-        print(f"    {family:>12} " + "  ".join(f"{v:7.4f}" for v in vals))
+        per_ordering = {}
+        for ordering in ("BA1", "BA2", "BA3"):
+            vals = []
+            for sigma in sigmas:
+                v, N, ok = qfi(family, nbar, kappa=kappa, ordering=ordering,
+                               pn_in=float(sigma), eta_out=eta)
+                vals.append(v)
+                rows.append([family, ordering, float(sigma), v, N, ok])
+            per_ordering[ordering] = vals
+        spread = max(abs(a - b) for o1 in per_ordering for o2 in per_ordering
+                     for a, b in zip(per_ordering[o1], per_ordering[o2]))
+        print(f"    {family:>12} " + "  ".join(f"{v:7.4f}" for v in per_ordering["BA3"])
+              + f"   max|BAi - BAj| {spread:.1e}")
     write_csv(outdir / "phase_noise.csv",
-              ["state", "sigma_phi_rad", "qfi_epsilon_a", "cutoff", "converged"], rows)
+              ["state", "ordering", "sigma_phi_rad", "qfi_epsilon_a", "cutoff", "converged"], rows)
 
 
 # ---------------------------------------------------------------------------

@@ -124,6 +124,9 @@ def fig_loss_placement(d, out):
 
 def fig_phase_noise(d, out):
     rows = read(d / "phase_noise.csv")
+    # All three orderings are recorded and coincide under this loss model; plot one.
+    if rows and "ordering" in rows[0]:
+        rows = [r for r in rows if r["ordering"] == "BA3"]
     data = series(rows, ("state",), "sigma_phi_rad", "qfi_epsilon_a")
     states = sorted({k[0] for k in data}, key=lambda s: ORDER.index(s))
     for name in THEMES:
