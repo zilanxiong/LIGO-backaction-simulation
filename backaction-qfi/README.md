@@ -332,18 +332,6 @@ the Fock track and is exact for Gaussian states:
   `F_λ = 2(2n̄+1+2√(n̄(n̄+1)))`), which is why it leads every lossless ranking;
 * agreement with `gaussian_reference` across orderings, losses and quadratures.
 
-## Still to do
-
-* **"States optimised without back-action from previous code."** Deliberately
-  *not* reported here. Those states come from the group's earlier optimisation
-  runs and need the `consolidated_data` directory
-  (`quantum_sensing.states.set_data_dir`, then `get_best_qfi_envelope` /
-  `reconstruct_state`), which was not available when this was run. The analytic
-  optimum is not a substitute: maximising `Var(x)` at fixed ⟨n⟩ provably gives
-  squeezed vacuum, so reporting it would just duplicate the `squeezed` row and
-  look like an independent result when it is not. `probe_states.py` keeps
-  `optimal_no_backaction` as the closed-form reference for when the real states
-  arrive, but it is absent from `STATE_FAMILIES` and appears in no scan.
 
 ## Caveats
 
