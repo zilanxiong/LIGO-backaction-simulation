@@ -217,6 +217,14 @@ def _panel_grid(df, exp, x, row_key, row_vals, line_key, fname, xlabel,
                         linewidth=2, color=COLORS[family], label=str(lv),
                         markerfacecolor=SURFACE, markeredgewidth=1.6,
                         markeredgecolor=COLORS[family])
+            # A parameter-independent QFI autoscales to numerical jitter and
+            # renders as fake structure; variation below the convergence
+            # tolerance is not resolved, so pin such panels to a real scale.
+            lo, hi = ax.get_ylim()
+            mid = 0.5 * (lo + hi)
+            if hi - lo < 2 * CONV_RTOL * max(abs(mid), 1.0):
+                pad = max(0.1 * abs(mid), 0.5)
+                ax.set_ylim(mid - pad, mid + pad)
             if i == 0:
                 ax.set_title(LABELS[family], fontsize=10, color=INK)
             if j == 0:
