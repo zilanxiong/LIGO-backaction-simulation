@@ -109,17 +109,22 @@ def _loss_channel(state, eta, N_basis):
     d_half = eta ** (np.arange(N_basis) / 2.0)
     s = np.sqrt(np.arange(1, N_basis))  # a M a† is an index shift, O(N^2)
     out = np.zeros_like(R)
+    # Fold (1-eta)^k / k! into the iterate as it is built, so M holds the
+    # bounded, Poisson-weighted K_k rho K_k† core (a bare a^k rho a†^k
+    # overflows float64 once k gets large).
     M = R.copy()
-    coef = 1.0
+    target = np.trace(R).real
+    acc = 0.0
     for k in range(N_basis):
         if k > 0:
             M_next = np.zeros_like(M)
-            M_next[:-1, :-1] = M[1:, 1:] * s[:, None] * s[None, :]
+            M_next[:-1, :-1] = (M[1:, 1:] * s[:, None] * s[None, :]
+                                * ((1.0 - eta) / k))
             M = M_next
-            coef *= (1.0 - eta) / k
-        term = coef * ((d_half[:, None] * M) * d_half[None, :])
+        term = (d_half[:, None] * M) * d_half[None, :]
         out += term
-        if np.trace(term).real < 1e-15:
+        acc += np.trace(term).real
+        if target - acc < 1e-14:
             break
     return qt.Qobj(out, dims=rho.dims)
 

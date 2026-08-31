@@ -168,6 +168,27 @@ def test_loss_channel_matches_mesolve():
     assert out.tr() == pytest.approx(1.0, abs=1e-10)
 
 
+def test_loss_channel_no_overflow_at_large_cutoff():
+    # Regression: the Kraus iterate a^k rho a†^k overflows float64 at large
+    # N_basis unless (1-eta)^k / k! is folded in during the recursion. A
+    # sheared anti-squeezed state at N=400 exercises exactly the failing case;
+    # the Gaussian closed form gives the exact QFI for this configuration.
+    kw = dict(chain=("ba", "sig", "loss_out"), chi_ba=2.0, ba_type="shear",
+              eta_out=0.8, state="squeezed", nbar=4.0, squeeze_angle=np.pi)
+    rho = qs.get_state_backaction(s=0.0, N_basis=400, **kw)
+    assert np.isfinite(rho.full()).all()
+    assert rho.tr().real == pytest.approx(1.0, abs=1e-8)
+    q = qs.calculate_qfi(qs.get_state_backaction, param_value=0.0,
+                         param_type="s", N_basis=400, **kw)
+    r, chi, eta = np.arcsinh(2.0), 2.0, 0.8
+    X = np.exp(2 * r) / 2
+    Sxx = eta * X + (1 - eta) / 2
+    Sxp = eta * (-chi * X)
+    Spp = eta * (np.exp(-2 * r) / 2 + chi ** 2 * X) + (1 - eta) / 2
+    q_ref = eta * Sxx / (Sxx * Spp - Sxp ** 2)
+    assert q == pytest.approx(q_ref, rel=1e-3)
+
+
 def test_dephasing_channel_matches_mesolve():
     from quantum_sensing.backaction import _dephasing_channel
     Ns, pn = 15, 0.4
