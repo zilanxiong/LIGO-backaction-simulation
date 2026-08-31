@@ -179,16 +179,17 @@ def get_state_arms(
     # Loss and dephasing
     c_ops = []
     if eta_x < 1.0:
-        kappa_x = loss_to_kappa(1 - eta_x)
+        # Pass t_final so total transmission is exactly eta (see get_state_single_mode).
+        kappa_x = loss_to_kappa(1 - eta_x, t_final)
         c_ops.append(np.sqrt(kappa_x) * ax)
     if eta_y < 1.0:
-        kappa_y = loss_to_kappa(1 - eta_y)
+        kappa_y = loss_to_kappa(1 - eta_y, t_final)
         c_ops.append(np.sqrt(kappa_y) * ay)
     if pn_x > 0.0:
-        chi_x = phirms_to_chi(pn_x)
+        chi_x = phirms_to_chi(pn_x, t_final)
         c_ops.append(np.sqrt(chi_x) * ax.dag() * ax)
     if pn_y > 0.0:
-        chi_y = phirms_to_chi(pn_y)
+        chi_y = phirms_to_chi(pn_y, t_final)
         c_ops.append(np.sqrt(chi_y) * ay.dag() * ay)
 
     if len(c_ops) > 0:
@@ -259,10 +260,13 @@ def get_state_single_mode(
 
     L_ch = []
     if eta_ch < 1.0:
-        kappa = loss_to_kappa(1 - eta_ch)
+        # Pass t_final so the total stage transmission is exactly eta_ch,
+        # matching get_state_mzi_heis (previously used the default time=1.0
+        # while evolving over [0, t_final], giving eta_ch**t_final).
+        kappa = loss_to_kappa(1 - eta_ch, t_final)
         L_ch.append(np.sqrt(kappa) * a)
     if pn_ch > 0.0:
-        chi = phirms_to_chi(pn_ch)
+        chi = phirms_to_chi(pn_ch, t_final)
         L_ch.append(np.sqrt(chi) * n_op)
     if sigma_a > 0.0:
         L_ch.append(np.sqrt(sigma_a) * (a.dag() + a))
