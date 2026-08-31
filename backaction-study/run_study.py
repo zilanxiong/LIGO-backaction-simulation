@@ -507,6 +507,175 @@ def run_bridge_visuals(chi_wigner=0.8):
     print(f"wrote {RESULTS/'fig_bridge_wigner.png'}", flush=True)
 
 
+def run_bridge_frequency():
+    """
+    Frequency-domain versions of the bridge figures: the coupling axis is
+    mapped through the Kimble factor, chi_eff(Omega) = K(Omega) =
+    2 (I0/I_SQL) gamma^4 / (Omega^2 (gamma^2 + Omega^2)), so the
+    linearization breakdown becomes a function of sideband frequency
+    (strong backaction at low Omega, none at high Omega). Interpretation:
+    a frequency-multiplexed preparation placing an identical copy of the
+    state in each sideband mode.
+    """
+    import qutip as qt
+    from matplotlib.ticker import FixedLocator, FuncFormatter, NullFormatter
+    from quantum_sensing import kimble_K
+
+    N_b = 130
+    omegas = np.logspace(np.log10(0.5), np.log10(5.0), 13)  # Omega / gamma
+
+    def _omega_axis(ax):
+        ax.set_xscale("log")
+        ax.xaxis.set_major_locator(FixedLocator([0.5, 1.0, 2.0, 5.0]))
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}"))
+        ax.xaxis.set_minor_formatter(NullFormatter())
+        ax.set_xlabel("Ω / γ", fontsize=9, color=INK2)
+
+    def one(family, chi_eff):
+        psi = make_state(family, NBAR, N_b,
+                         squeeze_angle=SQUEEZE_ANGLE.get(family, 0.0))
+        n_act = mean_photon_number(psi)
+        C_in = quadrature_covariance(psi)
+        S = np.array([[1.0, 0.0], [-chi_eff, 1.0]])
+        lam_in = np.linalg.eigvalsh(C_in)[-1]
+        lam_lin = np.linalg.eigvalsh(S @ C_in @ S.T)[-1]
+        kerr = get_state_backaction(chi_ba=chi_eff / (4.0 * n_act),
+                                    ba_type="kerr", chain=("ba",),
+                                    N_basis=N_b, rho=psi)
+        lam_kerr = np.linalg.eigvalsh(quadrature_covariance(kerr))[-1]
+        return psi, kerr, lam_in, lam_lin, lam_kerr
+
+    # --- (1) prediction-vs-truth curves over frequency ---
+    fig, axes = plt.subplots(1, len(FAMILIES),
+                             figsize=(3.0 * len(FAMILIES), 3.1), sharey=True)
+    fig.patch.set_facecolor(SURFACE)
+    for ax, family in zip(axes, FAMILIES):
+        _style_ax(ax)
+        db_k, db_s = [], []
+        for om in omegas:
+            chi_eff = float(kimble_K(om))
+            _, _, lam_in, lam_lin, lam_kerr = one(family, chi_eff)
+            db_s.append(10 * np.log10(lam_lin / lam_in))
+            db_k.append(10 * np.log10(lam_kerr / lam_in))
+        ax.plot(omegas, db_s, "--", linewidth=2, color=MUTED,
+                label="linearized (shear)")
+        ax.plot(omegas, db_k, "-", marker="o", markersize=4.5, linewidth=2,
+                color=COLORS[family], label="exact (Kerr)",
+                markerfacecolor=SURFACE, markeredgewidth=1.5,
+                markeredgecolor=COLORS[family])
+        _omega_axis(ax)
+        ax.axvline(1.0, color=GRID, linewidth=1)
+        ax.set_title(LABELS[family], fontsize=10, color=INK)
+    axes[0].set_ylabel("backaction-induced\nanti-squeezing (dB)",
+                       fontsize=9, color=INK2)
+    axes[0].legend(fontsize=8, frameon=False, labelcolor=INK2)
+    fig.suptitle("What each model predicts vs sideband frequency: "
+                 "χ(Ω) = K(Ω), I₀ = I_SQL, ⟨n⟩ = 4 "
+                 "(vertical line: Ω = γ, where K = 1)",
+                 fontsize=11, color=INK)
+    fig.tight_layout()
+    fig.savefig(RESULTS / "fig_bridge_freq_prediction.png", dpi=160,
+                facecolor=SURFACE, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote {RESULTS/'fig_bridge_freq_prediction.png'}", flush=True)
+
+    # --- (2) Wigner ladder vs frequency (squeezed vacuum) ---
+    xv = np.linspace(-5.5, 5.5, 361)
+    om_gallery = [0.6, 1.0, 2.0, 4.0]
+    fig, axes = plt.subplots(2, len(om_gallery),
+                             figsize=(2.6 * len(om_gallery), 5.4),
+                             squeeze=False)
+    fig.patch.set_facecolor(SURFACE)
+    XX, PP = np.meshgrid(xv, xv)
+    for j, om in enumerate(om_gallery):
+        chi_eff = float(kimble_K(om))
+        psi, kerr, *_ = one("squeezed", chi_eff)
+        # The linearized model's output is Gaussian by definition: render its
+        # Wigner analytically from Sigma = S C_in S^T (a Fock-basis rendering
+        # of the strongly sheared state would need a far larger cutoff).
+        S = np.array([[1.0, 0.0], [-chi_eff, 1.0]])
+        Sig = S @ quadrature_covariance(psi) @ S.T
+        Sinv = np.linalg.inv(Sig)
+        W_s = (np.exp(-0.5 * (Sinv[0, 0] * XX**2 + 2 * Sinv[0, 1] * XX * PP
+                              + Sinv[1, 1] * PP**2))
+               / (2 * np.pi * np.sqrt(np.linalg.det(Sig))))
+        W_k = qt.wigner(kerr, xv, xv)
+        vmax = max(np.abs(W_s).max(), np.abs(W_k).max())
+        for i, W in enumerate([W_s, W_k]):
+            ax = axes[i][j]
+            ax.pcolormesh(xv, xv, W, cmap="RdBu_r", vmin=-vmax, vmax=vmax,
+                          rasterized=True)
+            ax.set_aspect("equal")
+            ax.set_xticks([])
+            ax.set_yticks([])
+            for side in ax.spines.values():
+                side.set_color(GRID)
+        axes[0][j].set_title(f"Ω = {om:g} γ   (K = {chi_eff:.2g})",
+                             fontsize=10, color=INK)
+    axes[0][0].set_ylabel("linearized\n(shear)", fontsize=10, color=INK2)
+    axes[1][0].set_ylabel("exact\n(Kerr)", fontsize=10, color=INK2)
+    fig.suptitle("Squeezed vacuum after backaction across the band "
+                 "(I₀ = I_SQL, ⟨n⟩ = 4): the two models agree at high "
+                 "frequency and diverge below Ω ≈ γ", fontsize=11, color=INK)
+    fig.tight_layout()
+    fig.savefig(RESULTS / "fig_bridge_freq_wigner.png", dpi=160,
+                facecolor=SURFACE, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote {RESULTS/'fig_bridge_freq_wigner.png'}", flush=True)
+
+    # --- (3) linearization error vs frequency; power dependence ---
+    fig, axes = plt.subplots(1, 2, figsize=(9.0, 3.6))
+    fig.patch.set_facecolor(SURFACE)
+    ax = axes[0]
+    _style_ax(ax)
+    for family in FAMILIES:
+        errs = []
+        for om in omegas:
+            chi_eff = float(kimble_K(om))
+            _, _, _, lam_lin, lam_kerr = one(family, chi_eff)
+            errs.append(abs(lam_kerr - lam_lin) / lam_lin)
+        ax.plot(omegas, errs, "-", marker="o", markersize=4.5, linewidth=2,
+                color=COLORS[family], label=LABELS[family],
+                markerfacecolor=SURFACE, markeredgewidth=1.5,
+                markeredgecolor=COLORS[family])
+    _omega_axis(ax)
+    ax.set_yscale("log")
+    ax.axhline(0.1, color=MUTED, linewidth=1, linestyle="--")
+    ax.annotate("10%", xy=(omegas[-1], 0.1), fontsize=8, color=MUTED,
+                xytext=(2, 3), textcoords="offset points")
+    ax.set_title("State families, I₀ = I_SQL", fontsize=10, color=INK)
+    ax.set_ylabel("linearization error", fontsize=9, color=INK2)
+    ax.legend(fontsize=8, frameon=False, labelcolor=INK2)
+
+    ax = axes[1]
+    _style_ax(ax)
+    for i_ratio, color in zip([0.3, 1.0, 3.0], SEQ_BLUE):
+        errs = []
+        for om in omegas:
+            chi_eff = float(kimble_K(om, I_ratio=i_ratio))
+            _, _, _, lam_lin, lam_kerr = one("squeezed", chi_eff)
+            errs.append(abs(lam_kerr - lam_lin) / lam_lin)
+        ax.plot(omegas, errs, "-", marker="o", markersize=4.5, linewidth=2,
+                color=color, label=f"I₀/I_SQL = {i_ratio:g}",
+                markerfacecolor=SURFACE, markeredgewidth=1.5,
+                markeredgecolor=color)
+    _omega_axis(ax)
+    ax.set_yscale("log")
+    ax.axhline(0.1, color=MUTED, linewidth=1, linestyle="--")
+    ax.set_title("Squeezed vacuum vs circulating power", fontsize=10,
+                 color=INK)
+    ax.legend(fontsize=8, frameon=False, labelcolor=INK2)
+
+    fig.suptitle("Where the linearized description breaks, as a function of "
+                 "sideband frequency (χ(Ω) = K(Ω), ⟨n⟩ = 4)",
+                 fontsize=11, color=INK)
+    fig.tight_layout()
+    fig.savefig(RESULTS / "fig_bridge_freq_error.png", dpi=160,
+                facecolor=SURFACE, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote {RESULTS/'fig_bridge_freq_error.png'}", flush=True)
+
+
 def print_summary(df):
     pd.set_option("display.width", 120)
     print("\n=== E1 orderings (lossless, theta_sig=0, nbar=4): QFI ===")
@@ -541,4 +710,5 @@ if __name__ == "__main__":
     print_summary(df)
     run_bridge()
     run_bridge_visuals()
+    run_bridge_frequency()
     print("\nDone.")

@@ -87,3 +87,16 @@ def n_to_r(n):
 def loss_lim_dB(loss):
     """Loss limit in dB."""
     return -10 * np.log10(loss)
+
+
+# --- Radiation-pressure (ponderomotive) coupling ---
+
+def kimble_K(Omega, I_ratio=1.0, gamma=1.0):
+    """
+    Kimble factor K(Omega) of the tuned interferometer (KLMTV 2001):
+        K = 2 (I0/I_SQL) gamma^4 / (Omega^2 (gamma^2 + Omega^2)).
+    Equals 1 at Omega = gamma when I0 = I_SQL. Used as the frequency-
+    dependent ponderomotive shear strength chi(Omega).
+    """
+    Omega = np.asarray(Omega, dtype=float)
+    return 2.0 * I_ratio * gamma ** 4 / (Omega ** 2 * (gamma ** 2 + Omega ** 2))

@@ -111,6 +111,24 @@ the input covariance. Note that this covariance-level metric is the
 blind to all non-Gaussian structure of the output; the breakdown scales
 below are therefore lower bounds.
 
+\paragraph{Frequency dependence.} To express the comparison as a function
+of sideband frequency rather than abstract coupling, we evaluate the
+bridge along the physical frequency dependence of the ponderomotive
+coupling, the Kimble factor of the tuned interferometer,
+\begin{equation}
+  \chieff(\Omega) \;=\; \mathcal{K}(\Omega)
+  \;=\; \frac{2\,(I_0/I_{\mathrm{SQL}})\,\gamma^{4}}
+             {\Omega^{2}\left(\gamma^{2} + \Omega^{2}\right)},
+  \label{eq:kimble}
+\end{equation}
+with $\gamma$ the cavity half-bandwidth and $\mathcal{K} = 1$ at
+$\Omega = \gamma$ for $I_0 = I_{\mathrm{SQL}}$. The interpretation is a
+frequency-multiplexed preparation: each sideband mode carries an identical
+copy of the state and constitutes its own single-mode channel with
+strength $\mathcal{K}(\Omega)$. Backaction --- and with it the
+linearization question --- is then strong at low frequency and negligible
+at high frequency.
+
 \section{Results}
 
 \begin{table}[b]
@@ -142,37 +160,47 @@ Coherent, $\nbar = 32$ & $<10^{-5}$       & $0.0001$ & $0.005$ & $0.023$ \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{fig_bridge_prediction.png}
-\caption{What each model predicts: backaction-induced anti-squeezing of
-the noisiest quadrature (dB above the input state) versus coupling, for
-the exact Kerr (solid, colored) and the linearized shear (dashed, gray) at
-matched strength. For the coherent state the curves coincide until
-$\chieff \sim 1$; for every non-Gaussian family the linearized model
-predicts several dB of backaction noise that the exact model does not
-produce (Fock: exactly none).}
+\includegraphics[width=\linewidth]{fig_bridge_freq_prediction.png}
+\caption{What each model predicts across the band: backaction-induced
+anti-squeezing of the noisiest quadrature (dB above the input state)
+versus sideband frequency, with $\chieff(\Omega) = \mathcal{K}(\Omega)$ at
+$I_0 = I_{\mathrm{SQL}}$ [Eq.~\eqref{eq:kimble}], for the exact Kerr
+(solid, colored) and the linearized shear (dashed, gray). Above
+$\Omega \approx 2\gamma$ backaction is negligible and the models agree
+trivially; below $\Omega \approx \gamma$ the linearized model predicts a
+steeply growing noise ($\mathcal{K} \propto \Omega^{-4}$ in this region)
+that the exact model does not produce for any non-Gaussian family (Fock:
+exactly none at any frequency). Only the coherent carrier tracks the
+linearized prediction into the backaction-dominated band.}
 \label{fig:prediction}
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{fig_bridge_wigner.png}
-\caption{Wigner functions after backaction at $\chieff = 0.8$,
-$\nbar = 4$: linearized shear (top row) versus exact Kerr (bottom row). A
-linear map can only stretch and tilt phase space (top row); the exact
-interaction \emph{bends} it (bottom row) --- the squeezed families curl
-into S-shapes with interference fringes, the cat's two branches bend
-around their own centers, and the Fock state is left exactly invariant.}
+\includegraphics[width=0.9\linewidth]{fig_bridge_freq_wigner.png}
+\caption{Squeezed vacuum after backaction at four sideband frequencies
+($I_0 = I_{\mathrm{SQL}}$, $\nbar = 4$): linearized shear (top row,
+rendered analytically from its covariance --- the linearized output is
+Gaussian by definition) versus exact Kerr (bottom row). At
+$\Omega = 4\gamma$ ($\mathcal{K} \approx 0.007$) the rows are
+indistinguishable; at $2\gamma$ the exact state develops its first
+non-Gaussian curl; at and below $\Omega = \gamma$ the exact interaction
+wraps the state into interference-rich structures while the linearized
+model continues to predict a straight, thinner line.}
 \label{fig:wigner}
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.95\linewidth]{fig_bridge.png}
-\caption{The same data as relative error (log--log). Left: state families
-at $\nbar = 4$; the coherent error scales $\sim \chieff^{2}$ while the
-non-Gaussian families scale $\sim \chieff$. Right: coherent carrier at
-increasing $\nbar$; the error falls $\propto 1/\nbar$ at fixed
-$\chieff$.}
+\includegraphics[width=0.95\linewidth]{fig_bridge_freq_error.png}
+\caption{Linearization error versus sideband frequency (log--log; dashed
+guide at $10\%$). Left: state families at $\nbar = 4$, $I_0 =
+I_{\mathrm{SQL}}$. The coherent carrier stays below $10\%$ down to
+$\Omega \approx 0.9\gamma$, whereas the non-Gaussian families cross it at
+$1.5$--$2\gamma$ (Fock remains above $10^{-2}$ even at $5\gamma$). Right:
+the same error for squeezed vacuum at three circulating powers --- raising
+the power moves the breakdown frequency up, roughly following the contour
+$\mathcal{K}(\Omega) = \mathrm{const}$.}
 \label{fig:error}
 \end{figure}
 
@@ -197,10 +225,12 @@ phantom prediction, which is why it appears at first order in $\chieff$.
 \item \textbf{Cat and squeezed states: no single mean field exists.} The
 even cat is a superposition of two carriers $\pm\alpha$; each branch would
 linearize well about its own mean field, but the exact interaction bends
-the two branches oppositely, and no single linear map represents that
-(Fig.~\ref{fig:wigner}). Squeezed vacuum has $\langle a \rangle = 0$ with
+the two branches oppositely, and no single linear map represents that.
+Squeezed vacuum has $\langle a \rangle = 0$ with
 all of its intensity carried by fluctuations, so the ``small parameter''
-of the expansion is $\mathcal{O}(1)$ by construction.
+of the expansion is $\mathcal{O}(1)$ by construction; the resulting
+S-shaped curl of the exact output, versus the straight line the linearized
+model predicts, is visible across the band in Fig.~\ref{fig:wigner}.
 \end{itemize}
 
 \section{Interpretation and caveats}
@@ -272,9 +302,12 @@ injected.
 \noindent\textbf{Reproducibility.} All numbers and figures come from the
 self-contained \texttt{backaction-study/} folder (branch
 \texttt{claude/quantum-sensing-backaction-jn5ty7}):
-\texttt{run\_study.py} (experiments E5 and companions),
+\texttt{run\_study.py} (experiments E5 and companions;
+\texttt{run\_bridge\_frequency()} for the figures shown here),
 \texttt{results/bridge\_results.csv},
 and the regression test \texttt{test\_kerr\_linearizes\_to\_shear}, which
 pins the bridge Eq.~\eqref{eq:bridge} and its $1/\nbar$ convergence.
+Abstract-coupling ($\chieff$-axis) versions of all three figures are also
+generated (\texttt{results/fig\_bridge*.png}).
 
 \end{document}

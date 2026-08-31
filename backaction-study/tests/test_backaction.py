@@ -151,6 +151,15 @@ def test_injection_loss_no_backaction_penalty():
     assert q == pytest.approx(2.0, rel=1e-4)
 
 
+def test_kimble_K_anchors():
+    from quantum_sensing import kimble_K
+    # K = 1 at Omega = gamma for I0 = I_SQL; scales linearly with power;
+    # falls as Omega^-4 far above the cavity pole.
+    assert kimble_K(1.0) == pytest.approx(1.0)
+    assert kimble_K(1.0, I_ratio=3.0) == pytest.approx(3.0)
+    assert kimble_K(20.0) / kimble_K(10.0) == pytest.approx(2 ** -4, rel=1e-2)
+
+
 def test_kerr_linearizes_to_shear():
     # Linearization bridge: expanding n^2 around a coherent carrier gives the
     # shear with chi_eff = 4 chi_K <n> (plus a rotation and displacement that

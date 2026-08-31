@@ -6,7 +6,7 @@ from quantum_sensing.conversions import (
     qfi_to_phi_min,
     dB_to_r, r_to_dB, var_to_dB, r_to_var,
     dB_to_n, n_to_dB, r_to_n, n_to_r,
-    loss_lim_dB,
+    loss_lim_dB, kimble_K,
 )
 
 from quantum_sensing.dynamics import (
