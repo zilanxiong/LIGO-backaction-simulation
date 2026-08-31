@@ -1,148 +1,35 @@
-[  13.7s] E1 done: coherent
-[  36.7s] E1 done: squeezed
-[  41.8s] E1 done: fock
-[ 251.2s] E1 done: cat
-[ 454.5s] E1 done: sqz_cat
-[ 593.3s] E1b done
-[ 601.2s] E2 done: coherent
-/home/user/LIGO-backaction-simulation/quantum-sensing-py/quantum_sensing/backaction.py:117: RuntimeWarning: overflow encountered in multiply
-  M_next[:-1, :-1] = M[1:, 1:] * s[:, None] * s[None, :]
-/home/user/LIGO-backaction-simulation/quantum-sensing-py/quantum_sensing/backaction.py:120: RuntimeWarning: invalid value encountered in multiply
-  term = coef * ((d_half[:, None] * M) * d_half[None, :])
-/home/user/LIGO-backaction-simulation/quantum-sensing-py/quantum_sensing/backaction.py:117: RuntimeWarning: invalid value encountered in multiply
-  M_next[:-1, :-1] = M[1:, 1:] * s[:, None] * s[None, :]
-[ 636.6s] E2 done: squeezed
-[ 640.7s] E2 done: fock
-[ 783.4s] E2 done: cat
-[1039.9s] E2 done: sqz_cat
-[1049.3s] E3 done: coherent
-[1111.0s] E3 done: squeezed
-[1119.2s] E3 done: fock
-[1247.5s] E3 done: cat
-[1619.0s] E3 done: sqz_cat
-[1646.1s] E4 done: coherent
-[1760.0s] E4 done: squeezed
-[1774.2s] E4 done: fock
-[2053.4s] E4 done: cat
-[2660.1s] E4 done: sqz_cat
-[2660.1s] wrote /home/user/LIGO-backaction-simulation/backaction-study/results/qfi_results.csv (355 rows); max N_basis used: 824
-wrote /home/user/LIGO-backaction-simulation/backaction-study/results/fig_orderings.png
-wrote /home/user/LIGO-backaction-simulation/backaction-study/results/fig_offaxis.png
-wrote /home/user/LIGO-backaction-simulation/backaction-study/results/fig_loss_placement.png
-wrote /home/user/LIGO-backaction-simulation/backaction-study/results/fig_pn_chain.png
-wrote /home/user/LIGO-backaction-simulation/backaction-study/results/fig_scaling.png
-
-=== E1 orderings (lossless, theta_sig=0, nbar=4): QFI ===
-
--- shear --
-chi                 0.0      0.5      1.0      2.0
-family   chain                                    
-cat      BA1    34.0107  34.0107  34.0107  34.0107
-         BA2    34.0107  34.0107  34.0107  34.0107
-         BA3    34.0107  34.0107  34.0107  34.0107
-coherent BA1     2.0000   2.0000   2.0000   2.0000
-         BA2     2.0000   2.0000   2.0000   2.0000
-         BA3     2.0000   2.0000   2.0000   2.0000
-fock     BA1    18.0000  18.0000  18.0000  18.0000
-         BA2    18.0000  18.0000  18.0000  18.0000
-         BA3    18.0000  18.0000  18.0000  18.0000
-squeezed BA1    35.8885  35.8885  35.8885  35.8885
-         BA2    35.8885  35.8885  35.8885  35.8885
-         BA3    35.8885  35.8885  35.8885  35.8885
-sqz_cat  BA1    35.8859  35.8859  35.8859  35.8859
-         BA2    35.8859  35.8859  35.8859  35.8859
-         BA3    35.8859  35.8859  35.8859  35.8859
-
--- kerr --
-chi                0.00     0.05     0.10     0.20
-family   chain                                    
-cat      BA1    34.0107  26.0488  13.5889  13.8892
-         BA2    34.0107  34.0107  34.0107  34.0107
-         BA3    34.0107  31.0519  24.0427  10.9462
-coherent BA1     2.0000   1.1031   2.9140  13.3038
-         BA2     2.0000   2.0000   2.0000   2.0000
-         BA3     2.0000   1.5280   0.8596   2.0180
-fock     BA1    18.0000  18.0000  18.0000  18.0000
-         BA2    18.0000  18.0000  18.0000  18.0000
-         BA3    18.0000  17.7511  17.0216  14.3511
-squeezed BA1    35.8885  18.4090  17.4848  17.7596
-         BA2    35.8885  35.8885  35.8885  35.8885
-         BA3    35.8885  21.6129  12.7997   6.6015
-sqz_cat  BA1    35.8859  18.0551  17.2614  17.7227
-         BA2    35.8859  35.8859  35.8859  35.8859
-         BA3    35.8859  22.7255  13.2928   6.6856
-
-=== E2 loss placement (eta=0.8): QFI(chi)/QFI(0) ===
-
--- shear --
-chi                 0.0     0.5     1.0     2.0
-family   chain                                 
-cat      detection  1.0  0.8528  0.6462  0.4073
-         injection  1.0  1.0000  1.0000  1.0000
-coherent detection  1.0  0.9615  0.8621  0.6098
-         injection  1.0  1.0000  1.0000  1.0000
-fock     detection  1.0  0.9669  0.8710  0.6075
-         injection  1.0  1.0000  1.0000  1.0000
-squeezed detection  1.0  0.8322  0.5536  0.0000
-         injection  1.0  1.0000  1.0000  1.0000
-sqz_cat  detection  1.0  0.8324  0.5540  0.0000
-         injection  1.0  1.0000  1.0000  1.0000
-
--- kerr --
-chi                 0.00    0.05    0.10    0.20
-family   chain                                  
-cat      detection   1.0  0.7886  0.9586  1.9607
-         injection   1.0  0.7135  0.7137  3.1908
-coherent detection   1.0  0.5863  0.9194  2.5349
-         injection   1.0  0.6463  0.8338  4.8584
-fock     detection   1.0  1.0000  1.0000  1.0000
-         injection   1.0  1.0000  1.0000  1.0000
-squeezed detection   1.0  0.6820  0.7302  0.7724
-         injection   1.0  0.9330  1.3254  1.6652
-sqz_cat  detection   1.0  0.6709  0.7334  0.7859
-         injection   1.0  0.8681  1.2836  1.6574
-
-=== E3 pn chain: QFI ===
-pn                         0.0     0.1    0.3
-ba_type family   chain                       
-kerr    cat      BA1     4.977   4.883  4.535
-                 BA2     9.767   8.882  6.721
-        coherent BA1     2.002   1.892  1.508
-                 BA2     1.483   1.313  0.759
-        fock     BA1     7.997   7.997  7.997
-                 BA2     8.096   8.096  8.096
-        squeezed BA1     8.335   6.123  4.261
-                 BA2    27.440  11.795  4.965
-        sqz_cat  BA1     8.357   6.190  4.276
-                 BA2    26.176  11.746  5.031
-shear   cat      BA1     1.506   1.378  1.016
-                 BA2     1.506   1.378  1.016
-        coherent BA1     1.324   1.198  0.718
-                 BA2     1.324   1.198  0.718
-        fock     BA1     3.862   3.862  3.862
-                 BA2     3.862   3.862  3.862
-        squeezed BA1     3.286   2.696  1.566
-                 BA2     3.286   2.696  1.566
-        sqz_cat  BA1     3.282   2.695  1.540
-                 BA2     3.282   2.695  1.540
-
-=== E4 scaling: QFI ===
-nbar                      1.0     2.0     4.0     8.0      16.0
-chain         family                                           
-kerr_ba1      cat       10.298  16.527  26.049  28.084   20.779
-              coherent   1.870   1.630   1.103   2.271   20.141
-              fock       6.000  10.000  18.000  34.000   66.000
-              squeezed   9.463  12.758  18.409  32.667   64.273
-              sqz_cat    9.667  13.045  18.055  32.105   64.077
-lossless      cat       10.799  18.261  34.011  66.000  130.000
-              coherent   2.000   2.000   2.000   2.000    2.000
-              fock       6.000  10.000  18.000  34.000   66.000
-              squeezed  11.657  19.798  35.889  67.941  131.970
-              sqz_cat   11.654  19.795  35.886  67.939  131.969
-shear_detloss cat        1.267   1.118   0.994   0.976    0.976
-              coherent   0.976   0.976   0.976   0.976    0.976
-              fock       1.442   1.881   2.528   3.206    3.532
-              squeezed   1.449   1.508   0.000   0.000    0.000
-              sqz_cat    1.448   1.507   0.000   0.000    0.000
-
-Done.
+[  19.8s] E1 done: coherent
+[  38.9s] E1 done: squeezed
+[  44.7s] E1 done: fock
+[ 268.8s] E1 done: cat
+[ 493.2s] E1 done: sqz_cat
+[ 651.1s] E1b done
+[ 658.7s] E2 done: coherent
+[ 685.7s] E2 done: squeezed
+[ 689.0s] E2 done: fock
+[ 818.3s] E2 done: cat
+[1018.2s] E2 done: sqz_cat
+[1029.2s] E3 done: coherent
+[1092.5s] E3 done: squeezed
+[1095.6s] E3 done: fock
+[1228.9s] E3 done: cat
+[1590.6s] E3 done: sqz_cat
+[1618.6s] E4 done: coherent
+[1701.5s] E4 done: squeezed
+[1716.1s] E4 done: fock
+[1996.7s] E4 done: cat
+Traceback (most recent call last):
+  File "/home/user/LIGO-backaction-simulation/backaction-study/run_study.py", line 336, in <module>
+    df = run_experiments()
+         ^^^^^^^^^^^^^^^^^
+  File "/home/user/LIGO-backaction-simulation/backaction-study/run_study.py", line 163, in run_experiments
+    record("scaling", family, cfg["ba_type"], cfg_name,
+  File "/home/user/LIGO-backaction-simulation/backaction-study/run_study.py", line 104, in record
+    q, N_used = qfi(family, nbar, ba_type, chi, chain=chain,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/LIGO-backaction-simulation/backaction-study/run_study.py", line 90, in qfi
+    q, N_used, _ = calculate_qfi_converged(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/LIGO-backaction-simulation/backaction-study/quantum_sensing/backaction.py", line 336, in calculate_qfi_converged
+    raise RuntimeError(
+RuntimeError: QFI not converged to rtol=0.0005 by N_basis=824: history=[(588, 1.5866681389069313), (824, 1.5853394211499967)]
