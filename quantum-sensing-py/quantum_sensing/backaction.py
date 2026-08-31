@@ -43,7 +43,7 @@ import numpy as np
 import qutip as qt
 from scipy.optimize import brentq
 
-from .conversions import loss_to_kappa, phirms_to_chi
+from .conversions import phirms_to_chi
 from .sld import calculate_qfi
 
 STATE_FAMILIES = ("coherent", "squeezed", "fock", "cat", "sqz_cat")
@@ -96,14 +96,46 @@ def _apply_unitary(state, U):
     return U * state * U.dag()
 
 
-def _dissipative_stage(state, c_ops, N_basis):
-    """Unit-time mesolve noise stage (matches dynamics._apply_noise_stage)."""
-    if not c_ops:
+def _loss_channel(state, eta, N_basis):
+    """
+    Exact bosonic attenuation channel of transmission eta (identical to the
+    unit-time Lindblad sqrt(kappa)*a evolution with e^{-kappa} = eta, applied
+    in closed Kraus form: K_k = sqrt((1-eta)^k / k!) eta^{n/2} a^k).
+    """
+    if eta >= 1.0:
         return state
     rho = qt.ket2dm(state) if state.isket else state
-    H_zero = 0 * qt.num(N_basis)
-    res = qt.mesolve(H_zero, rho, [0.0, 1.0], c_ops)
-    return res.states[-1]
+    R = rho.full()
+    d_half = eta ** (np.arange(N_basis) / 2.0)
+    s = np.sqrt(np.arange(1, N_basis))  # a M a† is an index shift, O(N^2)
+    out = np.zeros_like(R)
+    M = R.copy()
+    coef = 1.0
+    for k in range(N_basis):
+        if k > 0:
+            M_next = np.zeros_like(M)
+            M_next[:-1, :-1] = M[1:, 1:] * s[:, None] * s[None, :]
+            M = M_next
+            coef *= (1.0 - eta) / k
+        term = coef * ((d_half[:, None] * M) * d_half[None, :])
+        out += term
+        if np.trace(term).real < 1e-15:
+            break
+    return qt.Qobj(out, dims=rho.dims)
+
+
+def _dephasing_channel(state, pn, N_basis):
+    """
+    Exact number dephasing: rho_nm -> rho_nm exp(-chi (n-m)^2 / 2) with
+    chi = phirms_to_chi(pn) (identical to unit-time Lindblad sqrt(chi)*n).
+    """
+    if pn <= 0.0:
+        return state
+    rho = qt.ket2dm(state) if state.isket else state
+    chi = phirms_to_chi(pn)
+    n = np.arange(N_basis)
+    mask = np.exp(-0.5 * chi * (n[:, None] - n[None, :]) ** 2)
+    return qt.Qobj(rho.full() * mask, dims=rho.dims)
 
 
 # ---------------------------------------------------------------------------
@@ -250,9 +282,6 @@ def get_state_backaction(
         out = make_state(state, nbar, N_basis, squeeze_angle=squeeze_angle,
                          sqz_fraction=sqz_fraction, parity=parity)
 
-    a = qt.destroy(N_basis)
-    n_op = qt.num(N_basis)
-
     for st in chain:
         if st == "sig":
             U = (-1j * s * signal_generator(N_basis, theta_sig)).expm()
@@ -267,17 +296,11 @@ def get_state_backaction(
                 G = G + ba_generator(chi_ba, N_basis, ba_type, theta_ba)
             out = _apply_unitary(out, (-1j * G).expm())
         elif st == "loss_in":
-            if eta_in < 1.0:
-                kappa = loss_to_kappa(1 - eta_in)
-                out = _dissipative_stage(out, [np.sqrt(kappa) * a], N_basis)
+            out = _loss_channel(out, eta_in, N_basis)
         elif st == "loss_out":
-            if eta_out < 1.0:
-                kappa = loss_to_kappa(1 - eta_out)
-                out = _dissipative_stage(out, [np.sqrt(kappa) * a], N_basis)
+            out = _loss_channel(out, eta_out, N_basis)
         elif st == "pn":
-            if pn > 0.0:
-                chi_pn = phirms_to_chi(pn)
-                out = _dissipative_stage(out, [np.sqrt(chi_pn) * n_op], N_basis)
+            out = _dephasing_channel(out, pn, N_basis)
 
     return out
 

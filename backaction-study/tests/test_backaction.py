@@ -152,6 +152,35 @@ def test_injection_loss_no_backaction_penalty():
 
 
 # ---------------------------------------------------------------------------
+# Closed-form noise channels vs independent mesolve evolution
+# ---------------------------------------------------------------------------
+
+def test_loss_channel_matches_mesolve():
+    from quantum_sensing.backaction import _loss_channel
+    Ns, eta = 15, 0.65
+    psi = (qt.coherent(Ns, 1.2) + qt.basis(Ns, 3)).unit()
+    rho0 = qt.ket2dm(psi)
+    kappa = -np.log(eta)
+    ref = qt.mesolve(0 * qt.num(Ns), rho0, [0.0, 1.0],
+                     [np.sqrt(kappa) * qt.destroy(Ns)]).states[-1]
+    out = _loss_channel(rho0, eta, Ns)
+    assert (out - ref).norm() < 1e-6
+    assert out.tr() == pytest.approx(1.0, abs=1e-10)
+
+
+def test_dephasing_channel_matches_mesolve():
+    from quantum_sensing.backaction import _dephasing_channel
+    Ns, pn = 15, 0.4
+    psi = (qt.coherent(Ns, 1.2) + qt.basis(Ns, 3)).unit()
+    rho0 = qt.ket2dm(psi)
+    chi = pn ** 2
+    ref = qt.mesolve(0 * qt.num(Ns), rho0, [0.0, 1.0],
+                     [np.sqrt(chi) * qt.num(Ns)]).states[-1]
+    out = _dephasing_channel(rho0, pn, Ns)
+    assert (out - ref).norm() < 1e-6
+
+
+# ---------------------------------------------------------------------------
 # dynamics.py loss/t_final regression
 # ---------------------------------------------------------------------------
 
