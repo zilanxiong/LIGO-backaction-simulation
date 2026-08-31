@@ -31,3 +31,10 @@ from quantum_sensing.gkp import (
     discrete_q, gkp_s_values, gkp, num_state,
     gkp_fock_coeff, gkp_fock,
 )
+
+from quantum_sensing.backaction import (
+    quadrature, signal_generator, ba_generator, shear_squeeze_r,
+    make_state, mean_photon_number, get_state_backaction,
+    calculate_qfi_converged,
+    STATE_FAMILIES, VALID_STAGES,
+)
