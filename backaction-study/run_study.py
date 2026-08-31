@@ -416,6 +416,97 @@ def run_bridge():
     return df
 
 
+def run_bridge_visuals(chi_wigner=0.8):
+    """
+    Intuitive companions to fig_bridge: (1) what each model actually predicts
+    (anti-squeezing vs coupling, exact Kerr vs linearized shear overlaid);
+    (2) Wigner functions from both models at one coupling.
+    """
+    import qutip as qt
+
+    N_b = 130
+    chis = np.linspace(0.0, 1.6, 9)
+
+    def outputs(family, chi_eff):
+        psi = make_state(family, NBAR, N_b,
+                         squeeze_angle=SQUEEZE_ANGLE.get(family, 0.0))
+        n_act = mean_photon_number(psi)
+        kerr = get_state_backaction(chi_ba=chi_eff / (4.0 * n_act),
+                                    ba_type="kerr", chain=("ba",),
+                                    N_basis=N_b, rho=psi)
+        shear = get_state_backaction(chi_ba=chi_eff, ba_type="shear",
+                                     chain=("ba",), N_basis=N_b, rho=psi)
+        return psi, kerr, shear
+
+    # --- (1) prediction-vs-truth curves ---
+    fig, axes = plt.subplots(1, len(FAMILIES), figsize=(3.0 * len(FAMILIES), 3.0),
+                             sharey=True)
+    fig.patch.set_facecolor(SURFACE)
+    for ax, family in zip(axes, FAMILIES):
+        _style_ax(ax)
+        lam_in = None
+        db_k, db_s = [], []
+        for chi_eff in chis:
+            psi, kerr, shear = outputs(family, chi_eff)
+            if lam_in is None:
+                lam_in = np.linalg.eigvalsh(quadrature_covariance(psi))[-1]
+            db_k.append(10 * np.log10(
+                np.linalg.eigvalsh(quadrature_covariance(kerr))[-1] / lam_in))
+            db_s.append(10 * np.log10(
+                np.linalg.eigvalsh(quadrature_covariance(shear))[-1] / lam_in))
+        ax.plot(chis, db_s, "--", linewidth=2, color=MUTED,
+                label="linearized (shear)")
+        ax.plot(chis, db_k, "-", marker="o", markersize=4.5, linewidth=2,
+                color=COLORS[family], label="exact (Kerr)",
+                markerfacecolor=SURFACE, markeredgewidth=1.5,
+                markeredgecolor=COLORS[family])
+        ax.set_title(LABELS[family], fontsize=10, color=INK)
+        ax.set_xlabel("χ_eff", fontsize=9, color=INK2)
+    axes[0].set_ylabel("backaction-induced\nanti-squeezing (dB)",
+                       fontsize=9, color=INK2)
+    axes[0].legend(fontsize=8, frameon=False, labelcolor=INK2)
+    fig.suptitle("What each model predicts: ponderomotive anti-squeezing above "
+                 "the input state, exact Kerr vs linearized shear (⟨n⟩ = 4)",
+                 fontsize=11, color=INK)
+    fig.tight_layout()
+    fig.savefig(RESULTS / "fig_bridge_prediction.png", dpi=160,
+                facecolor=SURFACE, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote {RESULTS/'fig_bridge_prediction.png'}", flush=True)
+
+    # --- (2) Wigner gallery at one coupling ---
+    xv = np.linspace(-5.5, 5.5, 181)
+    fig, axes = plt.subplots(2, len(FAMILIES),
+                             figsize=(2.6 * len(FAMILIES), 5.4), squeeze=False)
+    fig.patch.set_facecolor(SURFACE)
+    for j, family in enumerate(FAMILIES):
+        _, kerr, shear = outputs(family, chi_wigner)
+        W_s = qt.wigner(shear, xv, xv)
+        W_k = qt.wigner(kerr, xv, xv)
+        vmax = max(np.abs(W_s).max(), np.abs(W_k).max())
+        for i, W in enumerate([W_s, W_k]):
+            ax = axes[i][j]
+            ax.pcolormesh(xv, xv, W, cmap="RdBu_r", vmin=-vmax, vmax=vmax,
+                          rasterized=True)
+            ax.set_aspect("equal")
+            ax.set_xticks([])
+            ax.set_yticks([])
+            for side in ax.spines.values():
+                side.set_color(GRID)
+        axes[0][j].set_title(LABELS[family], fontsize=10, color=INK)
+    axes[0][0].set_ylabel("linearized\n(shear)", fontsize=10, color=INK2)
+    axes[1][0].set_ylabel("exact\n(Kerr)", fontsize=10, color=INK2)
+    fig.suptitle(f"Phase space (Wigner) after backaction at χ_eff = "
+                 f"{chi_wigner}, ⟨n⟩ = 4 — same coupling, two models\n"
+                 "(blue/red = positive/negative quasi-probability; "
+                 "x horizontal, p vertical)", fontsize=11, color=INK)
+    fig.tight_layout()
+    fig.savefig(RESULTS / "fig_bridge_wigner.png", dpi=160,
+                facecolor=SURFACE, bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote {RESULTS/'fig_bridge_wigner.png'}", flush=True)
+
+
 def print_summary(df):
     pd.set_option("display.width", 120)
     print("\n=== E1 orderings (lossless, theta_sig=0, nbar=4): QFI ===")
@@ -449,4 +540,5 @@ if __name__ == "__main__":
     make_figures(df)
     print_summary(df)
     run_bridge()
+    run_bridge_visuals()
     print("\nDone.")
