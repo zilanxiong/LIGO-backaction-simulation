@@ -2,9 +2,10 @@
 
 ```bash
 pip install numpy scipy qutip matplotlib pytest
-python backaction-qfi/run_study.py      # ~5 min, writes results/*.csv
+python backaction-qfi/run_study.py      # ~20 min, writes results/*.csv
+python backaction-qfi/run_study.py --only B   # ...or just one section
 python backaction-qfi/make_figures.py   # writes results/*.png
-pytest backaction-qfi                   # 108 tests, ~25 s
+pytest backaction-qfi                   # 131 tests, ~70 s
 ```
 
 The radiation-pressure unitary is added to the existing single-mode
@@ -35,7 +36,7 @@ and noise staging. With `kappa = 0` it reproduces the original bit for bit.
 | `dynamics.py`, `sld.py`, `conversions.py` | *verbatim copies* of the group's `quantum_sensing` modules — the sensing channel, the SLD/QFI routine, and the unit conversions |
 | `run_study.py` | the study runner |
 | `make_figures.py`, `plotstyle.py` | the figures |
-| `test_backaction.py`, `conftest.py` | 108 tests, runnable with `pytest backaction-qfi` |
+| `test_backaction.py`, `conftest.py` | 131 tests, runnable with `pytest backaction-qfi` |
 | `results/` | CSVs and figures |
 
 
@@ -100,8 +101,8 @@ shear demands.
 **Every number below went through the cutoff convergence check.** This matters
 more than it sounds: at the default `N_basis = 20`, the QFI is wrong by
 **202 %** for an even cat at ⟨n⟩ = 4 (κ = 1.5, η = 0.9), and by 95 % for
-squeezed vacuum. The `converged` column in every CSV flags the four points
-(of 491) that did not converge; see Caveats.
+squeezed vacuum. The `converged` column in every CSV flags the five points
+(of 727) that did not converge; see Caveats.
 
 ---
 
@@ -114,7 +115,7 @@ concurrent loss, so every result below is tagged.
 | section | loss model | parameters |
 |---|---|---|
 | 1. orderings | **stage-separated** | `eta_out` |
-| 2. loss placement | all three | `eta_in` / `eta_ch` / `eta_out` |
+| 2. loss placement × ordering | all three | `eta_in` / `eta_ch` / `eta_out` |
 | 2b. orderings under concurrent loss | **concurrent** | `eta_ch` |
 | 3. phase noise | **stage-separated** | `pn_in`, `eta_out` |
 | 4. probe states vs κ | **stage-separated** | `eta_out` |
@@ -145,37 +146,77 @@ the QFI (max `|ρᵢ − ρⱼ|` ≈ 4e−16). It survives `eta_in`/`eta_out` an
 `pn_in`/`pn_out` because those act strictly before or after the interaction.
 
 **It does not survive dissipation acting *during* the interaction** — see
-§2b, where the orderings separate by up to 6× and BA3 is bracketed by BA1
-and BA2, which is the behaviour we expected.
+§2 and §2b, where the orderings separate by up to 7× and BA3 is bracketed by
+BA1 and BA2 in every case tested, which is the behaviour we expected.
 
-**The bounding picture belongs to the non-commuting case.** Estimating `ε_p`
-instead separates the orderings by 48×, and BA3 is then bracketed:
+**The bounding picture belongs to the non-commuting case — and it is not
+universal.** Estimating `ε_p` (signal in `x̂`) separates the orderings by up to
+48×:
 
-| state | BA1 | BA2 | BA3 | bracketed? |
-|---|---|---|---|---|
-| squeezed | 19.560 | 0.402 | 5.083 | yes |
-| even cat | 14.719 | 3.221 | 5.626 | yes |
+| state | no BA | BA1 | BA2 | BA3 | bracketed? |
+|---|---|---|---|---|---|
+| squeezed | 0.400 | 19.560 | 0.402 | 5.083 | yes |
+| even cat | 3.168 | 14.719 | 3.221 | 5.626 | yes |
+| **Fock** | **12.182** | **16.545** | **14.873** | **11.551** | **no** |
+
+The Fock row is a counterexample to the assumption that BA1 and BA2 bound the
+physical case. Its BA3 sits *below both* sequential orderings, and below the
+no-back-action value as well. The shear is a squeeze plus a rotation
+(`shear_as_squeeze_rotation`), so applied cleanly before or after the signal it
+narrows the probe along a quadrature that happens to favour an `x̂` displacement
+— Fock gains from it, 12.182 → 16.545 under BA1. Interleaved with the signal it
+does not, and the simultaneous case falls below doing nothing at all. Verified
+converged — stable to six digits from `N_basis` 200 to 450, and reproduced at
+⟨n⟩ = 1 and ⟨n⟩ = 2.
+
+*So BA1/BA2 bracket BA3 for Gaussian-like probes, not in general.* Where a
+bracket is claimed below it is a measured result for those states, not a bound
+that can be assumed for a new one.
 
 *Practical consequence:* with stage-separated loss, running all three orderings
 is redundant — one suffices. With concurrent loss it is not.
 
-### 2. Injection loss vs detection loss
+### 2. Injection loss vs detection loss, for every ordering
 
 ![loss placement](results/fig2_loss_placement.png)
 
-`results/loss_placement.csv`, η = 0.8, κ = 0 → 3.
+`results/loss_placement.csv`, η = 0.8, κ = 0 → 3, ⟨n⟩ = 2. **All three
+orderings**, 252 convergence-checked points.
 
-| state | injection (loss → BA) | concurrent (loss *during* BA) | detection (BA → loss) |
+**Injection and detection do not depend on the ordering.** Run BA1, BA2 and BA3
+separately and they return the same number to 1.3e−11 (injection) and 2.1e−11
+(detection) — the same `[x̂², x̂] = 0` degeneracy as §1, now confirmed on a second
+axis. So one column each suffices:
+
+| state | injection (loss → BA), any ordering | detection (BA → loss), any ordering |
+|---|---|---|
+| squeezed | 14.244 → **14.244** (flat) | 11.395 → 1.571 (÷7.3) |
+| even cat | 9.318 → **9.318** (flat) | 7.455 → 1.360 (÷5.5) |
+| Fock | 9.404 → **9.404** (flat) | 7.524 → 2.330 (÷3.2) |
+| coherent | 4.000 → **4.000** (flat) | 3.200 → 1.311 (÷2.4) |
+
+**Concurrent loss is the one column where the ordering matters** — and it spans
+almost the whole range between the two stage-separated extremes:
+
+| state | BA1 (RP → sensing) | BA2 (sensing → RP) | BA3 (simultaneous) |
 |---|---|---|---|
-| squeezed | 14.244 → **14.244** (flat) | 12.754 → 3.967 (÷3.2) | 11.395 → 1.571 (÷7.3) |
-| even cat | 9.318 → **9.318** (flat) | 8.343 → 2.746 (÷3.0) | 7.455 → 1.360 (÷5.5) |
-| Fock | 9.404 → **9.404** (flat) | 8.420 → 3.789 (÷2.2) | 7.524 → 2.330 (÷3.2) |
-| coherent | 4.000 → **4.000** (flat) | 3.581 → 2.330 (÷1.5) | 3.200 → 1.311 (÷2.4) |
+| squeezed | 12.754 → 1.760 (÷7.2) | 12.754 → **12.754** (flat) | 12.754 → 3.967 (÷3.2) |
+| even cat | 8.343 → 1.522 (÷5.5) | 8.343 → **8.343** (flat) | 8.343 → 2.746 (÷3.0) |
+| Fock | 8.420 → 2.608 (÷3.2) | 8.420 → **8.420** (flat) | 8.420 → 3.789 (÷2.2) |
+| coherent | 3.581 → 1.468 (÷2.4) | 3.581 → **3.581** (flat) | 3.581 → 2.330 (÷1.5) |
 
-Concurrent loss lands **between** the two extremes for every state — as it
-should, since loss spread through the interaction is partly "before" and partly
-"after" the shear. It is also the realistic model: in an interferometer the two
-processes are not separable in time.
+**BA2 is exactly flat in κ even under concurrent loss** (max deviation 4.8e−7,
+and 3.7e−14 for Fock): the whole shear lands *after* the lossy evolution, where
+it is a parameter-independent unitary and cannot touch the QFI. BA1 pays the
+full cost — its κ = 3 values sit within 12 % of the pure-detection-loss numbers
+above. So the concurrent case interpolates between "shear before all the loss"
+(free) and "shear before all the loss and the loss after it" (worst), with BA3
+in between.
+
+Concurrent BA3 lands **between** the injection and detection extremes for every
+state — as it should, since loss spread through the interaction is partly
+"before" and partly "after" the shear. It is also the realistic model: in an
+interferometer the two processes are not separable in time.
 
 Injection loss gives a QFI **exactly independent of κ**: loss degrades the
 input, and the shear that follows is a unitary leaving the generator alone
@@ -206,8 +247,9 @@ injection-side loss under back-action. A single "total loss" figure hides it.
 | even cat | 3.0 | 1.522 | 8.343 | 2.746 | 6.82 | yes |
 | Fock | 3.0 | 2.608 | 8.420 | 3.789 | 5.81 | yes |
 
-**BA3 is bracketed in all 9 cases**, and the bracket is wide — a factor 6 at
-κ = 3 for squeezed vacuum. This is the configuration the project plan has in
+**BA3 is bracketed in all 9 cases tested here**, and the bracket is wide — a
+factor 6 at κ = 3 for squeezed vacuum. (Bracketing is a measured result, not a
+guarantee: §1 shows a Fock probe breaking it in the non-commuting quadrature.) This is the configuration the project plan has in
 mind: once loss and radiation pressure overlap in time, where you put the shear
 genuinely matters, and the two sequential orderings are the extremes.
 
@@ -337,13 +379,13 @@ the Fock track and is exact for Gaussian states:
 
 ## Caveats
 
-* **Four unconverged points** of 491, all flagged in the `converged` column.
+* **Five unconverged points** of 727, all flagged in the `converged` column.
   One is `squeezed` at ⟨n⟩ = 2, κ = 3, `eta_out = 0.95` (capped at
   `N_basis = 700`, last relative change 5.6e−6 — good to ~1e−5, it just missed
-  the two-consecutive-rungs criterion). The other three are `squeezed` at κ = 3
-  under **concurrent** loss, capped at `N_basis = 340` with last relative
-  changes of 1.1e−3 and 4.6e−3, so those three numbers are good to about three
-  digits rather than six. The concurrent path carries a lower cutoff cap because
+  the two-consecutive-rungs criterion). The other four are `squeezed` at κ = 3
+  under **concurrent** loss (BA1 and BA3, in both §2 and §2b), capped at
+  `N_basis = 340` with last relative changes of 1.1e−3 and 4.6e−3, so those
+  numbers are good to about three digits rather than six. The concurrent path carries a lower cutoff cap because
   it costs more per cutoff; raising it is a pure compute question.
 * **Convention warning.** `conversions.r_to_var` returns `exp(−r²)`, not
   `exp(−2r)`; its docstring flags it as the optimisation code's convention, but

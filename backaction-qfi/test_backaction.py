@@ -205,19 +205,45 @@ def test_orderings_differ_when_dissipation_acts_during_the_interaction(noise):
     assert min(v["BA1"], v["BA2"]) - 1e-9 <= v["BA3"] <= max(v["BA1"], v["BA2"]) + 1e-9
 
 
-def test_orderings_differ_and_ba3_is_bounded_for_a_non_commuting_signal():
-    """For epsilon_p the generator is p, which does not commute with x^2:
-    the orderings separate and BA3 lies between BA1 and BA2."""
-    N = 200
-    psi = make_state("squeezed", N, 1.0)
-    common = dict(kappa=1.5, eta_out=0.8, N_basis=N)
-    kw = dict(param_type="epsilon_p", param_value=0.0, rho=psi)
-    v = {
-        o: calculate_qfi(get_state_single_mode_ba, ordering=o, **common, **kw)
-        for o in ("BA1", "BA2", "BA3")
-    }
+def _epsilon_p_orderings(family, nbar=1.0, N=200, kappa=1.5, eta_out=0.8):
+    psi = make_state(family, N, nbar)
+    kw = dict(param_type="epsilon_p", param_value=0.0, rho=psi,
+              kappa=kappa, eta_out=eta_out, N_basis=N)
+    return {o: calculate_qfi(get_state_single_mode_ba, ordering=o, **kw)
+            for o in ("none", "BA1", "BA2", "BA3")}
+
+
+@pytest.mark.parametrize("family", ["squeezed", "cat_even", "fock"])
+def test_orderings_differ_for_a_non_commuting_signal(family):
+    """For epsilon_p the generator is p, which does not commute with x^2, so the
+    three orderings separate.  (Whether BA3 falls between BA1 and BA2 is a
+    separate question -- see the two tests below.)"""
+    v = _epsilon_p_orderings(family)
     assert abs(v["BA1"] - v["BA2"]) > 1e-3
+    assert abs(v["BA3"] - v["BA1"]) > 1e-3
+
+
+@pytest.mark.parametrize("family", ["squeezed", "cat_even"])
+def test_ba3_is_bracketed_for_gaussian_like_probes(family):
+    """The sequential orderings bound the simultaneous one -- the behaviour the
+    project plan assumes."""
+    v = _epsilon_p_orderings(family)
     assert min(v["BA1"], v["BA2"]) - 1e-9 <= v["BA3"] <= max(v["BA1"], v["BA2"]) + 1e-9
+
+
+def test_ba3_is_not_bracketed_for_a_fock_probe():
+    """Counterexample to the bracketing assumption.
+
+    With the signal in the non-commuting quadrature, a Fock probe puts BA3
+    *below* both sequential orderings -- and below the no-back-action value too.
+    BA1/BA2 both gain from the shear (it rotates the state into a more
+    favourable quadrature before or after the loss), while the simultaneous case
+    loses.  So BA1/BA2 do not in general bound the physical case; they happen to
+    for Gaussian-like probes.  Stable to six digits over N = 200...450.
+    """
+    v = _epsilon_p_orderings("fock")
+    assert v["BA3"] < min(v["BA1"], v["BA2"]) - 1e-3
+    assert v["BA3"] < v["none"]
 
 
 @pytest.mark.parametrize("family", ["squeezed", "cat_even", "fock", "squeezed_cat"])
@@ -252,6 +278,28 @@ def test_injection_loss_is_blind_to_backaction(family):
     N = 250
     psi = make_state(family, N, 2.0)
     vals = [qfi(psi, kappa=k, ordering="BA1", eta_in=0.8) for k in KAPPAS]
+    assert np.allclose(vals, vals[0], rtol=1e-6)
+
+
+@pytest.mark.parametrize("placement", ["eta_in", "eta_out"])
+def test_loss_placement_is_ordering_independent_when_loss_is_stage_separated(placement):
+    """Section B runs injection/detection for all three orderings; those curves must
+    coincide, because the shear and the signal generator are both functions of x."""
+    N = 250
+    psi = make_state("squeezed", N, 2.0)
+    for kappa in (0.5, 1.5, 3.0):
+        vals = [qfi(psi, kappa=kappa, ordering=o, **{placement: 0.8})
+                for o in ("BA1", "BA2", "BA3")]
+        assert np.allclose(vals, vals[0], rtol=1e-8)
+
+
+@pytest.mark.parametrize("family", ["squeezed", "cat_even"])
+def test_ba2_is_flat_in_kappa_under_concurrent_loss(family):
+    """BA2 puts the whole shear after the lossy evolution, where it is a
+    parameter-independent unitary -- so it cannot change the QFI at all."""
+    N = 120
+    psi = make_state(family, N, 1.0)
+    vals = [qfi(psi, kappa=k, ordering="BA2", eta_ch=0.8) for k in (0.0, 0.5, 1.5, 3.0)]
     assert np.allclose(vals, vals[0], rtol=1e-6)
 
 

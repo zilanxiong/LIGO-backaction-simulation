@@ -23,6 +23,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib.lines import Line2D  # noqa: E402
 
 from plotstyle import THEMES, finish, label_lines, legend_below, theme  # noqa: E402
 
@@ -85,7 +86,8 @@ def fig_orderings(d, out):
                             color=t["series"][ORDER.index(s)], label=LABELS[s])
             axes[0].set_title(rf"signal in $p$ (physical), $\kappa={kappa:g}$, detection loss"
                               "\nBA1 = BA2 = BA3")
-            axes[1].set_title("signal in $x$ (non-commuting)\nBA3 bracketed by BA1, BA2")
+            axes[1].set_title("signal in $x$ (non-commuting)\n"
+                              "orderings separate; Fock breaks the bracketing")
             for ax in axes:
                 ax.set_xticks(np.arange(4))
                 ax.set_xticklabels(["no BA", "BA1", "BA2", "BA3"])
@@ -97,28 +99,51 @@ def fig_orderings(d, out):
 
 
 def fig_loss_placement(d, out):
+    """Loss placement x ordering.
+
+    One panel per ordering.  Injection and detection are identical across the
+    three panels -- with stage-separated loss the ordering cannot matter -- so
+    the panels differ only in the dotted concurrent curves.
+    """
     rows = read(d / "loss_placement.csv")
-    data = series(rows, ("state", "loss_placement"), "kappa", "qfi_epsilon_a")
+    data = series(rows, ("state", "ordering", "loss_placement"), "kappa", "qfi_epsilon_a")
     states = sorted({k[0] for k in data}, key=lambda s: ORDER.index(s))
+    orderings = [o for o in ("BA1", "BA2", "BA3") if any(k[1] == o for k in data)]
+    titles = {"BA1": "BA1:  RP $\\to$ sensing",
+              "BA2": "BA2:  sensing $\\to$ RP",
+              "BA3": "BA3:  simultaneous (physical)"}
     for name in THEMES:
         with theme(name) as t:
-            fig, ax = plt.subplots(figsize=(6.6, 4.2))
-            for s in states:
-                c = t["series"][ORDER.index(s)]
-                for placement, ls in (("injection", "-"), ("concurrent", (0, (1, 1.6))),
-                                      ("detection", (0, (5, 2)))):
-                    if (s, placement) not in data:
-                        continue
-                    xs, ys = data[(s, placement)]
-                    ax.plot(xs, ys, color=c, ls=ls,
-                            label=LABELS[s] if placement == "injection" else None)
-            ax.set_yscale("log")
-            ax.set_xlabel(r"opto-mechanical coupling  $\kappa$")
-            ax.set_ylabel(r"$\mathcal{F}_{\epsilon_a}$")
-            ax.set_title("Where the loss sits decides how much back-action costs\n"
-                         "(solid: loss $\\to$ BA;  dotted: loss $\\it{during}$ BA;  "
-                         "dashed: BA $\\to$ loss;  $\\eta=0.8$)")
-            legend_below(fig, ax, ncol=4)
+            fig, axes = plt.subplots(1, len(orderings), figsize=(4.0 * len(orderings), 4.3),
+                                     sharey=True)
+            axes = np.atleast_1d(axes)
+            for ax, o in zip(axes, orderings):
+                for s in states:
+                    c = t["series"][ORDER.index(s)]
+                    for placement, ls in (("injection", "-"), ("concurrent", (0, (1, 1.6))),
+                                          ("detection", (0, (5, 2)))):
+                        if (s, o, placement) not in data:
+                            continue
+                        xs, ys = data[(s, o, placement)]
+                        ax.plot(xs, ys, color=c, ls=ls,
+                                label=LABELS[s] if placement == "injection" else None)
+                ax.set_yscale("log")
+                ax.set_xlabel(r"opto-mechanical coupling  $\kappa$")
+                ax.set_title(titles.get(o, o), fontsize=10)
+            axes[0].set_ylabel(r"$\mathcal{F}_{\epsilon_a}$")
+            fig.suptitle(r"Where the loss sits decides how much back-action costs"
+                         "\n" r"($\eta = 0.8$;  injection and detection are identical "
+                         r"across the three panels)", fontsize=11, y=1.0)
+            legend_below(fig, axes[0], ncol=4)
+            # Second legend row for the linestyle key, so it does not have to ride
+            # along in the title where it collides with the panel headings.
+            keys = [Line2D([], [], color=t["text_secondary"], ls=ls, label=lab)
+                    for ls, lab in ((("-"), "loss $\\to$ BA (injection)"),
+                                    ((0, (1, 1.6)), "loss $\\it{during}$ BA (concurrent)"),
+                                    ((0, (5, 2)), "BA $\\to$ loss (detection)"))]
+            fig.legend(handles=keys, loc="upper center", bbox_to_anchor=(0.5, -0.07),
+                       ncol=3, fontsize=8, frameon=False)
+            fig.subplots_adjust(top=0.82, wspace=0.12)
             finish(fig, str(out / "fig2_loss_placement"), name)
 
 

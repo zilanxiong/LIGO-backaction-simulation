@@ -55,8 +55,11 @@ def write_csv(path, header, rows):
     print(f"  wrote {path}")
 
 
-def qfi(family, nbar, rtol=3e-4, max_cutoff=None, **channel):
-    """Convergence-checked QFI for ``epsilon_a``.  Returns (value, cutoff, converged).
+def qfi(family, nbar, rtol=3e-4, max_cutoff=None, param_type="epsilon_a", **channel):
+    """Convergence-checked QFI.  Returns (value, cutoff, converged).
+
+    ``param_type`` selects the estimated parameter: ``"epsilon_a"`` (the physical
+    signal quadrature) or ``"epsilon_p"`` (the non-commuting reference).
 
     ``max_cutoff`` overrides the global cap.  Concurrent-loss runs use a lower
     one: the split-step evolution costs more per cutoff, and loss acting during
@@ -76,7 +79,7 @@ def qfi(family, nbar, rtol=3e-4, max_cutoff=None, **channel):
     res = converged_qfi(
         lambda N: make_state(family, N, nbar),
         get_state_single_mode_ba,
-        param_type="epsilon_a",
+        param_type=param_type,
         cutoffs=ladder,
         rtol=rtol,
         n_stable=2,
@@ -105,18 +108,15 @@ def study_orderings(outdir, nbar, kappas):
                   f"BA1 {vals['BA1']:8.5f}  BA2 {vals['BA2']:8.5f}  BA3 {vals['BA3']:8.5f}  "
                   f"|BA-BA3| max {spread:.1e}")
 
-    # Non-commuting reference: signal in the amplitude quadrature.
-    from sld import calculate_qfi
-    for family in ["squeezed", "cat_even"]:
-        N = 250
-        psi = make_state(family, N, nbar)
-        vals = {}
+    # Non-commuting reference: signal in the amplitude quadrature.  Convergence
+    # checked like every other point, rather than trusting a single fixed cutoff.
+    for family in ["squeezed", "cat_even", "fock"]:
+        vals, cutoffs = {}, {}
         for ordering in ("none", "BA1", "BA2", "BA3"):
-            vals[ordering] = calculate_qfi(
-                get_state_single_mode_ba, param_type="epsilon_p", param_value=0.0,
-                kappa=1.5, ordering=ordering, eta_out=0.9, N_basis=N, rho=psi,
-            )
-            rows.append([family, "epsilon_p (non-commuting)", 1.5, ordering, vals[ordering], N, True])
+            v, N, ok = qfi(family, nbar, param_type="epsilon_p",
+                           kappa=1.5, ordering=ordering, eta_out=0.9)
+            vals[ordering], cutoffs[ordering] = v, N
+            rows.append([family, "epsilon_p (non-commuting)", 1.5, ordering, v, N, ok])
         bounded = min(vals["BA1"], vals["BA2"]) <= vals["BA3"] <= max(vals["BA1"], vals["BA2"])
         print(f"    {family:>12} epsilon_p  BA1 {vals['BA1']:8.5f}  BA2 {vals['BA2']:8.5f}  "
               f"BA3 {vals['BA3']:8.5f}  BA3 bounded: {bounded}")
@@ -130,8 +130,17 @@ def study_orderings(outdir, nbar, kappas):
 # B. Loss placement
 # ---------------------------------------------------------------------------
 def study_loss_placement(outdir, nbar, kappas, eta):
+    """Injection / concurrent / detection loss, for every ordering of the shear.
+
+    Run for all three orderings, not just the physical BA3.  With stage-separated
+    loss the ordering cannot matter -- the shear and the signal are both functions
+    of x -- so injection and detection reproduce across BA1/BA2/BA3 and the check
+    is a null result on a second axis.  Concurrent loss is where they part: BA2
+    puts the shear after the lossy evolution, where it is a QFI-preserving
+    unitary, so BA2 stays flat in kappa while BA1 pays the full cost.
+    """
     print(f"[B] Loss placement: injection (loss -> BA), concurrent (loss during BA), "
-          f"detection (BA -> loss), eta = {eta}")
+          f"detection (BA -> loss), eta = {eta}, all orderings")
     rows = []
     placements = (
         ("injection", dict(eta_in=eta), None),
@@ -139,18 +148,21 @@ def study_loss_placement(outdir, nbar, kappas, eta):
         ("detection", dict(eta_out=eta), None),
     )
     for family in ["squeezed", "cat_even", "fock", "coherent"]:
-        line = {}
-        for placement, kw, cap in placements:
-            vals = []
-            for kappa in kappas:
-                v, N, ok = qfi(family, nbar, kappa=kappa, ordering="BA3", max_cutoff=cap, **kw)
-                vals.append(v)
-                rows.append([family, placement, kappa, v, N, ok])
-            line[placement] = vals
-        print(f"    {family:>12} " + "   ".join(
-            f"{p} {line[p][0]:7.4f}->{line[p][-1]:7.4f}" for p, _, _ in placements))
+        for ordering in ("BA1", "BA2", "BA3"):
+            line = {}
+            for placement, kw, cap in placements:
+                vals = []
+                for kappa in kappas:
+                    v, N, ok = qfi(family, nbar, kappa=kappa, ordering=ordering,
+                                   max_cutoff=cap, **kw)
+                    vals.append(v)
+                    rows.append([family, ordering, placement, kappa, v, N, ok])
+                line[placement] = vals
+            print(f"    {family:>12} {ordering}  " + "   ".join(
+                f"{p} {line[p][0]:7.4f}->{line[p][-1]:7.4f}" for p, _, _ in placements))
     write_csv(outdir / "loss_placement.csv",
-              ["state", "loss_placement", "kappa", "qfi_epsilon_a", "cutoff", "converged"], rows)
+              ["state", "ordering", "loss_placement", "kappa", "qfi_epsilon_a",
+               "cutoff", "converged"], rows)
 
 
 def study_concurrent_orderings(outdir, nbar, kappas, eta):
@@ -292,7 +304,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--outdir", default=str(HERE / "results"))
     ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--only", default="",
+                    help="comma-separated section letters to run (A,B,B2,C,D,E); "
+                         "default runs all.  Each section writes its own CSV, so "
+                         "re-running one leaves the others in place.")
     args = ap.parse_args()
+    only = {s.strip().upper() for s in args.only.split(",") if s.strip()}
+    run = (lambda s: True) if not only else (lambda s: s in only)
     outdir = Path(args.outdir)
 
     nbar = 2.0
@@ -315,12 +333,18 @@ def main():
     ]
 
     t0 = time.time()
-    study_orderings(outdir, nbar, [0.5, 1.5] if args.quick else [0.5, 1.5, 3.0])
-    study_loss_placement(outdir, nbar, kappas, 0.8)
-    study_concurrent_orderings(outdir, nbar, [0.5, 1.5, 3.0] if not args.quick else [1.5], 0.8)
-    study_phase_noise(outdir, nbar, sigmas, kappa=1.0, eta=0.9)
-    study_states(outdir, nbar, kappas, etas)
-    study_nbar_scaling(outdir, nbars, configs)
+    if run("A"):
+        study_orderings(outdir, nbar, [0.5, 1.5] if args.quick else [0.5, 1.5, 3.0])
+    if run("B"):
+        study_loss_placement(outdir, nbar, kappas, 0.8)
+    if run("B2"):
+        study_concurrent_orderings(outdir, nbar, [0.5, 1.5, 3.0] if not args.quick else [1.5], 0.8)
+    if run("C"):
+        study_phase_noise(outdir, nbar, sigmas, kappa=1.0, eta=0.9)
+    if run("D"):
+        study_states(outdir, nbar, kappas, etas)
+    if run("E"):
+        study_nbar_scaling(outdir, nbars, configs)
     print(f"\nDone in {time.time() - t0:.1f} s -> {outdir}/")
 
 
