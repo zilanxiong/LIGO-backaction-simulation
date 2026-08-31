@@ -23,8 +23,9 @@ Every QFI value is computed with an automated Fock-cutoff convergence check
 the starting cutoff is shear-aware, since the ponderomotive shear is a
 squeezer that grows photon number by ~cosh(2r), r = arcsinh(chi/2).
 
-Physics lives in the quantum_sensing package (../quantum-sensing-py); this
-script only needs numpy/scipy/qutip/pandas/matplotlib (requirements.txt).
+The folder is self-contained: the quantum_sensing package it uses is the
+local copy sitting next to this script (a snapshot of ../quantum-sensing-py),
+and the only external dependencies are in requirements.txt.
 
 Run from anywhere:  python run_study.py
 Outputs: results/qfi_results.csv, results/fig_*.png, results/study_log.txt
@@ -35,11 +36,8 @@ import sys
 import time
 from pathlib import Path
 
-try:
-    import quantum_sensing  # noqa: F401  (installed)
-except ImportError:  # fresh clone: use the sibling package directory
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]
-                           / "quantum-sensing-py"))
+# Use the local quantum_sensing copy even if another one is pip-installed.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import numpy as np
 import pandas as pd

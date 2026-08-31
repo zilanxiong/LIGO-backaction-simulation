@@ -5,16 +5,21 @@ single-mode channel, test how the quantum Fisher information (QFI) for a
 displacement signal depends on the **ordering** of backaction, signal, loss,
 and phase noise, for five input-state families at fixed mean photon number.
 
-Everything specific to the study lives in this folder; the reusable physics
-lives in the `quantum_sensing` package (`../quantum-sensing-py`), which this
-folder picks up automatically from a fresh clone (no install step needed).
+This folder is **fully self-contained**: it carries its own copy of the
+`quantum_sensing` package, so it can be zipped and run anywhere with just the
+dependencies in `requirements.txt` — no install step, no reference to the rest
+of the repository. (The copy is a snapshot of `../quantum-sensing-py`, the
+package's canonical home for future milestones; the script and tests prefer
+the local copy even if another version is pip-installed.)
 
 ```
 backaction-study/
-├── run_study.py            # the full experiment grid + figures (python run_study.py)
-├── tests/test_backaction.py# regression tests pinning every analytic anchor (pytest tests/)
-├── requirements.txt        # numpy, scipy, qutip, pandas, matplotlib, pytest
-└── results/                # qfi_results.csv (tidy), fig_*.png, study_log.txt
+├── run_study.py             # the full experiment grid + figures (python run_study.py)
+├── quantum_sensing/         # local package copy: backaction.py, sld.py,
+│                            #   conversions.py, dynamics.py, states.py, gkp.py
+├── tests/test_backaction.py # regression tests pinning every analytic anchor (pytest tests/)
+├── requirements.txt         # numpy, scipy, qutip, pandas, h5py, matplotlib, pytest
+└── results/                 # qfi_results.csv (tidy), fig_*.png, study_log.txt
 ```
 
 ## The channel
@@ -98,7 +103,7 @@ The starting cutoff is shear-aware — the shear is a squeezer and grows ⟨n⟩
 ## Reproducing
 
 ```bash
-pip install -r requirements.txt   # or: pip install -e ../quantum-sensing-py
-python run_study.py               # ~10–20 min; writes results/
+pip install -r requirements.txt
+python run_study.py               # ~20–40 min; writes results/
 pytest tests/                     # analytic-anchor regression suite
 ```
