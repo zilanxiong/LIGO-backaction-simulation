@@ -34,6 +34,7 @@ from quantum_sensing.gkp import (
 
 from quantum_sensing.backaction import (
     quadrature, signal_generator, ba_generator, shear_squeeze_r,
+    quadrature_covariance,
     make_state, mean_photon_number, get_state_backaction,
     calculate_qfi_converged,
     STATE_FAMILIES, VALID_STAGES,

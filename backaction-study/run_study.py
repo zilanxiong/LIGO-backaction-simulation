@@ -46,7 +46,9 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from quantum_sensing import calculate_qfi_converged
+from quantum_sensing import (calculate_qfi_converged, get_state_backaction,
+                             make_state, mean_photon_number,
+                             quadrature_covariance)
 
 RESULTS = Path(__file__).parent / "results"
 RESULTS.mkdir(exist_ok=True)
@@ -313,6 +315,107 @@ def make_figures(df):
     print(f"wrote {RESULTS/'fig_scaling.png'}", flush=True)
 
 
+# ---------------------------------------------------------------------------
+# E5: linearization bridge (Kerr chi_K vs shear chi_eff = 4 chi_K <n>)
+# ---------------------------------------------------------------------------
+
+BRIDGE_CHI_EFF = [0.05, 0.1, 0.2, 0.4, 0.8, 1.6]
+BRIDGE_NBARS = [2.0, 8.0, 32.0]
+SEQ_BLUE = ["#86b6ef", "#3987e5", "#0d366b"]  # sequential ramp for the nbar sweep
+
+
+def _bridge_error(family, nbar, N_b, chi_eff):
+    """
+    Relative error of the linearized (shear) prediction for the largest
+    quadrature-covariance eigenvalue (the ponderomotive anti-squeezing
+    magnitude, rotation-invariant) against the exact Kerr output, with the
+    bridge chi_eff = 4 chi_K <n>.
+    """
+    psi = make_state(family, nbar, N_b,
+                     squeeze_angle=SQUEEZE_ANGLE.get(family, 0.0))
+    n_act = mean_photon_number(psi)
+    C_in = quadrature_covariance(psi)
+    S = np.array([[1.0, 0.0], [-chi_eff, 1.0]])
+    lam_lin = np.linalg.eigvalsh(S @ C_in @ S.T)[-1]
+    out = get_state_backaction(chi_ba=chi_eff / (4.0 * n_act), ba_type="kerr",
+                               chain=("ba",), N_basis=N_b, rho=psi)
+    lam_kerr = np.linalg.eigvalsh(quadrature_covariance(out))[-1]
+    return lam_lin, lam_kerr, abs(lam_kerr - lam_lin) / lam_lin
+
+
+def run_bridge():
+    rows = []
+    for family in FAMILIES:
+        N_b = 130
+        for chi_eff in BRIDGE_CHI_EFF:
+            lam_lin, lam_kerr, err = _bridge_error(family, NBAR, N_b, chi_eff)
+            rows.append(dict(panel="families", family=family, nbar=NBAR,
+                             chi_eff=chi_eff, lam_lin=lam_lin,
+                             lam_kerr=lam_kerr, rel_err=err))
+    for nbar in BRIDGE_NBARS:
+        N_b = int(max(90, 6 * nbar + 8 * np.sqrt(nbar) + 40))
+        for chi_eff in BRIDGE_CHI_EFF:
+            lam_lin, lam_kerr, err = _bridge_error("coherent", nbar, N_b,
+                                                   chi_eff)
+            rows.append(dict(panel="coherent_nbar", family="coherent",
+                             nbar=nbar, chi_eff=chi_eff, lam_lin=lam_lin,
+                             lam_kerr=lam_kerr, rel_err=err))
+    df = pd.DataFrame(rows)
+    df.to_csv(RESULTS / "bridge_results.csv", index=False)
+
+    fig, axes = plt.subplots(1, 2, figsize=(9.0, 3.6))
+    fig.patch.set_facecolor(SURFACE)
+    ax = axes[0]
+    _style_ax(ax)
+    for family in FAMILIES:
+        sub = df[(df.panel == "families") & (df.family == family)]
+        ax.plot(sub.chi_eff, sub.rel_err, "-", marker="o", markersize=5,
+                linewidth=2, color=COLORS[family], label=LABELS[family],
+                markerfacecolor=SURFACE, markeredgewidth=1.6,
+                markeredgecolor=COLORS[family])
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_title("State families, ⟨n⟩ = 4", fontsize=10, color=INK)
+    ax.set_xlabel("effective shear strength χ_eff = 4χ_K⟨n⟩",
+                  fontsize=9, color=INK2)
+    ax.set_ylabel("linearization error\n|λ_Kerr − λ_shear| / λ_shear",
+                  fontsize=9, color=INK2)
+    ax.legend(fontsize=8, frameon=False, labelcolor=INK2)
+
+    ax = axes[1]
+    _style_ax(ax)
+    for nbar, color in zip(BRIDGE_NBARS, SEQ_BLUE):
+        sub = df[(df.panel == "coherent_nbar") & (df.nbar == nbar)]
+        ax.plot(sub.chi_eff, sub.rel_err, "-", marker="o", markersize=5,
+                linewidth=2, color=color, label=f"⟨n⟩ = {nbar:g}",
+                markerfacecolor=SURFACE, markeredgewidth=1.6,
+                markeredgecolor=color)
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_title("Coherent carrier vs ⟨n⟩", fontsize=10, color=INK)
+    ax.set_xlabel("effective shear strength χ_eff = 4χ_K⟨n⟩",
+                  fontsize=9, color=INK2)
+    ax.legend(fontsize=8, frameon=False, labelcolor=INK2)
+
+    fig.suptitle("Where the linearized (per-frequency shear) description "
+                 "breaks: Kerr vs shear at matched strength",
+                 fontsize=11, color=INK)
+    fig.tight_layout()
+    fig.savefig(RESULTS / "fig_bridge.png", dpi=160, facecolor=SURFACE,
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"wrote {RESULTS/'fig_bridge.png'}", flush=True)
+
+    print("\n=== E5 linearization bridge: |lam_Kerr - lam_shear|/lam_shear ===")
+    piv = df[df.panel == "families"].pivot_table(
+        index="family", columns="chi_eff", values="rel_err").round(4)
+    print(piv)
+    piv = df[df.panel == "coherent_nbar"].pivot_table(
+        index="nbar", columns="chi_eff", values="rel_err").round(5)
+    print(piv)
+    return df
+
+
 def print_summary(df):
     pd.set_option("display.width", 120)
     print("\n=== E1 orderings (lossless, theta_sig=0, nbar=4): QFI ===")
@@ -345,4 +448,5 @@ if __name__ == "__main__":
     df = run_experiments()
     make_figures(df)
     print_summary(df)
+    run_bridge()
     print("\nDone.")

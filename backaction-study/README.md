@@ -70,6 +70,7 @@ The starting cutoff is shear-aware — the shear is a squeezer and grows ⟨n⟩
 | E2 loss placement | injection `(loss,ba,sig)` vs detection `(ba,sig,loss)` | χ at η=0.8 |
 | E3 pn chain | `(pn,ba,sig,loss)` vs `(pn,sig,ba,loss)` | pn at η=0.9, fixed χ |
 | E4 scaling | lossless / Kerr-BA1 / shear+detection-loss | ⟨n⟩ ∈ {1,2,4,8,16} |
+| E5 linearization bridge | Kerr `(ba,)` vs shear congruence at matched strength | χ_eff = 4χ_K⟨n⟩ |
 
 ## What the results mean (analytic anchors, all pinned in `tests/`)
 
@@ -94,7 +95,23 @@ The starting cutoff is shear-aware — the shear is a squeezer and grows ⟨n⟩
      penalty, maximal at η = 1/2, absent at η ∈ {0, 1}.
    - *Injection loss* (loss before BA): **no** χ-dependent penalty for
      coherent/vacuum inputs — loss placement is physics, not bookkeeping.
-4. **Displacement sensing is powered by generator variance, not amplitude.**
+4. **The linearization bridge (E5) quantifies where the per-frequency shear
+   description breaks.** Expanding the Kerr `n²` around a coherent carrier
+   gives the shear with `χ_eff = 4χ_K⟨n⟩` (plus a rotation and displacement
+   that drop out of covariance eigenvalues), so we compare the largest
+   quadrature-covariance eigenvalue — the ponderomotive anti-squeezing
+   magnitude, rotation-invariant — of the exact Kerr output against the
+   linearized prediction `eig_max(S C_in Sᵀ)`, `S = [[1,0],[−χ_eff,1]]`.
+   For a coherent carrier the error is tiny and falls ∝1/⟨n⟩ at fixed χ_eff
+   (0.1% at χ_eff = 0.2, ⟨n⟩ = 2; 10⁻⁴ by ⟨n⟩ = 32) — the classical-carrier
+   limit where the frequency-domain description becomes exact. Non-Gaussian
+   states break it early and at *first order* in χ_eff: Fock (no carrier at
+   all) is already 5% off at χ_eff = 0.05, and squeezed/cat families reach
+   O(10%) by χ_eff ≈ 0.2–0.4 and O(1) beyond — the single-mode answer to
+   "where does the independent-frequency linearized channel description
+   break for non-Gaussian states". See `results/fig_bridge.png` and
+   `results/bridge_results.csv`.
+5. **Displacement sensing is powered by generator variance, not amplitude.**
    Lossless `QFI = 4 Var(X_θsig)`: coherent stays at 2 for all ⟨n⟩; Fock gives
    `2(2n+1)`; anti-squeezed vacuum `2e^{2r}` ≈ 8⟨n⟩ (Heisenberg-like); cat and
    squeezed-cat sit between. The ⟨n⟩-scaling under backaction+loss (E4) is the

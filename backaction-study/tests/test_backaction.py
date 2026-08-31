@@ -151,6 +151,33 @@ def test_injection_loss_no_backaction_penalty():
     assert q == pytest.approx(2.0, rel=1e-4)
 
 
+def test_kerr_linearizes_to_shear():
+    # Linearization bridge: expanding n^2 around a coherent carrier gives the
+    # shear with chi_eff = 4 chi_K <n> (plus a rotation and displacement that
+    # drop out of covariance eigenvalues). Compare the largest quadrature-
+    # covariance eigenvalue (the ponderomotive anti-squeezing magnitude,
+    # rotation-invariant) of the Kerr output against the linearized
+    # prediction eig_max(S C_in S^T), S = [[1,0],[-chi_eff,1]]; the relative
+    # error must be small and must shrink with <n> at fixed chi_eff.
+    chi_eff = 0.2
+    S = np.array([[1.0, 0.0], [-chi_eff, 1.0]])
+
+    def rel_err(nbar, N_b):
+        psi = qs.make_state("coherent", nbar, N_b)
+        C_in = qs.quadrature_covariance(psi)
+        lam_lin = np.linalg.eigvalsh(S @ C_in @ S.T)[-1]
+        out = qs.get_state_backaction(chi_ba=chi_eff / (4 * nbar),
+                                      ba_type="kerr", chain=("ba",),
+                                      N_basis=N_b, rho=psi)
+        lam_kerr = np.linalg.eigvalsh(qs.quadrature_covariance(out))[-1]
+        return abs(lam_kerr - lam_lin) / lam_lin
+
+    err_8 = rel_err(8.0, 90)
+    err_32 = rel_err(32.0, 220)
+    assert err_8 < 0.05
+    assert err_32 < err_8
+
+
 # ---------------------------------------------------------------------------
 # Closed-form noise channels vs independent mesolve evolution
 # ---------------------------------------------------------------------------

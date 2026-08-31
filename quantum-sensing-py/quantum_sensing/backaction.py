@@ -90,6 +90,23 @@ def shear_squeeze_r(chi):
     return np.arcsinh(chi / 2.0)
 
 
+def quadrature_covariance(state):
+    """
+    Symmetrized 2x2 covariance matrix of (x, p) for a ket or density matrix:
+    C_ij = <{A_i, A_j}>/2 - <A_i><A_j>.
+    """
+    N_basis = state.shape[0]
+    x = quadrature(N_basis, 0.0)
+    p = quadrature(N_basis, np.pi / 2)
+    ops = [x, p]
+    C = np.zeros((2, 2))
+    for i, A in enumerate(ops):
+        for j, B in enumerate(ops):
+            C[i, j] = (0.5 * qt.expect(A * B + B * A, state).real
+                       - qt.expect(A, state).real * qt.expect(B, state).real)
+    return C
+
+
 def _apply_unitary(state, U):
     if state.isket:
         return U * state
