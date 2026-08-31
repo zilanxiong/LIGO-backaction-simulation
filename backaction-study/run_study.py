@@ -74,7 +74,8 @@ SURFACE, INK, INK2, MUTED, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#898781", "#
 CHAINS = {"BA1": ("ba", "sig"), "BA2": ("sig", "ba"), "BA3": ("basig",)}
 CHI_GRID = {"shear": [0.0, 0.5, 1.0, 2.0], "kerr": [0.0, 0.05, 0.1, 0.2]}
 NBAR = 4.0
-CONV_RTOL = 5e-4
+CONV_RTOL = 1e-3  # invisible at plot scale; 5e-4 needs N_basis > 1000 for the
+                  # sheared squeezed-cat at nbar = 16
 
 
 def n_start_for(nbar, ba_type, chi):
