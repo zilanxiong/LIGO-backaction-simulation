@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.lines import Line2D  # noqa: E402
 
 from plotstyle import THEMES, finish, label_lines, legend_below, theme  # noqa: E402
+from ifo import ALIGO, f_at_kappa  # noqa: E402
 
 LABELS = {
     "coherent": "coherent",
@@ -290,13 +291,96 @@ def fig_concurrent_orderings(d, out):
             finish(fig, str(out / "fig3_concurrent_orderings"), name)
 
 
+
+def fig_frequency(d, out):
+    """Section 2 with the x-axis calibrated to signal frequency.
+
+    Top row: the QFI, the same quantity fig2 plots against kappa.
+    Bottom row: the Cramer-Rao bound on the strain in units of h_SQL, which is
+    what the frequency calibration is actually for -- it folds in the sqrt(2 kappa)
+    signal transfer, so the two rows do not have the same shape.
+    """
+    path = d / "frequency_sweep.csv"
+    if not path.exists():
+        print("  fig_frequency skipped (run run_study.py --only F)")
+        return
+    rows = read(path)
+    qfi_d = series(rows, ("state", "ordering", "loss_placement"), "f_hz", "qfi_epsilon_a")
+    sig_d = series(rows, ("state", "ordering", "loss_placement"), "f_hz", "sigma_h_over_hsql")
+    states = sorted({k[0] for k in qfi_d}, key=lambda s: ORDER.index(s))
+    orderings = [o for o in ("BA1", "BA2", "BA3") if any(k[1] == o for k in qfi_d)]
+    titles = {"BA1": "BA1:  RP $\\to$ sensing",
+              "BA2": "BA2:  sensing $\\to$ RP",
+              "BA3": "BA3:  simultaneous (physical)"}
+    styles = (("injection", "-"), ("concurrent", (0, (1, 1.6))), ("detection", (0, (5, 2))))
+    f_sql = float(f_at_kappa(1.0))
+
+    for name in THEMES:
+        with theme(name) as t:
+            fig, axes = plt.subplots(2, len(orderings),
+                                     figsize=(4.0 * len(orderings), 7.4),
+                                     sharex=True, sharey="row")
+            axes = np.atleast_2d(axes)
+            for col, o in enumerate(orderings):
+                for row, data in enumerate((qfi_d, sig_d)):
+                    ax = axes[row][col]
+                    for st in states:
+                        c = t["series"][ORDER.index(st)]
+                        for placement, ls in styles:
+                            key = (st, o, placement)
+                            if key not in data:
+                                continue
+                            xs, ys = data[key]
+                            ax.plot(xs, ys, color=c, ls=ls,
+                                    label=LABELS[st] if placement == "injection" else None)
+                    ax.set_xscale("log")
+                    ax.set_yscale("log")
+                    ax.axvline(f_sql, color=t["muted"], lw=0.8, ls=":", zorder=0)
+                    if row == 1:
+                        ax.axhline(1.0, color=t["muted"], lw=0.8, zorder=0)
+                        ax.set_xlabel("signal frequency  $f$  [Hz]")
+                        # The default log locator crowds this narrow decade.
+                        ax.set_xticks([400, 600, 1000, 2000, 3000])
+                        ax.set_xticklabels(["400", "600", "1k", "2k", "3k"])
+                        ax.set_xticks([], minor=True)
+                axes[0][col].set_title(titles.get(o, o), fontsize=10)
+                # kappa is a function of f, so label it on a second axis rather
+                # than asking the reader to carry the conversion in their head.
+                sec = axes[0][col].secondary_xaxis(
+                    "top", functions=(lambda f: ALIGO.kappa(f), lambda k: f_at_kappa(k)))
+                sec.set_xlabel(r"opto-mechanical coupling  $\kappa$", fontsize=9)
+                sec.set_xticks([3, 1, 0.3, 0.1, 0.01, 0.001])
+                sec.set_xticklabels(["3", "1", "0.3", "0.1", "0.01", "0.001"], fontsize=8)
+            axes[0][0].set_ylabel(r"$\mathcal{F}_{\epsilon_a}$" "\n"
+                                  "(same quantity as fig2)", fontsize=9)
+            axes[1][0].set_ylabel(r"$\sigma_h\,/\,h_{\rm SQL}$   (lower is better)" "\n"
+                                  r"strain bound, $\sqrt{2\kappa}$ transfer folded in",
+                                  fontsize=9)
+            axes[0][-1].annotate(r"$\kappa=1$", xy=(f_sql, 1.0),
+                                 xycoords=("data", "axes fraction"),
+                                 xytext=(3, -12), textcoords="offset points",
+                                 fontsize=8, color=t["muted"], ha="left", va="top")
+            fig.suptitle(f"Section 2 in frequency  —  {ALIGO.name}, "
+                         r"$I_0 = I_{\rm SQL}$, $\gamma/2\pi = 500$ Hz, "
+                         r"$\eta = 0.8$", fontsize=11, y=1.0)
+            legend_below(fig, axes[0][0], ncol=4)
+            keys = [Line2D([], [], color=t["text_secondary"], ls=ls, label=lab)
+                    for ls, lab in ((("-"), "loss $\\to$ BA (injection)"),
+                                    ((0, (1, 1.6)), "loss $\\it{during}$ BA (concurrent)"),
+                                    ((0, (5, 2)), "BA $\\to$ loss (detection)"))]
+            fig.legend(handles=keys, loc="upper center", bbox_to_anchor=(0.5, -0.04),
+                       ncol=3, fontsize=8, frameon=False)
+            fig.subplots_adjust(top=0.86, hspace=0.20, wspace=0.10)
+            finish(fig, str(out / "fig7_frequency"), name)
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", default=str(HERE / "results"))
     args = ap.parse_args()
     d = Path(args.dir)
     for fn in (fig_orderings, fig_loss_placement, fig_concurrent_orderings,
-               fig_phase_noise, fig_states_vs_kappa, fig_nbar_scaling):
+               fig_phase_noise, fig_states_vs_kappa, fig_nbar_scaling,
+               fig_frequency):
         fn(d, d)
         print(f"  {fn.__name__} ok")
     print(f"figures -> {d}/")

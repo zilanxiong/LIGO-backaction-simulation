@@ -2,10 +2,10 @@
 
 ```bash
 pip install numpy scipy qutip matplotlib pytest
-python backaction-qfi/run_study.py      # ~20 min, writes results/*.csv
+python backaction-qfi/run_study.py      # ~30 min, writes results/*.csv
 python backaction-qfi/run_study.py --only B   # ...or just one section
 python backaction-qfi/make_figures.py   # writes results/*.png
-pytest backaction-qfi                   # 131 tests, ~70 s
+pytest backaction-qfi                   # 147 tests, ~55 s
 ```
 
 The radiation-pressure unitary is added to the existing single-mode
@@ -33,10 +33,11 @@ and noise staging. With `kappa = 0` it reproduces the original bit for bit.
 | `probe_states.py` | **new** — probe states, each solved to a target ⟨n⟩ by root finding |
 | `convergence.py` | **new** — the automated Fock-cutoff convergence check |
 | `gaussian_reference.py` | **new** — an independent covariance-matrix implementation of the same channel, exact for Gaussian states, used only to check the Fock code |
+| `ifo.py` | **new here** — κ(Ω), h_SQL(Ω) and the strain conversion; a copy of the Gaussian track's `ligo_backaction/ifo.py` plus the inverse κ → f |
 | `dynamics.py`, `sld.py`, `conversions.py` | *verbatim copies* of the group's `quantum_sensing` modules — the sensing channel, the SLD/QFI routine, and the unit conversions |
 | `run_study.py` | the study runner |
 | `make_figures.py`, `plotstyle.py` | the figures |
-| `test_backaction.py`, `conftest.py` | 131 tests, runnable with `pytest backaction-qfi` |
+| `test_backaction.py`, `conftest.py` | 147 tests, runnable with `pytest backaction-qfi` |
 | `results/` | CSVs and figures |
 
 
@@ -101,8 +102,8 @@ shear demands.
 **Every number below went through the cutoff convergence check.** This matters
 more than it sounds: at the default `N_basis = 20`, the QFI is wrong by
 **202 %** for an even cat at ⟨n⟩ = 4 (κ = 1.5, η = 0.9), and by 95 % for
-squeezed vacuum. The `converged` column in every CSV flags the five points
-(of 727) that did not converge; see Caveats.
+squeezed vacuum. The `converged` column in every CSV flags the seven points
+(of 1159) that did not converge; see Caveats.
 
 ---
 
@@ -117,6 +118,7 @@ concurrent loss, so every result below is tagged.
 | 1. orderings | **stage-separated** | `eta_out` |
 | 2. loss placement × ordering | all three | `eta_in` / `eta_ch` / `eta_out` |
 | 2b. orderings under concurrent loss | **concurrent** | `eta_ch` |
+| 2c. frequency sweep | all three | `eta_in` / `eta_ch` / `eta_out` |
 | 3. phase noise | **stage-separated** | `pn_in`, `eta_out` |
 | 4. probe states vs κ | **stage-separated** | `eta_out` |
 | 5. ⟨n⟩ scaling | **stage-separated** | `eta_out` |
@@ -231,6 +233,82 @@ F_{ε_a} = 2 · 2η / (1 + η(1−η) κ²)
 
 *Practical consequence:* readout-side loss is qualitatively worse than
 injection-side loss under back-action. A single "total loss" figure hides it.
+
+### 2c. The same picture in Hz
+
+![frequency](results/fig7_frequency.png)
+
+`results/frequency_sweep.csv`, `ifo.py`, ⟨n⟩ = 2, η = 0.8. κ is not a free knob
+in a real interferometer — it is set by the sideband frequency:
+
+```
+κ(Ω) = 2 (I₀/I_SQL) γ⁴ / [Ω²(γ² + Ω²)],     h_SQL(Ω) = √(8ℏ / (m Ω² L²))
+```
+
+Detector: free-mass aLIGO-like, reduced mass 10 kg, L = 4 km, γ/2π = 500 Hz,
+I₀ = I_SQL — the normalisation that puts κ = 1 exactly at the cavity pole,
+500 Hz. `ifo.py` is a copy of `ligo_backaction/ifo.py` from the Gaussian track
+plus the inverse κ → f and the strain conversion; `f_at_kappa` round-trips
+`kappa_of_omega` to 1e−10 (unit test).
+
+**Top row** is the same QFI as §2, replotted. **Bottom row** is what the
+calibration is actually for — the Cramér–Rao bound on the strain:
+
+```
+F_h = κ F_{ε_a} / (2 h_SQL²)      →      σ_h = h_SQL √(2 / (κ F_{ε_a}))
+```
+
+The two rows do *not* have the same shape, because the signal transfer itself
+carries a factor `√(2κ)`: a frequency where back-action has ruined the QFI may
+still be a good place to look, and vice versa. A lossless vacuum probe
+(`F_{ε_a}` = 4) sits at `σ_h/h_SQL = 1/√(2κ)` — a unit test.
+
+At the back-action-heavy end of the band, 338 Hz (κ = 3), σ_h in units of h_SQL:
+
+| state | injection (any ordering) | concurrent BA3 | detection (any ordering) |
+|---|---|---|---|
+| squeezed | **0.216** | 0.410 | 0.651 |
+| Fock | 0.266 | 0.419 | **0.535** |
+| even cat | 0.267 | 0.493 | 0.700 |
+| coherent | 0.408 | 0.535 | 0.713 |
+
+Two things this says that the κ-axis version does not:
+
+* **Loss placement is worth a factor 3 in strain.** Squeezed vacuum reads
+  0.216 h_SQL if the 20 % loss is on the input and 0.651 h_SQL if it is on the
+  readout — same detector, same probe, same frequency.
+* **Fock wins in strain where it loses in QFI.** Under detection loss at 338 Hz
+  Fock reaches 0.535 h_SQL against squeezed's 0.651, and its best point over the
+  band (0.520 h_SQL at 417 Hz) beats squeezed's (0.550 h_SQL at 514 Hz). The
+  crossing seen in §4 at κ ≈ 1.09 survives the frequency weighting.
+
+**The optimum frequency moves with the loss placement.** With injection loss
+every state wants the lowest frequency available (highest κ, best transfer).
+With detection loss the optimum moves *up* — 417–514 Hz — because below that
+back-action destroys the QFI faster than `√(2κ)` recovers it. That turnover is
+the back-action wall, and its position is a readout-loss property.
+
+**The low-frequency wall — the honest limit of this method.** The band above
+starts at 338 Hz because that is where κ = 3, the largest coupling the Fock
+cutoff reaches at ⟨n⟩ = 2. κ grows as 1/Ω⁴ below the pole, and the required
+cutoff grows with it:
+
+| f | κ | cutoff the rule of thumb asks for |
+|---|---|---|
+| 500 Hz | 1.0 | 48 |
+| 338 Hz | 3.0 | 241 |
+| 200 Hz | 10.8 | 2 811 |
+| 100 Hz | 48.1 | 55 498 |
+| 30 Hz | 554 | 7.4e6 |
+| 10 Hz | 4998 | 6.0e8 |
+
+So the 10–100 Hz band — exactly where back-action dominates a real detector —
+is out of reach in the Fock basis, by many orders of magnitude rather than by a
+factor of two. Lowering the power moves the accessible band down (κ scales with
+I₀/I_SQL, so I₀ = 0.1 I_SQL puts κ = 3 at 127 Hz) but does not change the shape
+of the curves, only their frequency labels. Reaching the real band with
+non-Gaussian probes needs a different representation — this is the main open
+methodological problem, not a tuning question.
 
 ### 2b. Concurrent loss is where BA1 and BA2 really do bound BA3
 
@@ -379,13 +457,14 @@ the Fock track and is exact for Gaussian states:
 
 ## Caveats
 
-* **Five unconverged points** of 727, all flagged in the `converged` column.
+* **Seven unconverged points** of 1159, all flagged in the `converged` column.
   One is `squeezed` at ⟨n⟩ = 2, κ = 3, `eta_out = 0.95` (capped at
   `N_basis = 700`, last relative change 5.6e−6 — good to ~1e−5, it just missed
-  the two-consecutive-rungs criterion). The other four are `squeezed` at κ = 3
-  under **concurrent** loss (BA1 and BA3, in both §2 and §2b), capped at
-  `N_basis = 340` with last relative changes of 1.1e−3 and 4.6e−3, so those
-  numbers are good to about three digits rather than six. The concurrent path carries a lower cutoff cap because
+  the two-consecutive-rungs criterion). The other six are all the same physical
+  point — `squeezed` at κ = 3 under **concurrent** loss, BA1 and BA3, recomputed
+  in §2, §2b and §2c — capped at `N_basis = 340` with last relative changes of
+  1.1e−3 and 4.6e−3, so those numbers are good to about three digits rather than
+  six. The concurrent path carries a lower cutoff cap because
   it costs more per cutoff; raising it is a pure compute question.
 * **Convention warning.** `conversions.r_to_var` returns `exp(−r²)`, not
   `exp(−2r)`; its docstring flags it as the optimisation code's convention, but

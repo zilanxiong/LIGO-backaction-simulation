@@ -21,6 +21,17 @@ import qutip as qt
 
 from convergence import converge, converged_qfi, tail_population
 from dynamics import get_state_single_mode
+from ifo import (
+    ALIGO,
+    HBAR,
+    IFOParams,
+    f_at_kappa,
+    h_sql,
+    kappa_of_omega,
+    qfi_h_from_qfi_epsilon_a,
+    qfi_h_from_qfi_lambda,
+    strain_uncertainty,
+)
 from gaussian_reference import (
     EPS_A_PER_LAMBDA,
     gaussian_qfi_lambda,
@@ -408,3 +419,74 @@ def test_tail_population_alarm():
                                        rho=make_state("cat_even", 40, 4.0))
     assert small < 1e-12
     assert tail_population(sheared) > small
+
+
+# ---------------------------------------------------------------------------
+# Interferometer calibration:  kappa(Omega), h_SQL(Omega), strain conversion
+# ---------------------------------------------------------------------------
+
+def test_kappa_is_one_at_the_cavity_pole_at_sql_power():
+    """The definition is normalised so that I0 = I_SQL gives kappa(gamma) = 1."""
+    assert kappa_of_omega(ALIGO.gamma, ALIGO) == pytest.approx(1.0, rel=1e-12)
+    assert float(ALIGO.kappa(ALIGO.gamma / (2 * np.pi))) == pytest.approx(1.0, rel=1e-12)
+
+
+def test_kappa_scales_with_power_and_rolls_off_as_omega_to_the_fourth():
+    half = IFOParams(power_ratio=0.5)
+    assert kappa_of_omega(ALIGO.gamma, half) == pytest.approx(0.5, rel=1e-12)
+    # Well above the pole the (gamma^2 + Omega^2) factor is just Omega^2.
+    om = 50 * ALIGO.gamma
+    assert kappa_of_omega(om, ALIGO) == pytest.approx(
+        2.0 * ALIGO.gamma**4 / om**4, rel=1e-3)
+
+
+def test_h_sql_matches_its_closed_form_and_falls_as_one_over_omega():
+    om = 2 * np.pi * 500.0
+    expected = np.sqrt(8.0 * HBAR / (ALIGO.mass * om**2 * ALIGO.length**2))
+    assert h_sql(om, ALIGO) == pytest.approx(expected, rel=1e-12)
+    assert h_sql(2 * om, ALIGO) == pytest.approx(expected / 2, rel=1e-12)
+
+
+@pytest.mark.parametrize("kappa", [10.0, 3.0, 1.0, 0.3, 0.01, 1e-4])
+def test_f_at_kappa_inverts_kappa_of_omega(kappa):
+    f = f_at_kappa(kappa)
+    assert float(ALIGO.kappa(f)) == pytest.approx(kappa, rel=1e-10)
+
+
+def test_f_at_kappa_is_monotonically_decreasing_in_kappa():
+    ks = np.array([0.01, 0.1, 1.0, 10.0])
+    assert np.all(np.diff(f_at_kappa(ks)) < 0)
+
+
+def test_strain_conversion_agrees_with_the_lambda_form():
+    """F_h from epsilon_a must match F_h from lambda, given F_eps = 2 F_lambda."""
+    hs, kappa, f_lambda = 7.3e-25, 1.4, 3.7
+    assert qfi_h_from_qfi_epsilon_a(EPS_A_PER_LAMBDA * f_lambda, kappa, hs) == pytest.approx(
+        qfi_h_from_qfi_lambda(f_lambda, kappa, hs), rel=1e-12)
+
+
+@pytest.mark.parametrize("kappa", [0.1, 0.5, 1.0, 3.0])
+def test_lossless_vacuum_sits_at_the_free_mass_sql_curve(kappa):
+    """A vacuum probe with no loss has F_eps = 4 at every kappa, so the strain
+    bound is exactly h_SQL/sqrt(2 kappa) -- unity at kappa = 1/2."""
+    N = 40 + int(80 * kappa)
+    psi = make_state("vacuum", N, 0.0)
+    f_eps = qfi(psi, kappa=kappa, ordering="BA3")
+    assert f_eps == pytest.approx(EPS_A_PER_LAMBDA * 2, rel=1e-6)
+    hs = float(ALIGO.h_sql(f_at_kappa(kappa)))
+    sigma, rel = strain_uncertainty(f_eps, kappa, hs)
+    assert rel == pytest.approx(1.0 / np.sqrt(2 * kappa), rel=1e-6)
+    assert sigma == pytest.approx(hs * rel, rel=1e-12)
+
+
+def test_strain_bound_improves_with_a_better_probe():
+    """Squeezed vacuum beats coherent light at the same photon number, and the
+    ordering of the strain bounds is the reverse of the QFI ordering."""
+    N, kappa = 200, 1.0
+    hs = float(ALIGO.h_sql(f_at_kappa(kappa)))
+    out = {}
+    for family in ("coherent", "squeezed"):
+        f_eps = qfi(make_state(family, N, 2.0), kappa=kappa, ordering="BA3", eta_out=0.8)
+        out[family] = (f_eps, strain_uncertainty(f_eps, kappa, hs)[1])
+    assert out["squeezed"][0] > out["coherent"][0]
+    assert out["squeezed"][1] < out["coherent"][1]

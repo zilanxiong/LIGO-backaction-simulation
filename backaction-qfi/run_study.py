@@ -32,6 +32,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from convergence import converged_qfi  # noqa: E402
+from ifo import ALIGO, f_at_kappa, strain_uncertainty  # noqa: E402
 from probe_states import STATE_LABELS, make_state  # noqa: E402
 from radiation_pressure import get_state_single_mode_ba, suggested_cutoff  # noqa: E402
 
@@ -163,6 +164,66 @@ def study_loss_placement(outdir, nbar, kappas, eta):
     write_csv(outdir / "loss_placement.csv",
               ["state", "ordering", "loss_placement", "kappa", "qfi_epsilon_a",
                "cutoff", "converged"], rows)
+
+
+# ---------------------------------------------------------------------------
+# F. Loss placement vs signal frequency
+# ---------------------------------------------------------------------------
+def study_frequency(outdir, nbar, eta, n_points=12, kappa_max=3.0, decades=1.0,
+                    params=ALIGO):
+    """Section B again, with the x-axis calibrated to signal frequency.
+
+    ``kappa`` is not a free knob in a real interferometer -- it is fixed by the
+    sideband frequency through
+
+        kappa(Omega) = 2 (I0/I_SQL) gamma^4 / [Omega^2 (gamma^2 + Omega^2)] ,
+
+    so every point on a kappa sweep corresponds to one frequency.  The grid runs
+    from the frequency where ``kappa = kappa_max`` upward, because kappa grows
+    without bound towards low frequency and the Fock cutoff cannot follow it
+    (see the README on the low-frequency wall).
+
+    Alongside the QFI this records the Cramer-Rao bound on the strain,
+
+        sigma_h = h_SQL * sqrt(2 / (kappa * F_epsilon_a)) ,
+
+    which is the quantity a noise budget actually wants: it folds in the fact
+    that the signal transfer itself carries a factor sqrt(2 kappa).
+    """
+    f_lo = float(f_at_kappa(kappa_max, params))
+    freqs = np.logspace(np.log10(f_lo), np.log10(f_lo * 10 ** decades), n_points)
+    print(f"[F] Loss placement vs frequency: {freqs[0]:.0f}-{freqs[-1]:.0f} Hz, "
+          f"kappa {float(params.kappa(freqs[0])):.2f}-{float(params.kappa(freqs[-1])):.4f}, "
+          f"eta = {eta}, {params.name}")
+    placements = (
+        ("injection", dict(eta_in=eta), None),
+        ("concurrent", dict(eta_ch=eta), CONCURRENT_CUTOFF),
+        ("detection", dict(eta_out=eta), None),
+    )
+    rows = []
+    for family in ["squeezed", "cat_even", "fock", "coherent"]:
+        for ordering in ("BA1", "BA2", "BA3"):
+            best = {}
+            for placement, kw, cap in placements:
+                sig = []
+                for f_hz in freqs:
+                    kappa = float(params.kappa(f_hz))
+                    hs = float(params.h_sql(f_hz))
+                    v, N, ok = qfi(family, nbar, kappa=kappa, ordering=ordering,
+                                   max_cutoff=cap, **kw)
+                    sigma_h, sigma_rel = strain_uncertainty(v, kappa, hs)
+                    sig.append(float(sigma_rel))
+                    rows.append([family, ordering, placement, f_hz, kappa, v,
+                                 float(sigma_h), float(sigma_rel), N, ok])
+                i = int(np.argmin(sig))
+                best[placement] = (freqs[i], sig[i])
+            print(f"    {family:>12} {ordering}  " + "   ".join(
+                f"{p} best {best[p][1]:.3f} h_SQL @ {best[p][0]:.0f} Hz"
+                for p, _, _ in placements))
+    write_csv(outdir / "frequency_sweep.csv",
+              ["state", "ordering", "loss_placement", "f_hz", "kappa",
+               "qfi_epsilon_a", "sigma_h", "sigma_h_over_hsql", "cutoff", "converged"],
+              rows)
 
 
 def study_concurrent_orderings(outdir, nbar, kappas, eta):
@@ -305,7 +366,7 @@ def main():
     ap.add_argument("--outdir", default=str(HERE / "results"))
     ap.add_argument("--quick", action="store_true")
     ap.add_argument("--only", default="",
-                    help="comma-separated section letters to run (A,B,B2,C,D,E); "
+                    help="comma-separated section letters to run (A,B,B2,C,D,E,F); "
                          "default runs all.  Each section writes its own CSV, so "
                          "re-running one leaves the others in place.")
     args = ap.parse_args()
@@ -345,6 +406,8 @@ def main():
         study_states(outdir, nbar, kappas, etas)
     if run("E"):
         study_nbar_scaling(outdir, nbars, configs)
+    if run("F"):
+        study_frequency(outdir, nbar, 0.8, n_points=6 if args.quick else 12)
     print(f"\nDone in {time.time() - t0:.1f} s -> {outdir}/")
 
 
