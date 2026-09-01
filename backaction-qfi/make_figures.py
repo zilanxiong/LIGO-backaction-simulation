@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.lines import Line2D  # noqa: E402
 
 from plotstyle import THEMES, finish, label_lines, legend_below, theme  # noqa: E402
-from ifo import ALIGO, f_at_kappa  # noqa: E402
+from ifo import ALIGO_O4, f_at_kappa  # noqa: E402
 
 LABELS = {
     "coherent": "coherent",
@@ -293,12 +293,13 @@ def fig_concurrent_orderings(d, out):
 
 
 def fig_frequency(d, out):
-    """Section 2 with the x-axis calibrated to signal frequency.
+    """The LIGO band, 10 Hz - 1 kHz, with kappa set by the sideband frequency.
 
-    Top row: the QFI, the same quantity fig2 plots against kappa.
-    Bottom row: the Cramer-Rao bound on the strain in units of h_SQL, which is
-    what the frequency calibration is actually for -- it folds in the sqrt(2 kappa)
-    signal transfer, so the two rows do not have the same shape.
+    Curves are drawn from whichever method is exact in that regime -- Gaussian
+    covariance for coherent/squeezed at any kappa, the Fock channel for cat and
+    Fock where the cutoff reaches, and the kappa-independent configurations
+    everywhere.  Where nothing is exact the curve simply stops; the shaded
+    region marks it.
     """
     path = d / "frequency_sweep.csv"
     if not path.exists():
@@ -313,17 +314,22 @@ def fig_frequency(d, out):
               "BA2": "BA2:  sensing $\\to$ RP",
               "BA3": "BA3:  simultaneous (physical)"}
     styles = (("injection", "-"), ("concurrent", (0, (1, 1.6))), ("detection", (0, (5, 2))))
-    f_sql = float(f_at_kappa(1.0))
+    fs = [float(r["f_hz"]) for r in rows]
+    f_lo, f_hi = min(fs), max(fs)
+    # Below this the Fock cutoff cannot follow kappa; only the exactly
+    # kappa-independent configurations and the Gaussian probes continue.
+    f_fock = min(float(r["f_hz"]) for r in rows if r["method"] == "fock")
 
     for name in THEMES:
         with theme(name) as t:
             fig, axes = plt.subplots(2, len(orderings),
-                                     figsize=(4.0 * len(orderings), 7.4),
+                                     figsize=(4.2 * len(orderings), 7.6),
                                      sharex=True, sharey="row")
             axes = np.atleast_2d(axes)
             for col, o in enumerate(orderings):
                 for row, data in enumerate((qfi_d, sig_d)):
                     ax = axes[row][col]
+                    ax.axvspan(f_lo, f_fock, color=t["muted"], alpha=0.10, lw=0, zorder=0)
                     for st in states:
                         c = t["series"][ORDER.index(st)]
                         for placement, ls in styles:
@@ -335,34 +341,42 @@ def fig_frequency(d, out):
                                     label=LABELS[st] if placement == "injection" else None)
                     ax.set_xscale("log")
                     ax.set_yscale("log")
-                    ax.axvline(f_sql, color=t["muted"], lw=0.8, ls=":", zorder=0)
+                    ax.set_xlim(f_lo, f_hi)
                     if row == 1:
-                        ax.axhline(1.0, color=t["muted"], lw=0.8, zorder=0)
+                        ax.axhline(1.0, color=t["muted"], lw=0.9, zorder=1)
                         ax.set_xlabel("signal frequency  $f$  [Hz]")
-                        # The default log locator crowds this narrow decade.
-                        ax.set_xticks([400, 600, 1000, 2000, 3000])
-                        ax.set_xticklabels(["400", "600", "1k", "2k", "3k"])
+                        ax.set_xticks([10, 30, 100, 300, 1000])
+                        ax.set_xticklabels(["10", "30", "100", "300", "1k"])
                         ax.set_xticks([], minor=True)
                 axes[0][col].set_title(titles.get(o, o), fontsize=10)
-                # kappa is a function of f, so label it on a second axis rather
-                # than asking the reader to carry the conversion in their head.
                 sec = axes[0][col].secondary_xaxis(
-                    "top", functions=(lambda f: ALIGO.kappa(f), lambda k: f_at_kappa(k)))
+                    "top", functions=(lambda f: ALIGO_O4.kappa(f),
+                                      lambda k: f_at_kappa(k, ALIGO_O4)))
                 sec.set_xlabel(r"opto-mechanical coupling  $\kappa$", fontsize=9)
-                sec.set_xticks([3, 1, 0.3, 0.1, 0.01, 0.001])
-                sec.set_xticklabels(["3", "1", "0.3", "0.1", "0.01", "0.001"], fontsize=8)
+                sec.set_xticks([1e5, 1e4, 1e3, 1e2, 10, 1, 0.1, 0.01])
+                sec.set_xticklabels(["$10^5$", "$10^4$", "$10^3$", "100", "10",
+                                     "1", "0.1", "0.01"], fontsize=8)
             axes[0][0].set_ylabel(r"$\mathcal{F}_{\epsilon_a}$" "\n"
                                   "(same quantity as fig2)", fontsize=9)
             axes[1][0].set_ylabel(r"$\sigma_h\,/\,h_{\rm SQL}$   (lower is better)" "\n"
                                   r"strain bound, $\sqrt{2\kappa}$ transfer folded in",
                                   fontsize=9)
-            axes[0][-1].annotate(r"$\kappa=1$", xy=(f_sql, 1.0),
-                                 xycoords=("data", "axes fraction"),
-                                 xytext=(3, -12), textcoords="offset points",
-                                 fontsize=8, color=t["muted"], ha="left", va="top")
-            fig.suptitle(f"Section 2 in frequency  —  {ALIGO.name}, "
-                         r"$I_0 = I_{\rm SQL}$, $\gamma/2\pi = 500$ Hz, "
-                         r"$\eta = 0.8$", fontsize=11, y=1.0)
+            axes[0][0].annotate(f"shaded: $\\kappa > 3$, the Fock\ntrack stops at "
+                                f"{f_fock:.0f} Hz.  Gaussian\nprobes and the exactly\n"
+                                r"$\kappa$-independent cases"
+                                "\ncontinue across it.",
+                                xy=(0.03, 0.05), xycoords="axes fraction",
+                                fontsize=7.5, color=t["text_secondary"],
+                                ha="left", va="bottom")
+            axes[1][0].annotate(r"SQL", xy=(0.02, 1.0),
+                                xycoords=("axes fraction", "data"),
+                                xytext=(0, 3), textcoords="offset points",
+                                fontsize=8, color=t["muted"], ha="left", va="bottom")
+            fig.suptitle(f"Section 2 across the LIGO band  —  {ALIGO_O4.name}, "
+                         r"$\eta = 0.8$, $\langle n\rangle = 2$" "\n"
+                         r"$\gamma/2\pi = 44$ Hz, $I_0/I_{\rm SQL} = 2612$ "
+                         r"(350 kW circulating);  shaded: Fock track out of reach",
+                         fontsize=10.5, y=1.0)
             legend_below(fig, axes[0][0], ncol=4)
             keys = [Line2D([], [], color=t["text_secondary"], ls=ls, label=lab)
                     for ls, lab in ((("-"), "loss $\\to$ BA (injection)"),
@@ -370,8 +384,9 @@ def fig_frequency(d, out):
                                     ((0, (5, 2)), "BA $\\to$ loss (detection)"))]
             fig.legend(handles=keys, loc="upper center", bbox_to_anchor=(0.5, -0.04),
                        ncol=3, fontsize=8, frameon=False)
-            fig.subplots_adjust(top=0.86, hspace=0.20, wspace=0.10)
+            fig.subplots_adjust(top=0.84, hspace=0.20, wspace=0.10)
             finish(fig, str(out / "fig7_frequency"), name)
+
 
 def main():
     ap = argparse.ArgumentParser()

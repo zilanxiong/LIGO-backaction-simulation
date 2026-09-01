@@ -23,6 +23,8 @@ from convergence import converge, converged_qfi, tail_population
 from dynamics import get_state_single_mode
 from ifo import (
     ALIGO,
+    ALIGO_O4,
+    C_LIGHT,
     HBAR,
     IFOParams,
     f_at_kappa,
@@ -34,6 +36,8 @@ from ifo import (
 )
 from gaussian_reference import (
     EPS_A_PER_LAMBDA,
+    gaussian_channel,
+    gaussian_qfi_epsilon_a,
     gaussian_qfi_lambda,
     squeezed_vacuum_moments,
     vacuum,
@@ -490,3 +494,110 @@ def test_strain_bound_improves_with_a_better_probe():
         out[family] = (f_eps, strain_uncertainty(f_eps, kappa, hs)[1])
     assert out["squeezed"][0] > out["coherent"][0]
     assert out["squeezed"][1] < out["coherent"][1]
+
+
+# ---------------------------------------------------------------------------
+# The LIGO band:  real parameters, and the Gaussian route into large kappa
+# ---------------------------------------------------------------------------
+
+def test_aligo_preset_reproduces_the_arm_cavity_pole():
+    """gamma follows from the ITM transmissivity: FSR / finesse / 2."""
+    pole_hz = ALIGO_O4.gamma / (2 * np.pi)
+    expected = C_LIGHT * 0.0148 / (8 * np.pi * 3994.5)
+    assert pole_hz == pytest.approx(expected, rel=1e-12)
+    assert pole_hz == pytest.approx(44.2, abs=0.5)
+    assert ALIGO_O4.mass == pytest.approx(10.0)  # 40 kg mirrors, M/4 reduced
+
+
+def test_aligo_preset_is_deeply_backaction_dominated_at_low_frequency():
+    """The reason the Fock track cannot cover 10-100 Hz."""
+    assert ALIGO_O4.power == pytest.approx(350e3, rel=1e-9)
+    assert float(ALIGO_O4.kappa(10.0)) > 1e4
+    assert float(ALIGO_O4.kappa(100.0)) > 100
+    # ...and the reason the band stops at 1 kHz: back-action is over by then.
+    assert float(ALIGO_O4.kappa(1000.0)) < 0.05
+    assert float(f_at_kappa(3.0, ALIGO_O4)) == pytest.approx(284.0, abs=2.0)
+
+
+@pytest.mark.parametrize("ordering", ["BA1", "BA2", "BA3"])
+@pytest.mark.parametrize("kappa", [0.0, 0.7, 1.5])
+@pytest.mark.parametrize("eta_ch", [0.8, 0.5])
+def test_gaussian_concurrent_loss_matches_the_fock_split_step(ordering, kappa, eta_ch):
+    """The closed-form Gaussian evolution is what carries the LIGO-band figure
+    below 284 Hz, so it has to agree with the Fock code where both can run."""
+    N = 260
+    psi = make_state("squeezed", N, 1.0)
+    kw = dict(kappa=kappa, ordering=ordering, eta_ch=eta_ch)
+    fock = qfi(psi, **kw)
+    gauss = gaussian_qfi_epsilon_a(*squeezed_vacuum_moments(1.0), **kw)
+    assert fock == pytest.approx(gauss, rel=2e-6)
+
+
+@pytest.mark.parametrize("config", [
+    dict(ordering="BA1", eta_in=0.8),
+    dict(ordering="BA2", eta_in=0.8),
+    dict(ordering="BA3", eta_in=0.8),
+    dict(ordering="BA2", eta_ch=0.8),
+])
+def test_kappa_independent_configurations_hold_far_beyond_the_fock_reach(config):
+    """The Fock track asserts this up to kappa = 3.  The Gaussian track carries
+    it three decades further, which is what licenses drawing those curves across
+    the shaded region of the LIGO-band figure.
+
+    The tolerance loosens with kappa on purpose -- see
+    ``test_large_kappa_conditioning_is_why_the_study_evaluates_at_zero``.
+    """
+    mom = squeezed_vacuum_moments(2.0)
+    base = gaussian_qfi_epsilon_a(*mom, kappa=0.0, **config)
+    for k, rtol in ((1.0, 1e-12), (1e2, 1e-9), (1e3, 1e-8)):
+        assert gaussian_qfi_epsilon_a(*mom, kappa=k, **config) == pytest.approx(
+            base, rel=rtol)
+
+
+def test_large_kappa_conditioning_is_why_the_study_evaluates_at_zero():
+    """Documenting the numerical limit rather than papering over it.
+
+    The shear scales the covariance eigenvalues by ~kappa^2 each way, so at the
+    kappa of a real interferometer the matrix is past double precision and the
+    kappa-independence that holds exactly in algebra drifts at the 1e-5 level.
+    ``study_frequency`` therefore evaluates those configurations at kappa = 0,
+    where the value is exact.
+    """
+    mom = squeezed_vacuum_moments(2.0)
+    base = gaussian_qfi_epsilon_a(*mom, kappa=0.0, ordering="BA3", eta_in=0.8)
+    k_ligo = float(ALIGO_O4.kappa(10.0))
+    drift = abs(gaussian_qfi_epsilon_a(*mom, kappa=k_ligo, ordering="BA3",
+                                       eta_in=0.8) - base) / base
+    assert 1e-9 < drift < 1e-3, drift
+    cov, _ = gaussian_channel(*mom, kappa=k_ligo, ordering="BA3", eta_in=0.8)
+    assert np.linalg.cond(cov) > 1e18
+
+
+def test_detection_loss_stays_well_conditioned_at_interferometer_couplings():
+    """The curves that genuinely vary with kappa are the ones we can trust:
+    loss after the shear re-conditions the covariance, and the linear solve
+    matches an explicit 2x2 inverse to full precision."""
+    mom = squeezed_vacuum_moments(2.0)
+    for f_hz in (10.0, 100.0, 1000.0):
+        kappa = float(ALIGO_O4.kappa(f_hz))
+        cov, dmean = gaussian_channel(*mom, kappa=kappa, ordering="BA3", eta_out=0.8)
+        assert np.linalg.cond(cov) < 1e13
+        det = cov[0, 0] * cov[1, 1] - cov[0, 1] * cov[1, 0]
+        explicit = np.array([[cov[1, 1], -cov[0, 1]], [-cov[1, 0], cov[0, 0]]]) / det
+        assert EPS_A_PER_LAMBDA * float(dmean @ explicit @ dmean) == pytest.approx(
+            gaussian_qfi_epsilon_a(*mom, kappa=kappa, ordering="BA3", eta_out=0.8),
+            rel=1e-12)
+
+
+def test_detection_loss_collapses_across_the_ligo_band():
+    """The back-action wall: at aLIGO power the QFI at 10 Hz is ~1e-9 of its
+    high-frequency value, and the strain bound is two orders above the SQL."""
+    mom = squeezed_vacuum_moments(2.0)
+    lo = gaussian_qfi_epsilon_a(*mom, kappa=float(ALIGO_O4.kappa(10.0)),
+                                ordering="BA3", eta_out=0.8)
+    hi = gaussian_qfi_epsilon_a(*mom, kappa=float(ALIGO_O4.kappa(1000.0)),
+                                ordering="BA3", eta_out=0.8)
+    assert lo / hi < 1e-8
+    _, rel = strain_uncertainty(lo, float(ALIGO_O4.kappa(10.0)),
+                                float(ALIGO_O4.h_sql(10.0)))
+    assert rel > 50

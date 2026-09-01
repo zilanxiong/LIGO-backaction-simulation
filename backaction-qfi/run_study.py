@@ -32,7 +32,12 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from convergence import converged_qfi  # noqa: E402
-from ifo import ALIGO, f_at_kappa, strain_uncertainty  # noqa: E402
+from gaussian_reference import (  # noqa: E402
+    gaussian_qfi_epsilon_a,
+    squeezed_vacuum_moments,
+    vacuum,
+)
+from ifo import ALIGO_O4, f_at_kappa, strain_uncertainty  # noqa: E402
 from probe_states import STATE_LABELS, make_state  # noqa: E402
 from radiation_pressure import get_state_single_mode_ba, suggested_cutoff  # noqa: E402
 
@@ -167,34 +172,51 @@ def study_loss_placement(outdir, nbar, kappas, eta):
 
 
 # ---------------------------------------------------------------------------
-# F. Loss placement vs signal frequency
+# F. The LIGO band, 10 Hz - 1 kHz
 # ---------------------------------------------------------------------------
-def study_frequency(outdir, nbar, eta, n_points=12, kappa_max=3.0, decades=1.0,
-                    params=ALIGO):
-    """Section B again, with the x-axis calibrated to signal frequency.
+#: Largest coupling the Fock cutoff reaches at <n> = 2 within MAX_CUTOFF.
+KAPPA_FOCK_MAX = 3.0
 
-    ``kappa`` is not a free knob in a real interferometer -- it is fixed by the
-    sideband frequency through
 
-        kappa(Omega) = 2 (I0/I_SQL) gamma^4 / [Omega^2 (gamma^2 + Omega^2)] ,
+def study_frequency(outdir, nbar, eta, f_lo=10.0, f_hi=1000.0, n_points=25,
+                    params=ALIGO_O4):
+    """Section B over the band a real detector cares about.
 
-    so every point on a kappa sweep corresponds to one frequency.  The grid runs
-    from the frequency where ``kappa = kappa_max`` upward, because kappa grows
-    without bound towards low frequency and the Fock cutoff cannot follow it
-    (see the README on the low-frequency wall).
+    ``kappa`` is not a free knob -- the sideband frequency fixes it, and for
+    aLIGO numbers it reaches ~1e5 at 10 Hz.  No Fock cutoff can follow that, so
+    the band is covered by three different routes, each exact in its own domain
+    and recorded in the ``method`` column:
 
-    Alongside the QFI this records the Cramer-Rao bound on the strain,
+    ``gaussian``
+        Coherent and squeezed probes, at any frequency.  The covariance-matrix
+        implementation has no cutoff -- the drift is a scalar plus a nilpotent,
+        so the concurrent-loss integrals are elementary.  It agrees with the
+        Fock split-step to 1.3e-7 wherever both can run (unit test).
+    ``fock``
+        Cat and Fock probes, wherever ``kappa <= KAPPA_FOCK_MAX``.
+    ``fock (kappa-independent)``
+        Cat and Fock probes below that, but *only* for the two configurations
+        whose QFI is provably independent of kappa: any ordering with injection
+        loss, and BA2 with concurrent loss.  In both the shear ends up as a
+        parameter-independent unitary, so the kappa = 0 value is exact at every
+        kappa -- no approximation, no extrapolation.  The Gaussian probes use
+        the same shortcut in those configurations, which also avoids evaluating
+        a covariance whose condition number grows as kappa^4.
 
-        sigma_h = h_SQL * sqrt(2 / (kappa * F_epsilon_a)) ,
-
-    which is the quantity a noise budget actually wants: it folds in the fact
-    that the signal transfer itself carries a factor sqrt(2 kappa).
+    What is genuinely missing is cat/Fock under detection loss, and under
+    concurrent loss for BA1/BA3, below ~284 Hz.  Those rows are absent rather
+    than guessed.
     """
-    f_lo = float(f_at_kappa(kappa_max, params))
-    freqs = np.logspace(np.log10(f_lo), np.log10(f_lo * 10 ** decades), n_points)
-    print(f"[F] Loss placement vs frequency: {freqs[0]:.0f}-{freqs[-1]:.0f} Hz, "
-          f"kappa {float(params.kappa(freqs[0])):.2f}-{float(params.kappa(freqs[-1])):.4f}, "
-          f"eta = {eta}, {params.name}")
+    freqs = np.logspace(np.log10(f_lo), np.log10(f_hi), n_points)
+    f_fock = float(f_at_kappa(KAPPA_FOCK_MAX, params))
+    print(f"[F] {params.name}: {f_lo:.0f}-{f_hi:.0f} Hz, "
+          f"kappa {float(params.kappa(f_lo)):.3g} -> {float(params.kappa(f_hi)):.3g}, "
+          f"eta = {eta}")
+    print(f"    gamma/2pi = {params.gamma / (2 * np.pi):.1f} Hz, "
+          f"I_SQL = {params.I_sql:.0f} W, I0/I_SQL = {params.power_ratio:.0f}, "
+          f"Fock reachable above {f_fock:.0f} Hz")
+
+    gaussian_moments = {"coherent": vacuum(), "squeezed": squeezed_vacuum_moments(nbar)}
     placements = (
         ("injection", dict(eta_in=eta), None),
         ("concurrent", dict(eta_ch=eta), CONCURRENT_CUTOFF),
@@ -203,27 +225,52 @@ def study_frequency(outdir, nbar, eta, n_points=12, kappa_max=3.0, decades=1.0,
     rows = []
     for family in ["squeezed", "cat_even", "fock", "coherent"]:
         for ordering in ("BA1", "BA2", "BA3"):
-            best = {}
             for placement, kw, cap in placements:
+                # These two are exactly kappa-independent, so one evaluation at
+                # kappa = 0 serves the whole band -- see the docstring.
+                flat = placement == "injection" or (placement == "concurrent"
+                                                    and ordering == "BA2")
+                flat_val = None
                 sig = []
                 for f_hz in freqs:
                     kappa = float(params.kappa(f_hz))
                     hs = float(params.h_sql(f_hz))
-                    v, N, ok = qfi(family, nbar, kappa=kappa, ordering=ordering,
-                                   max_cutoff=cap, **kw)
+                    if family in gaussian_moments:
+                        # For the kappa-independent configurations, evaluate at
+                        # kappa = 0.  Not an approximation -- the shear is a
+                        # parameter-independent unitary there, so the value is
+                        # exact.  It also sidesteps a real numerical problem:
+                        # the sheared covariance has condition number ~kappa^4,
+                        # which is past double precision by kappa ~ 1e4.
+                        k_eval = 0.0 if flat else kappa
+                        v = gaussian_qfi_epsilon_a(*gaussian_moments[family],
+                                                   kappa=k_eval, ordering=ordering, **kw)
+                        method, N, ok = "gaussian", 0, True
+                    elif flat:
+                        if flat_val is None:
+                            flat_val = qfi(family, nbar, kappa=0.0, ordering=ordering,
+                                           max_cutoff=cap, **kw)
+                        v, N, ok = flat_val
+                        method = ("fock" if kappa <= KAPPA_FOCK_MAX
+                                  else "fock (kappa-independent)")
+                    elif kappa <= KAPPA_FOCK_MAX:
+                        v, N, ok = qfi(family, nbar, kappa=kappa, ordering=ordering,
+                                       max_cutoff=cap, **kw)
+                        method = "fock"
+                    else:
+                        continue  # out of reach; recorded as a gap, not a guess
                     sigma_h, sigma_rel = strain_uncertainty(v, kappa, hs)
-                    sig.append(float(sigma_rel))
+                    sig.append((f_hz, float(sigma_rel)))
                     rows.append([family, ordering, placement, f_hz, kappa, v,
-                                 float(sigma_h), float(sigma_rel), N, ok])
-                i = int(np.argmin(sig))
-                best[placement] = (freqs[i], sig[i])
-            print(f"    {family:>12} {ordering}  " + "   ".join(
-                f"{p} best {best[p][1]:.3f} h_SQL @ {best[p][0]:.0f} Hz"
-                for p, _, _ in placements))
+                                 float(sigma_h), float(sigma_rel), method, N, ok])
+                f_best, s_best = min(sig, key=lambda z: z[1])
+                print(f"    {family:>9} {ordering} {placement:>10}  "
+                      f"best {s_best:.3f} h_SQL @ {f_best:6.1f} Hz   "
+                      f"({len(sig)}/{n_points} points)")
     write_csv(outdir / "frequency_sweep.csv",
               ["state", "ordering", "loss_placement", "f_hz", "kappa",
-               "qfi_epsilon_a", "sigma_h", "sigma_h_over_hsql", "cutoff", "converged"],
-              rows)
+               "qfi_epsilon_a", "sigma_h", "sigma_h_over_hsql", "method",
+               "cutoff", "converged"], rows)
 
 
 def study_concurrent_orderings(outdir, nbar, kappas, eta):
@@ -407,7 +454,7 @@ def main():
     if run("E"):
         study_nbar_scaling(outdir, nbars, configs)
     if run("F"):
-        study_frequency(outdir, nbar, 0.8, n_points=6 if args.quick else 12)
+        study_frequency(outdir, nbar, 0.8, n_points=9 if args.quick else 25)
     print(f"\nDone in {time.time() - t0:.1f} s -> {outdir}/")
 
 

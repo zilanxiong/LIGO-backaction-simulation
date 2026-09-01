@@ -29,7 +29,7 @@ import numpy as np
 HBAR = 1.054571817e-34  # J s
 C_LIGHT = 299792458.0  # m/s
 
-__all__ = ["IFOParams", "ALIGO", "kappa_of_omega", "h_sql", "lambda_from_h",
+__all__ = ["IFOParams", "ALIGO", "ALIGO_O4", "kappa_of_omega", "h_sql", "lambda_from_h",
            "qfi_h_from_qfi_lambda", "qfi_h_from_qfi_epsilon_a", "strain_uncertainty",
            "f_at_kappa", "EPS_A_PER_LAMBDA"]
 
@@ -80,7 +80,42 @@ class IFOParams:
         return h_sql(2 * np.pi * np.asarray(f_hz, dtype=float), self)
 
 
+    @classmethod
+    def from_arm_cavity(cls, *, mirror_mass, length, wavelength, t_itm,
+                        power_w, name):
+        """Build a preset from the numbers a detector paper actually quotes.
+
+        The arm-cavity half bandwidth follows from the ITM transmissivity: the
+        free spectral range ``c/2L`` divided by the finesse ``2 pi / T`` is the
+        full width ``c T / (4 pi L)``, so the half width in Hz is
+        ``c T / (8 pi L)`` and ``gamma = c T / (4 L)`` in rad/s.  The reduced
+        mass of the differential arm mode is ``mirror_mass / 4``.  ``power_w`` is the circulating power
+        in one arm; it is converted to ``power_ratio = power_w / I_SQL``.
+        """
+        gamma = C_LIGHT * t_itm / (4.0 * length)
+        base = cls(mass=mirror_mass / 4.0, length=length, wavelength=wavelength,
+                   gamma=gamma, power_ratio=1.0, name=name)
+        return cls(mass=base.mass, length=base.length, wavelength=base.wavelength,
+                   gamma=gamma, power_ratio=power_w / base.I_sql, name=name)
+
+
 ALIGO = IFOParams()
+
+#: Advanced LIGO as built, in the free-mass approximation.  Arm length and test
+#: mass from the aLIGO reference design; ITM transmissivity 1.48 % gives a
+#: 44 Hz arm-cavity pole; 350 kW circulating is representative of the O4 runs
+#: (design is 750 kW).  Signal recycling is *not* modelled -- this is the
+#: free-mass Kimble relation with aLIGO's numbers in it, which is the right
+#: order of magnitude for kappa but not a substitute for the full
+#: signal-recycled response.
+ALIGO_O4 = IFOParams.from_arm_cavity(
+    mirror_mass=40.0,
+    length=3994.5,
+    wavelength=1064e-9,
+    t_itm=0.0148,
+    power_w=350e3,
+    name="aLIGO O4-like (free-mass)",
+)
 
 
 def kappa_of_omega(omega, params: IFOParams = ALIGO):
