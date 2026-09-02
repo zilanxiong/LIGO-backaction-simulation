@@ -302,15 +302,38 @@ helps, because the loss is on the wrong side of the shear.
 makes its size visible: at the couplings a real detector runs at, *where* the
 loss sits is not a correction, it is the dominant term.
 
-**3. Ordering separates by five orders of magnitude at 10 Hz.** Under concurrent
-loss, squeezed vacuum reads BA1 102.8, BA3 61.2, BA2 0.0013 h_SQL. At 1 kHz the
-three orderings collapse onto a single value for each placement (2.657 /
-2.808 / 2.971, injection / concurrent / detection) and the placements
-themselves agree to 12 % — κ = 0.02, so there is no back-action left to order
-or to place. **The ordering and placement questions are low-frequency
-questions.**
+**3. The quantum advantage does not merely shrink below 300 Hz — it reverses.**
+The bottom row of the figure divides each state by coherent light at the same
+frequency, which is the only way to see the state differences at all (they are a
+factor of two, against a 1/f envelope spanning five decades):
 
-**4. Back-action alone still costs nothing, even at κ = 10⁵.** The injection
+| | 10 Hz | 100 Hz | 316 Hz | 1 kHz |
+|---|---|---|---|---|
+| injection, squeezed | 0.530 | 0.530 | 0.530 | 0.530 |
+| detection, squeezed | **1.104** | **1.104** | 0.798 | 0.530 |
+| detection, Fock | — | — | 0.718 | 0.652 |
+| detection, even cat | — | — | 0.930 | 0.655 |
+
+With the loss upstream of the shear, squeezing keeps its full factor 1.9 (ratio
+0.530) at every frequency in the band. With the loss on the readout, squeezed
+vacuum is **worse than coherent light** below ~250 Hz — ratio 1.10. Squeezing
+buys nothing there; it buys less than nothing. That is the whole content of the
+back-action wall stated in terms a noise budget can use.
+
+**4. Ordering separates by five orders of magnitude at 10 Hz.**
+
+![ordering vs frequency](results/fig8_frequency_orderings.png)
+
+Under concurrent loss, squeezed vacuum reads BA1 102.8, BA3 61.2, BA2 0.0013
+h_SQL. At 1 kHz the three orderings collapse onto a single value for each
+placement (2.657 / 2.808 / 2.971, injection / concurrent / detection) and the
+placements themselves agree to 12 % — κ = 0.02, so there is no back-action left
+to order or to place. **The ordering and placement questions are low-frequency
+questions.** Only concurrent loss is plotted: with stage-separated loss the
+three orderings agree to 1e−11 (§1), so the figure would be three copies of one
+line.
+
+**5. Back-action alone still costs nothing, even at κ = 10⁵.** The injection
 curves fall monotonically to 0.0012 h_SQL at 10 Hz: with the loss ahead of the
 shear, growing κ is pure signal gain. Read that as a statement about what is
 *fundamental* rather than a design target — the QFI assumes the optimal

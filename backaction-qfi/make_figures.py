@@ -292,100 +292,164 @@ def fig_concurrent_orderings(d, out):
 
 
 
-def fig_frequency(d, out):
-    """The LIGO band, 10 Hz - 1 kHz, with kappa set by the sideband frequency.
-
-    Curves are drawn from whichever method is exact in that regime -- Gaussian
-    covariance for coherent/squeezed at any kappa, the Fock channel for cat and
-    Fock where the cutoff reaches, and the kappa-independent configurations
-    everywhere.  Where nothing is exact the curve simply stops; the shaded
-    region marks it.
-    """
+def _freq_data(d):
+    """Rows of the LIGO-band sweep, keyed for plotting.  Returns None if unrun."""
     path = d / "frequency_sweep.csv"
     if not path.exists():
+        return None
+    rows = read(path)
+    fs = [float(r["f_hz"]) for r in rows]
+    return {
+        "rows": rows,
+        "f_lo": min(fs),
+        "f_hi": max(fs),
+        # Below this the Fock cutoff cannot follow kappa; the Gaussian probes and
+        # the exactly kappa-independent configurations continue across it.
+        "f_fock": min(float(r["f_hz"]) for r in rows if r["method"] == "fock"),
+    }
+
+
+def _freq_axis(ax, t, D, shade=True):
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlim(D["f_lo"], D["f_hi"])
+    if shade:
+        ax.axvspan(D["f_lo"], D["f_fock"], color=t["muted"], alpha=0.10, lw=0, zorder=0)
+    ax.set_xticks([10, 30, 100, 300, 1000])
+    ax.set_xticklabels(["10", "30", "100", "300", "1k"])
+    ax.set_xticks([], minor=True)
+
+
+PLACEMENTS = (("injection", "loss $\\to$ BA  (injection)"),
+              ("concurrent", "loss $\\it{during}$ BA  (concurrent)"),
+              ("detection", "BA $\\to$ loss  (detection)"))
+
+
+def fig_frequency(d, out):
+    """The LIGO band: one panel per loss placement, four curves in each.
+
+    The earlier version put twelve curves in a panel -- four states times three
+    placements -- and the placements span five decades while the states differ by
+    a factor of two, so the state curves were unreadable on top of each other.
+    Splitting by placement gives each panel one job.
+
+    Top row is the absolute strain bound.  Bottom row divides by the coherent
+    state at the same frequency, which is the only way to see the state
+    differences at all: it removes the shared 1/f envelope that dominates the
+    top row.
+    """
+    D = _freq_data(d)
+    if D is None:
         print("  fig_frequency skipped (run run_study.py --only F)")
         return
-    rows = read(path)
-    qfi_d = series(rows, ("state", "ordering", "loss_placement"), "f_hz", "qfi_epsilon_a")
-    sig_d = series(rows, ("state", "ordering", "loss_placement"), "f_hz", "sigma_h_over_hsql")
-    states = sorted({k[0] for k in qfi_d}, key=lambda s: ORDER.index(s))
-    orderings = [o for o in ("BA1", "BA2", "BA3") if any(k[1] == o for k in qfi_d)]
-    titles = {"BA1": "BA1:  RP $\\to$ sensing",
-              "BA2": "BA2:  sensing $\\to$ RP",
-              "BA3": "BA3:  simultaneous (physical)"}
-    styles = (("injection", "-"), ("concurrent", (0, (1, 1.6))), ("detection", (0, (5, 2))))
-    fs = [float(r["f_hz"]) for r in rows]
-    f_lo, f_hi = min(fs), max(fs)
-    # Below this the Fock cutoff cannot follow kappa; only the exactly
-    # kappa-independent configurations and the Gaussian probes continue.
-    f_fock = min(float(r["f_hz"]) for r in rows if r["method"] == "fock")
+    rows = [r for r in D["rows"] if r["ordering"] == "BA3"]
+    sig = series(rows, ("state", "loss_placement"), "f_hz", "sigma_h_over_hsql")
+    states = sorted({k[0] for k in sig}, key=lambda s: ORDER.index(s))
 
     for name in THEMES:
         with theme(name) as t:
-            fig, axes = plt.subplots(2, len(orderings),
-                                     figsize=(4.2 * len(orderings), 7.6),
-                                     sharex=True, sharey="row")
-            axes = np.atleast_2d(axes)
-            for col, o in enumerate(orderings):
-                for row, data in enumerate((qfi_d, sig_d)):
+            fig, axes = plt.subplots(2, 3, figsize=(13.2, 7.8), sharex=True)
+            for col, (placement, title) in enumerate(PLACEMENTS):
+                base_x, base_y = sig[("coherent", placement)]
+                for row in (0, 1):
                     ax = axes[row][col]
-                    ax.axvspan(f_lo, f_fock, color=t["muted"], alpha=0.10, lw=0, zorder=0)
+                    _freq_axis(ax, t, D)
+                    labelled = []
                     for st in states:
-                        c = t["series"][ORDER.index(st)]
-                        for placement, ls in styles:
-                            key = (st, o, placement)
-                            if key not in data:
+                        key = (st, placement)
+                        if key not in sig:
+                            continue
+                        xs, ys = sig[key]
+                        if row == 1:
+                            if st == "coherent":
                                 continue
-                            xs, ys = data[key]
-                            ax.plot(xs, ys, color=c, ls=ls,
-                                    label=LABELS[st] if placement == "injection" else None)
-                    ax.set_xscale("log")
-                    ax.set_yscale("log")
-                    ax.set_xlim(f_lo, f_hi)
+                            ys = ys / np.interp(xs, base_x, base_y)
+                        ax.plot(xs, ys, color=t["series"][ORDER.index(st)],
+                                label=LABELS[st] if row == 0 and col == 0 else None)
+                        labelled.append((LABELS[st], xs, ys))
+                    if row == 0:
+                        label_lines(ax, labelled, t, log_x=True)
                     if row == 1:
+                        ax.set_yscale("linear")
+                        ax.set_ylim(0.45, 1.18)
+                        ax.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1])
                         ax.axhline(1.0, color=t["muted"], lw=0.9, zorder=1)
                         ax.set_xlabel("signal frequency  $f$  [Hz]")
-                        ax.set_xticks([10, 30, 100, 300, 1000])
-                        ax.set_xticklabels(["10", "30", "100", "300", "1k"])
-                        ax.set_xticks([], minor=True)
-                axes[0][col].set_title(titles.get(o, o), fontsize=10)
-                sec = axes[0][col].secondary_xaxis(
-                    "top", functions=(lambda f: ALIGO_O4.kappa(f),
-                                      lambda k: f_at_kappa(k, ALIGO_O4)))
-                sec.set_xlabel(r"opto-mechanical coupling  $\kappa$", fontsize=9)
-                sec.set_xticks([1e5, 1e4, 1e3, 1e2, 10, 1, 0.1, 0.01])
-                sec.set_xticklabels(["$10^5$", "$10^4$", "$10^3$", "100", "10",
-                                     "1", "0.1", "0.01"], fontsize=8)
-            axes[0][0].set_ylabel(r"$\mathcal{F}_{\epsilon_a}$" "\n"
-                                  "(same quantity as fig2)", fontsize=9)
-            axes[1][0].set_ylabel(r"$\sigma_h\,/\,h_{\rm SQL}$   (lower is better)" "\n"
-                                  r"strain bound, $\sqrt{2\kappa}$ transfer folded in",
-                                  fontsize=9)
-            axes[0][0].annotate(f"shaded: $\\kappa > 3$, the Fock\ntrack stops at "
-                                f"{f_fock:.0f} Hz.  Gaussian\nprobes and the exactly\n"
-                                r"$\kappa$-independent cases"
-                                "\ncontinue across it.",
+                # Each top panel has its own y-scale -- that is what makes the
+                # state curves visible at all -- so anchor them to one another
+                # with the squeezed value at 100 Hz, in the title.
+                sx, sy = sig[("squeezed", placement)]
+                anchor = float(np.interp(100.0, sx, sy))
+                axes[0][col].set_title(
+                    f"{title}\nsqueezed at 100 Hz:  {anchor:.3g} $h_{{\\rm SQL}}$",
+                    fontsize=10)
+                axes[0][col].axhline(1.0, color=t["muted"], lw=0.9, zorder=1)
+            axes[0][0].set_ylabel(r"$\sigma_h\,/\,h_{\rm SQL}$" "\n"
+                                  "(lower is better; line = SQL)", fontsize=9)
+            axes[1][0].set_ylabel("$\\sigma_h$ relative to coherent\n"
+                                  "(below 1 = better than coherent light)", fontsize=9)
+            axes[0][0].annotate(f"shaded: $\\kappa > 3$,\nno Fock/cat below "
+                                f"{D['f_fock']:.0f} Hz",
                                 xy=(0.03, 0.05), xycoords="axes fraction",
                                 fontsize=7.5, color=t["text_secondary"],
                                 ha="left", va="bottom")
-            axes[1][0].annotate(r"SQL", xy=(0.02, 1.0),
-                                xycoords=("axes fraction", "data"),
-                                xytext=(0, 3), textcoords="offset points",
-                                fontsize=8, color=t["muted"], ha="left", va="bottom")
-            fig.suptitle(f"Section 2 across the LIGO band  —  {ALIGO_O4.name}, "
-                         r"$\eta = 0.8$, $\langle n\rangle = 2$" "\n"
-                         r"$\gamma/2\pi = 44$ Hz, $I_0/I_{\rm SQL} = 2612$ "
-                         r"(350 kW circulating);  shaded: Fock track out of reach",
-                         fontsize=10.5, y=1.0)
+            fig.suptitle("Below ~300 Hz back-action erases the quantum advantage — "
+                         "unless the loss sits upstream of it\n"
+                         r"aLIGO O4-like free-mass, BA3 (simultaneous), "
+                         r"$\gamma/2\pi = 44$ Hz, $I_0/I_{\rm SQL} = 2612$, "
+                         r"$\eta = 0.8$, $\langle n\rangle = 2$",
+                         fontsize=11, y=1.0)
             legend_below(fig, axes[0][0], ncol=4)
-            keys = [Line2D([], [], color=t["text_secondary"], ls=ls, label=lab)
-                    for ls, lab in ((("-"), "loss $\\to$ BA (injection)"),
-                                    ((0, (1, 1.6)), "loss $\\it{during}$ BA (concurrent)"),
-                                    ((0, (5, 2)), "BA $\\to$ loss (detection)"))]
-            fig.legend(handles=keys, loc="upper center", bbox_to_anchor=(0.5, -0.04),
-                       ncol=3, fontsize=8, frameon=False)
-            fig.subplots_adjust(top=0.84, hspace=0.20, wspace=0.10)
+            fig.subplots_adjust(top=0.83, hspace=0.20, wspace=0.24)
             finish(fig, str(out / "fig7_frequency"), name)
+
+
+def fig_frequency_orderings(d, out):
+    """Where the ordering matters, on its own axes.
+
+    Three curves per panel instead of twelve.  Only concurrent loss is shown --
+    with stage-separated loss the three orderings are identical to 1e-11, so
+    plotting them would be three copies of one line.
+    """
+    D = _freq_data(d)
+    if D is None:
+        print("  fig_frequency_orderings skipped (run run_study.py --only F)")
+        return
+    rows = [r for r in D["rows"] if r["loss_placement"] == "concurrent"]
+    sig = series(rows, ("state", "ordering"), "f_hz", "sigma_h_over_hsql")
+    panels = [st for st in ("squeezed", "coherent", "fock") if (st, "BA3") in sig]
+    names = {"BA1": "BA1  (RP $\\to$ sensing)", "BA2": "BA2  (sensing $\\to$ RP)",
+             "BA3": "BA3  (simultaneous)"}
+    dashes = {"BA1": (0, (5, 2)), "BA2": (0, (1, 1.6)), "BA3": "-"}
+
+    for name in THEMES:
+        with theme(name) as t:
+            fig, axes = plt.subplots(1, len(panels), figsize=(4.4 * len(panels), 4.4),
+                                     sharey=True)
+            axes = np.atleast_1d(axes)
+            for ax, st in zip(axes, panels):
+                _freq_axis(ax, t, D)
+                for i, o in enumerate(("BA1", "BA3", "BA2")):
+                    if (st, o) not in sig:
+                        continue
+                    xs, ys = sig[(st, o)]
+                    ax.plot(xs, ys, color=t["series"][i], ls=dashes[o], label=names[o])
+                ax.axhline(1.0, color=t["muted"], lw=0.9, zorder=1)
+                ax.set_xlabel("signal frequency  $f$  [Hz]")
+                ax.set_title(LABELS[st], fontsize=10)
+                if (st, "BA1") in sig and len(sig[(st, "BA1")][0]) < len(sig[(st, "BA2")][0]):
+                    ax.annotate("BA1/BA3 need $\\kappa \\leq 3$;\nBA2 is exact at any "
+                                "$\\kappa$", xy=(0.04, 0.95), xycoords="axes fraction",
+                                fontsize=7.5, color=t["text_secondary"],
+                                ha="left", va="top")
+            axes[0].set_ylabel(r"$\sigma_h\,/\,h_{\rm SQL}$   (line = SQL)")
+            fig.suptitle("Where the shear sits costs five decades at 10 Hz and "
+                         "nothing at 1 kHz\n"
+                         r"concurrent loss only — with stage-separated loss the "
+                         r"three orderings agree to $10^{-11}$", fontsize=11, y=1.0)
+            legend_below(fig, axes[0], ncol=3)
+            fig.subplots_adjust(top=0.80, wspace=0.10)
+            finish(fig, str(out / "fig8_frequency_orderings"), name)
 
 
 def main():
@@ -395,7 +459,7 @@ def main():
     d = Path(args.dir)
     for fn in (fig_orderings, fig_loss_placement, fig_concurrent_orderings,
                fig_phase_noise, fig_states_vs_kappa, fig_nbar_scaling,
-               fig_frequency):
+               fig_frequency, fig_frequency_orderings):
         fn(d, d)
         print(f"  {fn.__name__} ok")
     print(f"figures -> {d}/")
