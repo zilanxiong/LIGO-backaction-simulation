@@ -1,11 +1,10 @@
 # Ordering verification: signal vs. back-action vs. noise
 
-Numerical verification of the commutation structure that underpins the
-QFI/back-action study, before any sweep machinery is built on top of it.
+Numerical verification that the ordering of signal/displacement with back-action doesn't matter even with loss incorporated.
 
 ## The claim
 
-With the mentor's convention the GW signal is the unitary
+The GW signal is the unitary
 `S = exp(-i eps x)` with generator `x = a + a†` (it creates
 phase-quadrature fluctuations), and radiation-pressure back-action is
 `B = exp(-i g x²)`. Since `[x, x²] = 0`:
