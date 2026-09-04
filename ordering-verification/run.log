@@ -1,0 +1,24 @@
+Probe <n> = 2.0, N_basis = 200, finite-difference step 1e-05
+
+## coherent, kappa_ba=0.5, eta=0.9
+    SBL: QFI = 3.3027522928   exact(Gaussian) = 3.3027522936
+    SLB: QFI = 3.5999999992   exact(Gaussian) = 3.6000000000
+    BSL: QFI = 3.3027522928   exact(Gaussian) = 3.3027522936
+    BLS: QFI = 3.6697247698   exact(Gaussian) = 3.6697247706
+    LSB: QFI = 3.9999999988   exact(Gaussian) = 4.0000000000
+    LBS: QFI = 3.9999999988   exact(Gaussian) = 4.0000000000
+    within-class spreads {SBL,BSL}=1.36e-11  {LSB,LBS}=1.19e-12
+    class values: S,B-then-L=3.302752  L-then-S,B=4.000000  SLB=3.600000  BLS=3.669725
+    adjacent S<->B swap invariant: PASS
+
+## coherent, kappa_ba=0.5, eta=0.7
+    SBL: QFI = 2.3140495934   exact(Gaussian) = 2.3140495868
+    SLB: QFI = 2.7999999983   exact(Gaussian) = 2.8000000000
+    BSL: QFI = 2.3140495935   exact(Gaussian) = 2.3140495868
+    BLS: QFI = 3.3057851300   exact(Gaussian) = 3.3057851240
+    LSB: QFI = 3.9999999991   exact(Gaussian) = 4.0000000000
+    LBS: QFI = 3.9999999991   exact(Gaussian) = 4.0000000000
+    within-class spreads {SBL,BSL}=9.61e-12  {LSB,LBS}=3.39e-12
+    class values: S,B-then-L=2.314050  L-then-S,B=4.000000  SLB=2.800000  BLS=3.305785
+    adjacent S<->B swap invariant: PASS
+
