@@ -86,14 +86,15 @@ def block_loss(rho, eta, N):
 
 
 def block_dephase(rho, chi, N):
-    """Dephasing channel D[sqrt(chi) n] for t = 1."""
+    """Dephasing channel D[sqrt(chi) n] for t = 1, applied exactly:
+    rho_mn -> rho_mn exp(-chi (m-n)^2 / 2).  (mesolve is too stiff here --
+    decay rates grow like chi N^2 -- and its integration error broke the
+    S<->B swap invariance at the 1e-3 level before this exact map.)"""
     if chi <= 0.0:
         return rho
-    a = qt.destroy(N)
-    n_op = a.dag() * a
-    res = qt.mesolve(0 * n_op, rho, [0.0, 1.0],
-                     [np.sqrt(chi) * n_op], options=SOLVER_OPTS)
-    return res.states[-1]
+    m = np.arange(N)
+    fac = np.exp(-chi * (m[:, None] - m[None, :]) ** 2 / 2.0)
+    return qt.Qobj(rho.full() * fac)
 
 
 def apply_ordering(rho0, ordering, eps, kappa_ba, noise_strength, N,
