@@ -25,15 +25,15 @@ Probe <n> = 2.0, N_basis = 200, finite-difference step 1e-05
     adjacent S<->B swap invariant: PASS
 
 ## coherent, kappa_ba=0.5, chi=0.1
-    SBL: QFI = 1.5320019409
-    SLB: QFI = 2.1305581886
-    BSL: QFI = 1.5320085175
-    BLS: QFI = 1.6560204240
-    LSB: QFI = 2.3363753846
-    LBS: QFI = 2.3363753846
-    within-class spreads {SBL,BSL}=4.29e-06  {LSB,LBS}=2.14e-12
-    class values: S,B-then-L=1.532005  L-then-S,B=2.336375  SLB=2.130558  BLS=1.656020
-    adjacent S<->B swap invariant: FAIL
+    SBL: QFI = 1.5320012628
+    SLB: QFI = 2.1305581847
+    BSL: QFI = 1.5320012628
+    BLS: QFI = 1.6560204234
+    LSB: QFI = 2.3363753845
+    LBS: QFI = 2.3363753845
+    within-class spreads {SBL,BSL}=1.46e-11  {LSB,LBS}=5.55e-12
+    class values: S,B-then-L=1.532001  L-then-S,B=2.336375  SLB=2.130558  BLS=1.656020
+    adjacent S<->B swap invariant: PASS
 
 ## coherent, kappa_ba=1.0, eta=0.9
     SBL: QFI = 2.6470588092   exact(Gaussian) = 2.6470588235
@@ -58,15 +58,15 @@ Probe <n> = 2.0, N_basis = 200, finite-difference step 1e-05
     adjacent S<->B swap invariant: PASS
 
 ## coherent, kappa_ba=1.0, chi=0.1
-    SBL: QFI = 0.7695245070
-    SLB: QFI = 2.1305581886
-    BSL: QFI = 0.7702261443
-    BLS: QFI = 0.8787761838
-    LSB: QFI = 2.3363753846
-    LBS: QFI = 2.3363753846
-    within-class spreads {SBL,BSL}=9.11e-04  {LSB,LBS}=3.08e-13
-    class values: S,B-then-L=0.769875  L-then-S,B=2.336375  SLB=2.130558  BLS=0.878776
-    adjacent S<->B swap invariant: FAIL
+    SBL: QFI = 0.7695233590
+    SLB: QFI = 2.1305581847
+    BSL: QFI = 0.7695233590
+    BLS: QFI = 0.8787761834
+    LSB: QFI = 2.3363753845
+    LBS: QFI = 2.3363753845
+    within-class spreads {SBL,BSL}=8.18e-12  {LSB,LBS}=9.68e-12
+    class values: S,B-then-L=0.769523  L-then-S,B=2.336375  SLB=2.130558  BLS=0.878776
+    adjacent S<->B swap invariant: PASS
 
 ## sqz_vac, kappa_ba=0.5, eta=0.9
     SBL: QFI = 12.4219970696   exact(Gaussian) = 12.4219971075
@@ -91,13 +91,13 @@ Probe <n> = 2.0, N_basis = 200, finite-difference step 1e-05
     adjacent S<->B swap invariant: PASS
 
 ## sqz_vac, kappa_ba=0.5, chi=0.1
-    SBL: QFI = 39.5950445669
-    SLB: QFI = 39.5940242824
-    BSL: QFI = 39.5950445701
+    SBL: QFI = 39.5950445668
+    SLB: QFI = 39.5940242815
+    BSL: QFI = 39.5950445668
     BLS: QFI = 39.6325411394
     LSB: QFI = 36.0437803089
     LBS: QFI = 36.0437803089
-    within-class spreads {SBL,BSL}=8.08e-11  {LSB,LBS}=5.91e-15
+    within-class spreads {SBL,BSL}=5.02e-15  {LSB,LBS}=5.91e-15
     class values: S,B-then-L=39.595045  L-then-S,B=36.043780  SLB=39.594024  BLS=39.632541
     adjacent S<->B swap invariant: PASS
 
@@ -124,13 +124,13 @@ Probe <n> = 2.0, N_basis = 200, finite-difference step 1e-05
     adjacent S<->B swap invariant: PASS
 
 ## sqz_vac, kappa_ba=1.0, chi=0.1
-    SBL: QFI = 39.5955264368
-    SLB: QFI = 39.5940242824
-    BSL: QFI = 39.5955264368
+    SBL: QFI = 39.5955264365
+    SLB: QFI = 39.5940242815
+    BSL: QFI = 39.5955264365
     BLS: QFI = 50.3951347647
     LSB: QFI = 36.0437803089
     LBS: QFI = 36.0437803089
-    within-class spreads {SBL,BSL}=9.33e-15  {LSB,LBS}=8.48e-15
+    within-class spreads {SBL,BSL}=8.25e-15  {LSB,LBS}=8.48e-15
     class values: S,B-then-L=39.595526  L-then-S,B=36.043780  SLB=39.594024  BLS=50.395135
     adjacent S<->B swap invariant: PASS
 
@@ -157,13 +157,13 @@ Probe <n> = 2.0, N_basis = 200, finite-difference step 1e-05
     adjacent S<->B swap invariant: PASS
 
 ## cat, kappa_ba=0.5, chi=0.1
-    SBL: QFI = 36.5215521679
-    SLB: QFI = 36.5192383711
-    BSL: QFI = 36.5215521575
+    SBL: QFI = 36.5215521514
+    SLB: QFI = 36.5192383709
+    BSL: QFI = 36.5215521514
     BLS: QFI = 36.8378683154
-    LSB: QFI = 33.5276467315
-    LBS: QFI = 33.5276467315
-    within-class spreads {SBL,BSL}=2.86e-10  {LSB,LBS}=1.08e-14
+    LSB: QFI = 33.5276467314
+    LBS: QFI = 33.5276467314
+    within-class spreads {SBL,BSL}=1.07e-14  {LSB,LBS}=1.06e-14
     class values: S,B-then-L=36.521552  L-then-S,B=33.527647  SLB=36.519238  BLS=36.837868
     adjacent S<->B swap invariant: PASS
 
@@ -190,13 +190,13 @@ Probe <n> = 2.0, N_basis = 200, finite-difference step 1e-05
     adjacent S<->B swap invariant: PASS
 
 ## cat, kappa_ba=1.0, chi=0.1
-    SBL: QFI = 36.5224050175
-    SLB: QFI = 36.5192383710
-    BSL: QFI = 36.5224049593
-    BLS: QFI = 46.7685329414
-    LSB: QFI = 33.5276467315
-    LBS: QFI = 33.5276467315
-    within-class spreads {SBL,BSL}=1.59e-09  {LSB,LBS}=1.67e-14
+    SBL: QFI = 36.5224049480
+    SLB: QFI = 36.5192383709
+    BSL: QFI = 36.5224049480
+    BLS: QFI = 46.7685329408
+    LSB: QFI = 33.5276467314
+    LBS: QFI = 33.5276467314
+    within-class spreads {SBL,BSL}=1.60e-14  {LSB,LBS}=1.65e-14
     class values: S,B-then-L=36.522405  L-then-S,B=33.527647  SLB=36.519238  BLS=46.768533
     adjacent S<->B swap invariant: PASS
 
