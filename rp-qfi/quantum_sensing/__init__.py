@@ -43,6 +43,12 @@ from quantum_sensing.gaussian import (
     fd_squeeze_angle, sql_homodyne_cfi, fd_squeezed_homodyne_cfi,
 )
 
+from quantum_sensing.channels import (
+    get_state_ba1, get_state_ba2, get_state_ba3, BA_CHANNELS,
+    op_signal, op_shear, op_loss_dephase, op_signal_shear_simultaneous,
+    apply_chain,
+)
+
 from quantum_sensing.convergence import (
     converged_qfi, tail_population,
 )
