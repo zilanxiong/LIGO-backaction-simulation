@@ -12,3 +12,14 @@ coherent: <n> = 2.0000
   f=   31.6 Hz  kappa=  0.9488  QFI=   3.3078  N= 40  conv=True  (1.6s)
   f=   21.5 Hz  kappa=  2.0495  QFI=   2.5829  N=115  conv=True  (4.3s)
   f=   14.7 Hz  kappa=  4.4209  QFI=   1.2793  N=360  conv=True  (45.5s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.3819  N=800  conv=False  (674.9s)
+
+sqz_vac: <n> = 2.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=   0.4198  N= 70  conv=True  (50.7s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=   0.4198  N= 70  conv=True  (45.5s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=   0.4198  N= 70  conv=True  (69.5s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=   0.4198  N= 70  conv=True  (83.7s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=   0.4198  N= 70  conv=True  (64.8s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=   0.4198  N= 70  conv=True  (45.4s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=   0.4198  N= 70  conv=True  (75.7s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=   0.4197  N= 70  conv=True  (66.7s)
