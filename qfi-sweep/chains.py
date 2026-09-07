@@ -26,7 +26,7 @@ from numpy.linalg import eigh
 PREC_DIFF = 1e-5
 PREC_EIG = 1e-10
 SOLVER_OPTS = {"atol": 1e-12, "rtol": 1e-12, "nsteps": 200_000}
-N_TROTTER = 24
+N_TROTTER = 12
 
 
 def _a_sheared(N, k):
