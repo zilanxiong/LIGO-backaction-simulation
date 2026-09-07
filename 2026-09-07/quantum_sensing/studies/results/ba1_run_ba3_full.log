@@ -11,3 +11,4 @@ coherent: <n> = 2.0000
   f=   46.4 Hz  kappa=  0.4379  QFI=   3.5198  N= 20  conv=True  (0.5s)
   f=   31.6 Hz  kappa=  0.9488  QFI=   3.3078  N= 40  conv=True  (1.6s)
   f=   21.5 Hz  kappa=  2.0495  QFI=   2.5829  N=115  conv=True  (4.3s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   1.2793  N=360  conv=True  (45.5s)

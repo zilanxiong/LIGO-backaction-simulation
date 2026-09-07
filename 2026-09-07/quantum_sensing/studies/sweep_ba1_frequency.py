@@ -51,7 +51,8 @@ sys.path.insert(0, str(ROOT))
 
 import quantum_sensing as qs
 from quantum_sensing import probes
-from quantum_sensing.channels import get_state_ba1, get_state_ba3
+from quantum_sensing.channels import (get_state_ba1, get_state_ba2,
+                                      get_state_ba3)
 from quantum_sensing.convergence import converged_qfi
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
@@ -77,6 +78,22 @@ elif LOSS_CONFIG == "injection":
     LOSS_KW = {"eta_in": ETA_LOSS}
     CONV_KW = {"check_output_tail": False}
     SUFFIX = "_injection"
+elif LOSS_CONFIG == "ba2_detection":
+    # BA2 (signal, then shear) with readout loss.  For epsilon_a the signal
+    # generator x commutes with H_BA ~ x^2, so with no loss between the two
+    # unitaries this must coincide exactly with the BA1 detection sweep —
+    # a machinery consistency check as much as a physics run.
+    DYNAMICS = get_state_ba2
+    LOSS_KW = {"eta_out": ETA_LOSS}
+    CONV_KW = {"check_output_tail": True}
+    SUFFIX = "_ba2_detection"
+elif LOSS_CONFIG == "ba2_injection":
+    # BA2 with injection loss: everything after the loss is unitary, so
+    # this must coincide with the BA1 injection sweep (frequency-flat).
+    DYNAMICS = get_state_ba2
+    LOSS_KW = {"eta_in": ETA_LOSS}
+    CONV_KW = {"check_output_tail": False}
+    SUFFIX = "_ba2_injection"
 elif LOSS_CONFIG == "ba3_full":
     # The physical case: simultaneous signal + back-action (BA3) with all
     # three loss slots populated at LIGO-ish values — injection 0.95,
@@ -195,6 +212,12 @@ def plot(df_freq, exps, path):
                  f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
     elif LOSS_CONFIG == "injection":
         title = ("BA1: injection loss $\\to$ shear $\\to$ signal "
+                 f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
+    elif LOSS_CONFIG == "ba2_detection":
+        title = ("BA2: signal $\\to$ shear $\\to$ detection loss "
+                 f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
+    elif LOSS_CONFIG == "ba2_injection":
+        title = ("BA2: injection loss $\\to$ signal $\\to$ shear "
                  f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
     else:
         title = ("BA3: $\\eta_{in}$=0.95 $\\to$ [signal+shear, "
