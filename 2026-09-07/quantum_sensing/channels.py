@@ -119,6 +119,36 @@ def op_signal_shear_simultaneous(N_basis, epsilon_a=0.0, epsilon_p=0.0,
     return lambda rho: _apply_unitary(U, rho)
 
 
+def op_signal_shear_loss(N_basis, epsilon_a=0.0, epsilon_p=0.0,
+                         kappa_ba=0.0, eta_ch=1.0, t_final=1.0, n_steps=16):
+    """Signal + shear + CONCURRENT loss (the physical intracavity case):
+    Lindblad loss of total transmission eta_ch running simultaneously with
+    H_sig + H_BA.  Implemented by second-order Strang splitting —
+    n_steps repetitions of [loss(dt/2) -> U(dt) -> loss(dt/2)] with the
+    exact Kraus loss channel and the exact matrix-exponential unitary — so
+    no ODE solver enters the QFI finite difference.  Splitting error is
+    O((t_final/n_steps)^2); validated against the Gaussian ground truth
+    (gaussian_rp_channel, signal_order="simultaneous") in the tests."""
+    if eta_ch >= 1.0:
+        return op_signal_shear_simultaneous(N_basis, epsilon_a, epsilon_p,
+                                            kappa_ba, t_final)
+    a = qt.destroy(N_basis)
+    x2 = (a + a.dag()) ** 2 / 2
+    H = (epsilon_a * (a.dag() + a) + 1j * epsilon_p * (a.dag() - a)
+         + ba_to_g(kappa_ba, t_final) * x2)
+    U = (-1j * (t_final / n_steps) * H).expm()
+    eta_half = eta_ch ** (1.0 / (2 * n_steps))
+    loss_half = op_loss_kraus(N_basis, eta_half)
+
+    def _apply(rho):
+        for _ in range(n_steps):
+            rho = loss_half(rho)
+            rho = U * rho * U.dag()
+            rho = loss_half(rho)
+        return rho
+    return _apply
+
+
 def apply_chain(rho, ops):
     """Apply stage ops in sequence (kets are promoted to density matrices)."""
     rho = _ensure_dm(rho)
@@ -132,7 +162,8 @@ def apply_chain(rho, ops):
 # ---------------------------------------------------------------------------
 
 def _get_state_ordered(order, *, epsilon_a=0.0, epsilon_p=0.0, kappa_ba=0.0,
-                       eta_in=1.0, eta_out=1.0, pn_in=0.0, pn_out=0.0,
+                       eta_in=1.0, eta_ch=1.0, eta_out=1.0,
+                       pn_in=0.0, pn_out=0.0,
                        t_final=1.0, N_basis=20, rho=None):
     if rho is None:
         rho = qt.ket2dm(qt.coherent(N_basis, 1.0))
@@ -142,8 +173,8 @@ def _get_state_ordered(order, *, epsilon_a=0.0, epsilon_p=0.0, kappa_ba=0.0,
         "loss_out": lambda: op_loss_dephase(N_basis, eta_out, pn_out),
         "sig": lambda: op_signal(N_basis, epsilon_a, epsilon_p, t_final),
         "shear": lambda: op_shear(N_basis, kappa_ba, t_final),
-        "sig+shear": lambda: op_signal_shear_simultaneous(
-            N_basis, epsilon_a, epsilon_p, kappa_ba, t_final),
+        "sig+shear": lambda: op_signal_shear_loss(
+            N_basis, epsilon_a, epsilon_p, kappa_ba, eta_ch, t_final),
     }
     return apply_chain(rho, [stage[name]() for name in order])
 
@@ -165,7 +196,10 @@ def get_state_ba2(**kwargs):
 def get_state_ba3(**kwargs):
     """BA3: simultaneous signal + back-action, single Hamiltonian
     (loss_in -> [signal+shear] -> loss_out).  The physical case; BA1/BA2
-    bound it."""
+    bound it.  Pass eta_ch < 1 for intracavity loss running CONCURRENTLY
+    with the signal+shear stage (Strang-split; see op_signal_shear_loss).
+    eta_ch is ignored by get_state_ba1/ba2, whose shear stage is purely
+    unitary."""
     return _get_state_ordered(("loss_in", "sig+shear", "loss_out"),
                               **kwargs)
 

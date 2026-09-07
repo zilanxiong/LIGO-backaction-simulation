@@ -51,7 +51,8 @@ sys.path.insert(0, str(ROOT))
 
 import quantum_sensing as qs
 from quantum_sensing import probes
-from quantum_sensing.channels import get_state_ba1
+from quantum_sensing.channels import (get_state_ba1, get_state_ba2,
+                                      get_state_ba3)
 from quantum_sensing.convergence import converged_qfi
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
@@ -68,6 +69,7 @@ ETA_LOSS = 0.9
 # is unitary, so the output-tail convergence check is provably irrelevant
 # for the QFI and is skipped (see converged_qfi docstring).
 LOSS_CONFIG = (sys.argv[1] if len(sys.argv) > 1 else "detection")
+DYNAMICS = get_state_ba1
 if LOSS_CONFIG == "detection":
     LOSS_KW = {"eta_out": ETA_LOSS}
     CONV_KW = {"check_output_tail": True}
@@ -76,6 +78,30 @@ elif LOSS_CONFIG == "injection":
     LOSS_KW = {"eta_in": ETA_LOSS}
     CONV_KW = {"check_output_tail": False}
     SUFFIX = "_injection"
+elif LOSS_CONFIG == "ba2_detection":
+    # BA2 (signal, then shear) with readout loss.  For epsilon_a the signal
+    # generator x commutes with H_BA ~ x^2, so with no loss between the two
+    # unitaries this must coincide exactly with the BA1 detection sweep —
+    # a machinery consistency check as much as a physics run.
+    DYNAMICS = get_state_ba2
+    LOSS_KW = {"eta_out": ETA_LOSS}
+    CONV_KW = {"check_output_tail": True}
+    SUFFIX = "_ba2_detection"
+elif LOSS_CONFIG == "ba2_injection":
+    # BA2 with injection loss: everything after the loss is unitary, so
+    # this must coincide with the BA1 injection sweep (frequency-flat).
+    DYNAMICS = get_state_ba2
+    LOSS_KW = {"eta_in": ETA_LOSS}
+    CONV_KW = {"check_output_tail": False}
+    SUFFIX = "_ba2_injection"
+elif LOSS_CONFIG == "ba3_full":
+    # The physical case: simultaneous signal + back-action (BA3) with all
+    # three loss slots populated at LIGO-ish values — injection 0.95,
+    # intracavity 0.99 concurrent with the interaction, readout 0.90.
+    DYNAMICS = get_state_ba3
+    LOSS_KW = {"eta_in": 0.95, "eta_ch": 0.99, "eta_out": 0.90}
+    CONV_KW = {"check_output_tail": True}
+    SUFFIX = "_ba3_full"
 else:
     raise SystemExit(f"unknown loss config {LOSS_CONFIG!r}")
 FREQS_HZ = np.geomspace(1000.0, 10.0, 13)   # high -> low so kappa grows
@@ -121,7 +147,7 @@ def sweep_frequencies(state, factory, freqs_hz):
         kappa = qs.rp_kappa(2 * np.pi * f_hz)
         t0 = time.time()
         res = converged_qfi(
-            factory, dynamics=get_state_ba1, param_type=PARAM,
+            factory, dynamics=DYNAMICS, param_type=PARAM,
             kappa_ba=kappa, **LOSS_KW, **CONV_KW,
             N_start=max(20, N_warm - N_STEP), N_step=N_STEP, N_max=N_MAX)
         N_warm = res["N_basis"]
@@ -145,7 +171,7 @@ def n_scaling(freq_hz):
         for n in N_SCALING:
             factory = build_probes(n)[state]
             res = converged_qfi(
-                factory, dynamics=get_state_ba1, param_type=PARAM,
+                factory, dynamics=DYNAMICS, param_type=PARAM,
                 kappa_ba=kappa, **LOSS_KW, **CONV_KW,
                 N_start=max(20, N_warm - N_STEP), N_step=N_STEP, N_max=N_MAX)
             N_warm = res["N_basis"]
@@ -182,12 +208,22 @@ def plot(df_freq, exps, path):
     ax.set_xlabel("Frequency  $\\Omega/2\\pi$  [Hz]")
     ax.set_ylabel(r"QFI for $\epsilon_a$")
     if LOSS_CONFIG == "detection":
-        chain = "shear $\\to$ signal $\\to$ detection loss"
+        title = ("BA1: shear $\\to$ signal $\\to$ detection loss "
+                 f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
+    elif LOSS_CONFIG == "injection":
+        title = ("BA1: injection loss $\\to$ shear $\\to$ signal "
+                 f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
+    elif LOSS_CONFIG == "ba2_detection":
+        title = ("BA2: signal $\\to$ shear $\\to$ detection loss "
+                 f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
+    elif LOSS_CONFIG == "ba2_injection":
+        title = ("BA2: injection loss $\\to$ signal $\\to$ shear "
+                 f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
     else:
-        chain = "injection loss $\\to$ shear $\\to$ signal"
-    ax.set_title(
-        f"BA1: {chain} "
-        f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
+        title = ("BA3: $\\eta_{in}$=0.95 $\\to$ [signal+shear, "
+                 "$\\eta_{ch}$=0.99] $\\to$ $\\eta_{out}$=0.90 "
+                 f"($\\langle n\\rangle$ = {N_TARGET:g})")
+    ax.set_title(title, fontsize=10)
     ax.grid(True, which="both", alpha=0.3)
     ax.legend(fontsize=8, loc="lower right",
               title=f"exponent fit at {F_SCALING_HZ:g} Hz")
