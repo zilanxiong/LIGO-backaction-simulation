@@ -26,10 +26,16 @@ Part 2 — <n> scaling at a fixed back-action-dominated frequency
 (F_SCALING_HZ, where kappa ~ 1): QFI(n) for n in N_SCALING per family,
 with the fitted power-law exponent s in QFI ~ n^s reported per family.
 
-Usage:   python quantum_sensing/studies/sweep_ba1_frequency.py
-Output:  quantum_sensing/studies/results/ba1_frequency_sweep.csv
-         quantum_sensing/studies/results/ba1_n_scaling.csv
-         quantum_sensing/studies/results/ba1_qfi_vs_frequency.png
+Loss placement is selectable: "detection" (default) puts the loss AFTER
+the signal (eta_out); "injection" puts it BEFORE the shear (eta_in).  For
+epsilon_a the injection configuration is an analytic control: the shear
+preserves x and everything after the loss is unitary, so the QFI must be
+frequency-INDEPENDENT — any frequency structure seen there is numerics.
+
+Usage:   python quantum_sensing/studies/sweep_ba1_frequency.py [injection|detection]
+Output:  quantum_sensing/studies/results/ba1_frequency_sweep[_injection].csv
+         quantum_sensing/studies/results/ba1_n_scaling[_injection].csv
+         quantum_sensing/studies/results/ba1_qfi_vs_frequency[_injection].png
 """
 
 import sys
@@ -55,7 +61,23 @@ RESULTS_DIR.mkdir(exist_ok=True)
 qs.set_data_dir(ROOT / "quantum_sensing" / "data")
 
 N_TARGET = 2.0
-ETA_OUT = 0.9
+ETA_LOSS = 0.9
+
+# Loss placement: "detection" (eta_out, after the signal) or "injection"
+# (eta_in, before the shear).  With injection loss everything after the loss
+# is unitary, so the output-tail convergence check is provably irrelevant
+# for the QFI and is skipped (see converged_qfi docstring).
+LOSS_CONFIG = (sys.argv[1] if len(sys.argv) > 1 else "detection")
+if LOSS_CONFIG == "detection":
+    LOSS_KW = {"eta_out": ETA_LOSS}
+    CONV_KW = {"check_output_tail": True}
+    SUFFIX = ""
+elif LOSS_CONFIG == "injection":
+    LOSS_KW = {"eta_in": ETA_LOSS}
+    CONV_KW = {"check_output_tail": False}
+    SUFFIX = "_injection"
+else:
+    raise SystemExit(f"unknown loss config {LOSS_CONFIG!r}")
 FREQS_HZ = np.geomspace(1000.0, 10.0, 13)   # high -> low so kappa grows
 PARAM = "epsilon_a"
 N_MAX = 800   # kappa(10 Hz) ~ 9.5 pumps ~kappa^2 <x^2>/2 photons; wide
@@ -100,13 +122,13 @@ def sweep_frequencies(state, factory, freqs_hz):
         t0 = time.time()
         res = converged_qfi(
             factory, dynamics=get_state_ba1, param_type=PARAM,
-            kappa_ba=kappa, eta_out=ETA_OUT,
+            kappa_ba=kappa, **LOSS_KW, **CONV_KW,
             N_start=max(20, N_warm - N_STEP), N_step=N_STEP, N_max=N_MAX)
         N_warm = res["N_basis"]
         rows.append(dict(
             state=state, f_hz=f_hz, kappa_ba=kappa, qfi=res["qfi"],
             N_basis=res["N_basis"], converged=res["converged"],
-            n_target=N_TARGET, eta_out=ETA_OUT))
+            n_target=N_TARGET, loss_config=LOSS_CONFIG, eta=ETA_LOSS))
         print(f"  f={f_hz:7.1f} Hz  kappa={kappa:8.4f}  "
               f"QFI={res['qfi']:9.4f}  N={res['N_basis']:3d}  "
               f"conv={res['converged']}  ({time.time()-t0:.1f}s)")
@@ -124,12 +146,13 @@ def n_scaling(freq_hz):
             factory = build_probes(n)[state]
             res = converged_qfi(
                 factory, dynamics=get_state_ba1, param_type=PARAM,
-                kappa_ba=kappa, eta_out=ETA_OUT,
+                kappa_ba=kappa, **LOSS_KW, **CONV_KW,
                 N_start=max(20, N_warm - N_STEP), N_step=N_STEP, N_max=N_MAX)
             N_warm = res["N_basis"]
             rows.append(dict(state=state, n=n, f_hz=freq_hz, kappa_ba=kappa,
                              qfi=res["qfi"], N_basis=res["N_basis"],
-                             converged=res["converged"], eta_out=ETA_OUT))
+                             converged=res["converged"],
+                             loss_config=LOSS_CONFIG, eta=ETA_LOSS))
             print(f"  {state:13s} n={n:5.1f}  QFI={res['qfi']:9.4f}  "
                   f"N={res['N_basis']:3d}  conv={res['converged']}")
     df = pd.DataFrame(rows)
@@ -158,9 +181,13 @@ def plot(df_freq, exps, path):
 
     ax.set_xlabel("Frequency  $\\Omega/2\\pi$  [Hz]")
     ax.set_ylabel(r"QFI for $\epsilon_a$")
+    if LOSS_CONFIG == "detection":
+        chain = "shear $\\to$ signal $\\to$ detection loss"
+    else:
+        chain = "injection loss $\\to$ shear $\\to$ signal"
     ax.set_title(
-        f"BA1: shear $\\to$ signal $\\to$ detection loss "
-        f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta_{{out}}$ = {ETA_OUT})")
+        f"BA1: {chain} "
+        f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
     ax.grid(True, which="both", alpha=0.3)
     ax.legend(fontsize=8, loc="lower right",
               title=f"exponent fit at {F_SCALING_HZ:g} Hz")
@@ -183,19 +210,19 @@ def main():
         print(f"\n{state}: <n> = {probes.mean_n(factory(160)):.4f}")
         freq_rows += sweep_frequencies(state, factory, FREQS_HZ)
         pd.DataFrame(freq_rows).to_csv(
-            RESULTS_DIR / "ba1_frequency_sweep.csv", index=False)
+            RESULTS_DIR / f"ba1_frequency_sweep{SUFFIX}.csv", index=False)
     df_freq = pd.DataFrame(freq_rows)
 
     print(f"\n<n> scaling at {F_SCALING_HZ:g} Hz "
           f"(kappa = {qs.rp_kappa(2 * np.pi * F_SCALING_HZ):.3f}):")
     df_n, exps = n_scaling(F_SCALING_HZ)
-    df_n.to_csv(RESULTS_DIR / "ba1_n_scaling.csv", index=False)
+    df_n.to_csv(RESULTS_DIR / f"ba1_n_scaling{SUFFIX}.csv", index=False)
 
     print("\nQFI ~ n^s exponents:")
     for state in STATE_ORDER:
         print(f"  {STATE_LABELS[state]:18s} s = {exps[state]:.3f}")
 
-    plot(df_freq, exps, RESULTS_DIR / "ba1_qfi_vs_frequency.png")
+    plot(df_freq, exps, RESULTS_DIR / f"ba1_qfi_vs_frequency{SUFFIX}.png")
 
     for df, tag in [(df_freq, "frequency sweep"), (df_n, "n scaling")]:
         if not df["converged"].all():
