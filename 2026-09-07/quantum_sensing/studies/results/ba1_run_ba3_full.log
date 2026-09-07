@@ -87,3 +87,7 @@ opt_fock_sup: <n> = 2.0000
   f=   31.6 Hz  kappa=  0.9488  QFI=   6.5181  N= 40  conv=True  (4.2s)
   f=   21.5 Hz  kappa=  2.0495  QFI=   4.4652  N= 70  conv=True  (60.4s)
   f=   14.7 Hz  kappa=  4.4209  QFI=   1.5336  N=213  conv=True  (250.0s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.4118  N=800  conv=False  (737.6s)
+
+<n> scaling at 30 Hz (kappa = 1.055):
+  coherent      n=  1.0  QFI=   3.2491  N= 40  conv=True
