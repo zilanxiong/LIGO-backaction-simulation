@@ -70,6 +70,7 @@ ETA_LOSS = 0.9
 # for the QFI and is skipped (see converged_qfi docstring).
 LOSS_CONFIG = (sys.argv[1] if len(sys.argv) > 1 else "detection")
 DYNAMICS = get_state_ba1
+SKIP_SCALING = False
 if LOSS_CONFIG == "detection":
     LOSS_KW = {"eta_out": ETA_LOSS}
     CONV_KW = {"check_output_tail": True}
@@ -101,6 +102,17 @@ elif LOSS_CONFIG == "pn_ba1_detection":
     LOSS_KW = {"pn_in": PN_IN, "eta_out": ETA_LOSS}
     CONV_KW = {"check_output_tail": True}
     SUFFIX = "_pn_ba1_detection"
+elif LOSS_CONFIG == "paper_pn_ba1":
+    # The previous paper's operating point (n_bar = 5, 5% loss, 200 mrad
+    # phase noise; Maliakal et al.) pushed through the back-action channel:
+    # pn_in = 0.2 -> shear -> signal -> eta_out = 0.95.  Wider n = 5 states
+    # under strong shear need larger cutoffs; frequency sweep only.
+    N_TARGET = 5.0
+    LOSS_KW = {"pn_in": 0.2, "eta_out": 0.95}
+    CONV_KW = {"check_output_tail": True}
+    SUFFIX = "_paper_pn_ba1"
+    N_MAX = 1600
+    SKIP_SCALING = True
 elif LOSS_CONFIG == "ba3_full":
     # The physical case: simultaneous signal + back-action (BA3) with all
     # three loss slots populated at LIGO-ish values — injection 0.95,
@@ -254,6 +266,9 @@ def plot(df_freq, exps, path):
         title = ("phase noise ($\\phi_{rms}$=0.1) $\\to$ BA1 $\\to$ "
                  "detection loss "
                  f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
+    elif LOSS_CONFIG == "paper_pn_ba1":
+        title = ("phase noise (200 mrad) $\\to$ BA1 $\\to$ 5% loss "
+                 f"($\\langle n\\rangle$ = {N_TARGET:g})")
     else:
         title = ("BA3: $\\eta_{in}$=0.95 $\\to$ [signal+shear, "
                  "$\\eta_{ch}$=0.99] $\\to$ $\\eta_{out}$=0.90 "
@@ -261,7 +276,8 @@ def plot(df_freq, exps, path):
     ax.set_title(title, fontsize=10)
     ax.grid(True, which="both", alpha=0.3)
     ax.legend(fontsize=8, loc="lower right",
-              title=f"exponent fit at {F_SCALING_HZ:g} Hz")
+              title=(f"exponent fit at {F_SCALING_HZ:g} Hz" if exps
+                     else None))
     sec = ax.secondary_xaxis(
         "top",
         functions=(lambda f: qs.rp_kappa(2 * np.pi * np.maximum(f, 1e-9)),
@@ -287,18 +303,21 @@ def main():
         freq_rows += sweep_frequencies(state, factory, FREQS_HZ)
     df_freq = _merge_csv(freq_csv, pd.DataFrame(freq_rows), states_run)
 
-    print(f"\n<n> scaling at {F_SCALING_HZ:g} Hz "
-          f"(kappa = {qs.rp_kappa(2 * np.pi * F_SCALING_HZ):.3f}):")
-    df_n = _merge_csv(RESULTS_DIR / f"ba1_n_scaling{SUFFIX}.csv",
-                      n_scaling(F_SCALING_HZ, states_run), states_run)
-    exps = fit_exponents(df_n)
-    df_n["scaling_exponent"] = df_n["state"].map(exps)
-    df_n.to_csv(RESULTS_DIR / f"ba1_n_scaling{SUFFIX}.csv", index=False)
+    if SKIP_SCALING:
+        df_n, exps = pd.DataFrame({"converged": []}), {}
+    else:
+        print(f"\n<n> scaling at {F_SCALING_HZ:g} Hz "
+              f"(kappa = {qs.rp_kappa(2 * np.pi * F_SCALING_HZ):.3f}):")
+        df_n = _merge_csv(RESULTS_DIR / f"ba1_n_scaling{SUFFIX}.csv",
+                          n_scaling(F_SCALING_HZ, states_run), states_run)
+        exps = fit_exponents(df_n)
+        df_n["scaling_exponent"] = df_n["state"].map(exps)
+        df_n.to_csv(RESULTS_DIR / f"ba1_n_scaling{SUFFIX}.csv", index=False)
 
-    print("\nQFI ~ n^s exponents:")
-    for state in STATE_ORDER:
-        if state in exps:
-            print(f"  {STATE_LABELS[state]:18s} s = {exps[state]:.3f}")
+        print("\nQFI ~ n^s exponents:")
+        for state in STATE_ORDER:
+            if state in exps:
+                print(f"  {STATE_LABELS[state]:18s} s = {exps[state]:.3f}")
 
     plot(df_freq, exps, RESULTS_DIR / f"ba1_qfi_vs_frequency{SUFFIX}.png")
 

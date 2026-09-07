@@ -64,6 +64,7 @@ TITLES = {
     "_ba2_injection": "BA2: injection loss ($\\eta$=0.9) $\\to$ signal $\\to$ shear",
     "_pn_ba1_detection": ("phase noise ($\\phi_{rms}$=0.1) $\\to$ BA1 $\\to$ "
                           "detection loss ($\\eta$=0.9)"),
+    "_paper_pn_ba1": ("phase noise (200 mrad) $\\to$ BA1 $\\to$ 5% loss"),
 }
 
 
