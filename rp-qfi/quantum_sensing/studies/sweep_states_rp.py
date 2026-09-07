@@ -49,7 +49,7 @@ N_TARGET = 2.0
 ETA_LOSS = 0.9
 FREQS_HZ = np.geomspace(1000.0, 20.0, 8)  # high -> low so kappa grows
 PARAM = "epsilon_a"
-N_MAX = 220
+N_MAX = 600
 
 # For injection loss everything after the loss is unitary, so the QFI is
 # exactly cutoff-insensitive to shear-pumped output population; skip the
