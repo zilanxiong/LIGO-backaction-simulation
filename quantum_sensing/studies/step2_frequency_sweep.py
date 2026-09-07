@@ -136,13 +136,30 @@ def probe_cutoff(build, g, n_probe=N_CAP, tail=1e-9, floor=60):
 
 # --- QFI evaluation --------------------------------------------------------
 
+N_DURING_CAP = 560          # cutoff cap for the concurrent-loss mesolve path
+N_RELAX = 250               # above this, relax ODE tolerances (see below)
+
+
 def qfi_at(build, kappa_ba, placement, N):
     g = qs.ba_to_g(kappa_ba)
     if placement == "during":
+        # The package's tight tolerances (atol 1e-12) make the strongest-shear
+        # solves take hours at N ~ 600.  Relaxing to atol 1e-10 keeps solver
+        # noise ~1e-5 below the central-difference step while cutting runtime
+        # to minutes; the convergence check below quantifies the residual.
+        N = min(N, N_DURING_CAP)
         psi = build(N)
-        return qs.calculate_qfi(qs.get_state_single_mode_rp,
-                                param_type="epsilon_p", rho=psi, N_basis=N,
-                                kappa_ba=kappa_ba, eta_ch=ETA, pn_ch=PN)
+        saved = dict(qs.dynamics.SOLVER_OPTIONS)
+        if N > N_RELAX:
+            qs.dynamics.SOLVER_OPTIONS.update(
+                {"atol": 1e-10, "rtol": 1e-8, "nsteps": 1_000_000})
+        try:
+            return qs.calculate_qfi(qs.get_state_single_mode_rp,
+                                    param_type="epsilon_p", rho=psi, N_basis=N,
+                                    kappa_ba=kappa_ba, eta_ch=ETA, pn_ch=PN)
+        finally:
+            qs.dynamics.SOLVER_OPTIONS.clear()
+            qs.dynamics.SOLVER_OPTIONS.update(saved)
     dyn = make_fast_dynamics(build, N, g, ETA, placement)
     return qs.calculate_qfi(dyn, param_type="epsilon_p")
 
@@ -194,7 +211,7 @@ def main():
     df.to_csv(out, index=False)
     print(f"\nwrote {out}")
 
-    # Convergence check at the strongest shear (largest cutoff case)
+    # Convergence checks at the strongest shear (largest cutoff case)
     kmax = kappas.max()
     for name in ["fock_sup", "sqz_vac"]:
         if name not in builders:
@@ -207,7 +224,16 @@ def main():
         q1 = qs.calculate_qfi(dyn, param_type="epsilon_p")
         print(f"convergence ({name}, after, kappa={kmax:.2f}): "
               f"N={N0} -> {q0:.5f},  N={N1} -> {q1:.5f}, "
-              f"rel diff = {abs(q1-q0)/q1:.2e}")
+              f"rel diff = {abs(q1-q0)/q1:.2e}", flush=True)
+
+    # The mesolve path at the capped cutoff vs a lower one (fock_sup spreads
+    # the most under shear, so it bounds the truncation error of "during").
+    q_cap = df[(df.state == "fock_sup") & (df.placement == "during")
+               & (df.kappa_ba == kmax)].qfi.iloc[0]
+    q_lower = qfi_at(builders["fock_sup"], kmax, "during", N_DURING_CAP - 80)
+    print(f"convergence (fock_sup, during, kappa={kmax:.2f}): "
+          f"N={N_DURING_CAP - 80} -> {q_lower:.5f},  N<= {N_DURING_CAP} -> "
+          f"{q_cap:.5f}, rel diff = {abs(q_cap-q_lower)/q_cap:.2e}")
 
 
 if __name__ == "__main__":
