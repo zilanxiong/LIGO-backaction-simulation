@@ -109,14 +109,26 @@ def op_loss_dephase(N_basis, eta=1.0, pn=0.0):
 
 
 def op_signal_shear_simultaneous(N_basis, epsilon_a=0.0, epsilon_p=0.0,
-                                 kappa_ba=0.0, t_final=1.0):
-    """Exact joint evolution under H_sig + H_BA (single Hamiltonian, BA3)."""
+                                 kappa_ba=0.0, t_final=1.0, eta_ch=1.0):
+    """Joint evolution under H_sig + H_BA (single Hamiltonian, BA3).
+    Unitary (exact expm) when eta_ch = 1; with channel loss eta_ch < 1 the
+    loss runs simultaneously with the Hamiltonian via mesolve (the same
+    stage-2 physics as dynamics.get_state_single_mode with eta_ch)."""
     a = qt.destroy(N_basis)
     x2 = (a + a.dag()) ** 2 / 2
     H = (epsilon_a * (a.dag() + a) + 1j * epsilon_p * (a.dag() - a)
          + ba_to_g(kappa_ba, t_final) * x2)
-    U = (-1j * t_final * H).expm()
-    return lambda rho: _apply_unitary(U, rho)
+    if eta_ch >= 1.0:
+        U = (-1j * t_final * H).expm()
+        return lambda rho: _apply_unitary(U, rho)
+
+    c_ops = [np.sqrt(loss_to_kappa(1 - eta_ch)) * a]
+
+    def _apply(rho):
+        res = qt.mesolve(H, rho, [0.0, t_final], c_ops,
+                         options=dict(SOLVER_OPTIONS))
+        return res.states[-1]
+    return _apply
 
 
 def apply_chain(rho, ops):
@@ -132,40 +144,48 @@ def apply_chain(rho, ops):
 # ---------------------------------------------------------------------------
 
 def _get_state_ordered(order, *, epsilon_a=0.0, epsilon_p=0.0, kappa_ba=0.0,
-                       eta_in=1.0, eta_out=1.0, pn_in=0.0, pn_out=0.0,
+                       eta_in=1.0, eta_mid=1.0, eta_out=1.0, eta_ch=1.0,
+                       pn_in=0.0, pn_mid=0.0, pn_out=0.0,
                        t_final=1.0, N_basis=20, rho=None):
     if rho is None:
         rho = qt.ket2dm(qt.coherent(N_basis, 1.0))
 
     stage = {
         "loss_in": lambda: op_loss_dephase(N_basis, eta_in, pn_in),
+        "loss_mid": lambda: op_loss_dephase(N_basis, eta_mid, pn_mid),
         "loss_out": lambda: op_loss_dephase(N_basis, eta_out, pn_out),
         "sig": lambda: op_signal(N_basis, epsilon_a, epsilon_p, t_final),
         "shear": lambda: op_shear(N_basis, kappa_ba, t_final),
         "sig+shear": lambda: op_signal_shear_simultaneous(
-            N_basis, epsilon_a, epsilon_p, kappa_ba, t_final),
+            N_basis, epsilon_a, epsilon_p, kappa_ba, t_final, eta_ch),
     }
     return apply_chain(rho, [stage[name]() for name in order])
 
 
 def get_state_ba1(**kwargs):
     """BA1: radiation pressure, then displacement sensing
-    (loss_in -> shear -> signal -> loss_out)."""
-    return _get_state_ordered(("loss_in", "shear", "sig", "loss_out"),
-                              **kwargs)
+    (loss_in -> shear -> loss_mid -> signal -> loss_out).
+    eta_mid/pn_mid sit BETWEEN the back-action and the signal."""
+    return _get_state_ordered(
+        ("loss_in", "shear", "loss_mid", "sig", "loss_out"), **kwargs)
 
 
 def get_state_ba2(**kwargs):
     """BA2: displacement sensing, then radiation pressure
-    (loss_in -> signal -> shear -> loss_out)."""
-    return _get_state_ordered(("loss_in", "sig", "shear", "loss_out"),
-                              **kwargs)
+    (loss_in -> signal -> loss_mid -> shear -> loss_out).
+    eta_mid/pn_mid sit BETWEEN the signal and the back-action."""
+    return _get_state_ordered(
+        ("loss_in", "sig", "loss_mid", "shear", "loss_out"), **kwargs)
 
 
 def get_state_ba3(**kwargs):
     """BA3: simultaneous signal + back-action, single Hamiltonian
     (loss_in -> [signal+shear] -> loss_out).  The physical case; BA1/BA2
-    bound it."""
+    bound it.  eta_ch < 1 runs channel loss simultaneously with the
+    Hamiltonian (the BA3 analog of eta_mid); eta_mid is not accepted."""
+    if kwargs.get("eta_mid", 1.0) < 1.0 or kwargs.get("pn_mid", 0.0) > 0.0:
+        raise ValueError("BA3 has no 'between' stage: use eta_ch for loss "
+                         "concurrent with the signal+shear evolution")
     return _get_state_ordered(("loss_in", "sig+shear", "loss_out"),
                               **kwargs)
 
