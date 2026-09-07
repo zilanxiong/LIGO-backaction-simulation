@@ -22,3 +22,29 @@ cat       n= 2.0 weak_ba   QFI=  15.3059 N= 30 conv=True (0.5s)
 cat       n= 2.0 strong_ba QFI=  10.9909 N= 30 conv=True (0.3s)
 cat       n= 4.0 weak_ba   QFI=  13.9808 N= 30 conv=True (0.6s)
 cat       n= 4.0 strong_ba QFI=   8.3417 N= 60 conv=True (1.7s)
+cat       n= 8.0 weak_ba   QFI=   7.7588 N= 30 conv=True (1.8s)
+cat       n= 8.0 strong_ba QFI=   4.5401 N= 60 conv=True (1.7s)
+sqz_cat   n= 1.0 weak_ba   QFI=  14.1060 N= 60 conv=True (0.4s)
+sqz_cat   n= 1.0 strong_ba QFI=  11.4867 N= 60 conv=True (1.4s)
+sqz_cat   n= 2.0 weak_ba   QFI=  18.7659 N= 60 conv=True (1.5s)
+sqz_cat   n= 2.0 strong_ba QFI=  14.3692 N=105 conv=True (3.5s)
+sqz_cat   n= 4.0 weak_ba   QFI=  23.8118 N=105 conv=True (4.7s)
+sqz_cat   n= 4.0 strong_ba QFI=  17.1277 N=173 conv=True (3.8s)
+sqz_cat   n= 8.0 weak_ba   QFI=  28.2273 N=173 conv=True (7.3s)
+sqz_cat   n= 8.0 strong_ba QFI=  19.2858 N=275 conv=True (10.1s)
+fock      n= 1.0 weak_ba   QFI=   8.7714 N= 30 conv=True (0.3s)
+fock      n= 1.0 strong_ba QFI=   7.7118 N= 30 conv=True (0.2s)
+fock      n= 2.0 weak_ba   QFI=  12.1598 N= 30 conv=True (0.6s)
+fock      n= 2.0 strong_ba QFI=  10.3626 N= 30 conv=True (0.6s)
+fock      n= 4.0 weak_ba   QFI=  15.9647 N= 30 conv=True (0.9s)
+fock      n= 4.0 strong_ba QFI=  13.6268 N= 30 conv=True (0.3s)
+fock      n= 8.0 weak_ba   QFI=  18.6330 N= 30 conv=True (0.8s)
+fock      n= 8.0 strong_ba QFI=  16.8170 N= 60 conv=True (1.1s)
+
+Scaling exponents s in QFI ~ n^s (upper half of n range; eta_det=0.9):
+   state    s_lossless     s_weak_ba   s_strong_ba
+     cat  9.564783e-01 -8.495510e-01 -8.776014e-01
+coherent -3.039423e-14 -4.048467e-07 -3.476503e-08
+    fock  9.175378e-01  2.229800e-01  3.034752e-01
+ sqz_cat  9.208292e-01  2.454142e-01  1.712024e-01
+ sqz_vac  9.207616e-01  2.462619e-01  1.714423e-01

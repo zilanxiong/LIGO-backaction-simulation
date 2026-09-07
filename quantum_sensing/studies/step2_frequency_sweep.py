@@ -199,6 +199,8 @@ def main():
             for f_hz, kba in zip(FREQS_HZ, kappas):
                 t0 = time.time()
                 N = cuts[kba]
+                if placement == "during":
+                    N = min(N, N_DURING_CAP)
                 q = qfi_at(build, kba, placement, N)
                 rows.append(dict(state=name, placement=placement,
                                  freq_hz=f_hz, kappa_ba=kba, qfi=q,
