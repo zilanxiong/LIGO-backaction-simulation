@@ -119,11 +119,12 @@ N_MAX = 800   # kappa(10 Hz) ~ 9.5 pumps ~kappa^2 <x^2>/2 photons; wide
 F_SCALING_HZ = 30.0                          # kappa ~ 1: BA-dominated
 N_SCALING = [1.0, 2.0, 5.0, 10.0]            # optimized states exist here
 
-STATE_ORDER = ["coherent", "sqz_vac", "cat", "sqz_cat", "fock",
+STATE_ORDER = ["coherent", "sqz_vac", "sqz_vac_p", "cat", "sqz_cat", "fock",
                "opt_fock_sup"]
 STATE_LABELS = {
     "coherent": "Coherent",
-    "sqz_vac": "Squeezed vac.",
+    "sqz_vac": "Sqz. vac. (x, wrong angle)",
+    "sqz_vac_p": "Squeezed vac. (p)",
     "cat": "Even cat",
     "sqz_cat": "Squeezed cat",
     "fock": "Fock",
@@ -131,12 +132,31 @@ STATE_LABELS = {
 }
 STATE_COLORS = {
     "coherent": "#7f7f7f",
-    "sqz_vac": "#d62728",
+    "sqz_vac": "#f2a0a5",
+    "sqz_vac_p": "#d62728",
     "cat": "#1f77b4",
     "sqz_cat": "#9467bd",
     "fock": "#2ca02c",
     "opt_fock_sup": "#ff7f0e",
 }
+
+# Optional second CLI arg "only=<state>": run just that probe family and
+# MERGE its rows into the existing CSVs (replacing that state's old rows),
+# so adding a family doesn't re-run the others.  Plots and scaling
+# exponents are regenerated from the merged data.
+ONLY_STATE = None
+for arg in sys.argv[2:]:
+    if arg.startswith("only="):
+        ONLY_STATE = arg.split("=", 1)[1]
+
+
+def _merge_csv(path, new_df, states_run):
+    if ONLY_STATE and path.exists():
+        old = pd.read_csv(path)
+        old = old[~old["state"].isin(states_run)]
+        new_df = pd.concat([old, new_df], ignore_index=True)
+    new_df.to_csv(path, index=False)
+    return new_df
 
 
 def build_probes(n_target):
@@ -168,11 +188,11 @@ def sweep_frequencies(state, factory, freqs_hz):
     return rows
 
 
-def n_scaling(freq_hz):
-    """QFI(n) at fixed frequency for every family + power-law fit."""
+def n_scaling(freq_hz, states):
+    """QFI(n) at fixed frequency for the given families + power-law fit."""
     kappa = qs.rp_kappa(2 * np.pi * freq_hz)
     rows = []
-    for state in STATE_ORDER:
+    for state in states:
         N_STEP = 20
         N_warm = 20
         for n in N_SCALING:
@@ -188,14 +208,16 @@ def n_scaling(freq_hz):
                              loss_config=LOSS_CONFIG, eta=ETA_LOSS))
             print(f"  {state:13s} n={n:5.1f}  QFI={res['qfi']:9.4f}  "
                   f"N={res['N_basis']:3d}  conv={res['converged']}")
-    df = pd.DataFrame(rows)
-    # power-law exponent s: log QFI = s log n + c
+    return pd.DataFrame(rows)
+
+
+def fit_exponents(df):
+    """Power-law exponent s per state: log QFI = s log n + c."""
     exps = {}
     for state, sub in df.groupby("state"):
         s, _ = np.polyfit(np.log(sub["n"]), np.log(sub["qfi"]), 1)
         exps[state] = s
-    df["scaling_exponent"] = df["state"].map(exps)
-    return df, exps
+    return exps
 
 
 def plot(df_freq, exps, path):
@@ -205,7 +227,9 @@ def plot(df_freq, exps, path):
 
     fig, ax = plt.subplots(figsize=(7.2, 5.0))
     for state in STATE_ORDER:
-        sub = df_freq[df_freq["state"] == state]
+        sub = df_freq[df_freq["state"] == state].sort_values("f_hz")
+        if sub.empty:
+            continue
         label = STATE_LABELS[state]
         if state in exps:
             label += rf"  ($F \sim n^{{{exps[state]:.2f}}}$)"
@@ -252,22 +276,29 @@ def plot(df_freq, exps, path):
 
 def main():
     fams = build_probes(N_TARGET)
+    if ONLY_STATE:
+        fams = {ONLY_STATE: fams[ONLY_STATE]}
+    states_run = list(fams)
+
     freq_rows = []
+    freq_csv = RESULTS_DIR / f"ba1_frequency_sweep{SUFFIX}.csv"
     for state, factory in fams.items():
         print(f"\n{state}: <n> = {probes.mean_n(factory(160)):.4f}")
         freq_rows += sweep_frequencies(state, factory, FREQS_HZ)
-        pd.DataFrame(freq_rows).to_csv(
-            RESULTS_DIR / f"ba1_frequency_sweep{SUFFIX}.csv", index=False)
-    df_freq = pd.DataFrame(freq_rows)
+    df_freq = _merge_csv(freq_csv, pd.DataFrame(freq_rows), states_run)
 
     print(f"\n<n> scaling at {F_SCALING_HZ:g} Hz "
           f"(kappa = {qs.rp_kappa(2 * np.pi * F_SCALING_HZ):.3f}):")
-    df_n, exps = n_scaling(F_SCALING_HZ)
+    df_n = _merge_csv(RESULTS_DIR / f"ba1_n_scaling{SUFFIX}.csv",
+                      n_scaling(F_SCALING_HZ, states_run), states_run)
+    exps = fit_exponents(df_n)
+    df_n["scaling_exponent"] = df_n["state"].map(exps)
     df_n.to_csv(RESULTS_DIR / f"ba1_n_scaling{SUFFIX}.csv", index=False)
 
     print("\nQFI ~ n^s exponents:")
     for state in STATE_ORDER:
-        print(f"  {STATE_LABELS[state]:18s} s = {exps[state]:.3f}")
+        if state in exps:
+            print(f"  {STATE_LABELS[state]:18s} s = {exps[state]:.3f}")
 
     plot(df_freq, exps, RESULTS_DIR / f"ba1_qfi_vs_frequency{SUFFIX}.png")
 

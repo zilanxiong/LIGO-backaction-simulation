@@ -45,8 +45,21 @@ def coherent(n_target):
 
 
 def squeezed_vacuum(n_target):
+    """x-squeezed vacuum: Var(x) = e^{-2r}/2.  NOTE: x is the epsilon_a
+    generator, so this is the WRONG orientation for displacement sensing —
+    kept as the misaligned-squeezer reference.  See squeezed_vacuum_p for
+    the LIGO orientation."""
     r = np.arcsinh(np.sqrt(n_target))
     return lambda N: qt.squeeze(N, r) * qt.fock(N, 0)
+
+
+def squeezed_vacuum_p(n_target):
+    """p-squeezed vacuum (Var(p) = e^{-2r}/2, Var(x) = e^{2r}/2): the
+    orientation actually injected in LIGO — readout-quadrature noise
+    squeezed, generator quadrature anti-squeezed.  Lossless epsilon_a QFI
+    is 8 Var(x) = 4 e^{2r}, the Gaussian optimum at fixed <n>."""
+    r = np.arcsinh(np.sqrt(n_target))
+    return lambda N: qt.squeeze(N, -r) * qt.fock(N, 0)
 
 
 def fock(n_target):
@@ -93,6 +106,7 @@ def optimized(n_target, state_type="fock_sup", loss_config="loss_ch",
 PROBE_FAMILIES = {
     "coherent": coherent,
     "sqz_vac": squeezed_vacuum,
+    "sqz_vac_p": squeezed_vacuum_p,
     "cat": cat,
     "sqz_cat": squeezed_cat,
     "fock": fock,

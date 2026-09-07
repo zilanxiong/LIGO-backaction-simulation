@@ -45,3 +45,20 @@ def test_kraus_loss_matches_mesolve():
                      options={"atol": 1e-12, "rtol": 1e-10})
     assert (rho_kraus - res.states[-1]).norm() < 1e-7
     assert rho_kraus.tr() == pytest.approx(1.0, abs=1e-10)
+
+
+def test_sqz_vac_p_orientation():
+    # p-squeezed vacuum: Var(x) = e^{2r}/2 (anti-squeezed along the
+    # epsilon_a generator), Var(p) = e^{-2r}/2, <n> on target.
+    n_target = 2.0
+    r = np.arcsinh(np.sqrt(n_target))
+    N = 200
+    psi = probes.squeezed_vacuum_p(n_target)(N)
+    a = qt.destroy(N)
+    x = (a + a.dag()) / np.sqrt(2)
+    p = (a - a.dag()) / (1j * np.sqrt(2))
+    var_x = (qt.expect(x * x, psi) - qt.expect(x, psi) ** 2).real
+    var_p = (qt.expect(p * p, psi) - qt.expect(p, psi) ** 2).real
+    assert var_x == pytest.approx(np.exp(2 * r) / 2, rel=1e-6)
+    assert var_p == pytest.approx(np.exp(-2 * r) / 2, rel=1e-5)
+    assert probes.mean_n(psi) == pytest.approx(n_target, abs=1e-6)

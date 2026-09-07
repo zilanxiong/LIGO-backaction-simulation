@@ -39,15 +39,19 @@ from quantum_sensing import gaussian as g
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
-STATE_ORDER = ["coherent", "sqz_vac", "cat", "sqz_cat", "fock",
+STATE_ORDER = ["coherent", "sqz_vac", "sqz_vac_p", "cat", "sqz_cat", "fock",
                "opt_fock_sup"]
 STATE_LABELS = {
-    "coherent": "Coherent", "sqz_vac": "Squeezed vac.", "cat": "Even cat",
+    "coherent": "Coherent",
+    "sqz_vac": "Sqz. vac. (x, wrong angle)",
+    "sqz_vac_p": "Squeezed vac. (p)",
+    "cat": "Even cat",
     "sqz_cat": "Squeezed cat", "fock": "Fock",
     "opt_fock_sup": "Optimized (no-BA)",
 }
 STATE_COLORS = {
-    "coherent": "#7f7f7f", "sqz_vac": "#d62728", "cat": "#1f77b4",
+    "coherent": "#7f7f7f", "sqz_vac": "#f2a0a5", "sqz_vac_p": "#d62728",
+    "cat": "#1f77b4",
     "sqz_cat": "#9467bd", "fock": "#2ca02c", "opt_fock_sup": "#ff7f0e",
 }
 
@@ -104,6 +108,8 @@ def main():
 
     for state in STATE_ORDER:
         sub = df[df["state"] == state].sort_values("f_hz")
+        if sub.empty:
+            continue
         ax.loglog(sub["f_hz"], np.sqrt(sql_ratio(sub["kappa_ba"], sub["qfi"])),
                   "o-", ms=4, color=STATE_COLORS[state],
                   label=STATE_LABELS[state])
