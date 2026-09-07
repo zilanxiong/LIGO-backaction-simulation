@@ -251,6 +251,10 @@ def calculate_cfi(dynamics=None, param_value=0.0, param_type="Delta",
     if rho is None or drho is None:
         if dynamics is None:
             raise ValueError("Must provide either `dynamics` or both `rho` and `drho`")
+        if rho is not None:
+            # `rho` without `drho` is the *input* probe state for `dynamics`
+            # (same meaning as in calculate_qfi), not a precomputed output.
+            kwargs["rho"] = rho
         rho, drho = _get_rho_drho(dynamics, param_value=param_value,
                                   param_type=param_type, prec=prec, **kwargs)
 
@@ -293,6 +297,10 @@ def compare_cfi(dynamics=None, rho=None, drho=None, param_value=0.0,
     if rho is None or drho is None:
         if dynamics is None:
             raise ValueError("Must provide either `dynamics` or both `rho` and `drho`")
+        if rho is not None:
+            # `rho` without `drho` is the *input* probe state for `dynamics`
+            # (same meaning as in calculate_qfi), not a precomputed output.
+            kwargs["rho"] = rho
         rho, drho = _get_rho_drho(dynamics, param_value=param_value,
                                   param_type=param_type, prec=prec, **kwargs)
 
