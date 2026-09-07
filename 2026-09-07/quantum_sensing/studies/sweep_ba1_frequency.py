@@ -94,6 +94,13 @@ elif LOSS_CONFIG == "ba2_injection":
     LOSS_KW = {"eta_in": ETA_LOSS}
     CONV_KW = {"check_output_tail": False}
     SUFFIX = "_ba2_injection"
+elif LOSS_CONFIG == "pn_ba1_detection":
+    # Phase noise -> BA1 -> loss: input dephasing (exact elementwise mask,
+    # rms PN_IN) before the shear, then signal, then readout loss.
+    PN_IN = 0.1
+    LOSS_KW = {"pn_in": PN_IN, "eta_out": ETA_LOSS}
+    CONV_KW = {"check_output_tail": True}
+    SUFFIX = "_pn_ba1_detection"
 elif LOSS_CONFIG == "ba3_full":
     # The physical case: simultaneous signal + back-action (BA3) with all
     # three loss slots populated at LIGO-ish values — injection 0.95,
@@ -218,6 +225,10 @@ def plot(df_freq, exps, path):
                  f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
     elif LOSS_CONFIG == "ba2_injection":
         title = ("BA2: injection loss $\\to$ signal $\\to$ shear "
+                 f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
+    elif LOSS_CONFIG == "pn_ba1_detection":
+        title = ("phase noise ($\\phi_{rms}$=0.1) $\\to$ BA1 $\\to$ "
+                 "detection loss "
                  f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
     else:
         title = ("BA3: $\\eta_{in}$=0.95 $\\to$ [signal+shear, "

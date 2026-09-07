@@ -86,14 +86,30 @@ def op_loss_kraus(N_basis, eta, trace_tol=1e-14):
     return _apply
 
 
+def op_dephase_mask(N_basis, pn):
+    """Exact pure-dephasing channel (rms phase noise pn over unit time):
+    rho_mn -> rho_mn exp(-chi (m-n)^2 / 2), chi = phirms_to_chi(pn).
+    This is both the endpoint of the Lindblad n-dephasing of dynamics.py
+    and the Gaussian average over quasi-static rotations exp(-i theta n) —
+    the two coincide for a standalone stage.  Elementwise, no ODE solver."""
+    chi = phirms_to_chi(pn)
+    n = np.arange(N_basis)
+    mask = np.exp(-0.5 * chi * (n[:, None] - n[None, :]) ** 2)
+    return lambda rho: qt.Qobj(rho.full() * mask, dims=rho.dims)
+
+
 def op_loss_dephase(N_basis, eta=1.0, pn=0.0):
     """Loss (transmission eta) and/or dephasing (rms pn).  Pure loss uses
-    the exact Kraus channel; any dephasing falls back to mesolve with the
-    rate conventions of dynamics._apply_noise_stage."""
+    the exact Kraus channel and pure dephasing the exact elementwise mask;
+    only the combined case (loss and dephasing in ONE stage, which do not
+    commute) falls back to mesolve with the rate conventions of
+    dynamics._apply_noise_stage."""
     if pn == 0.0:
         if eta >= 1.0:
             return lambda rho: rho
         return op_loss_kraus(N_basis, eta)
+    if eta >= 1.0:
+        return op_dephase_mask(N_basis, pn)
 
     a = qt.destroy(N_basis)
     n_op = a.dag() * a

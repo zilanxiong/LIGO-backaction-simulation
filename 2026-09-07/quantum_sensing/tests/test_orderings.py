@@ -145,3 +145,31 @@ def test_ba3_eta_ch_ordering_factor():
     s = np.sqrt(eta_ch)
     factor = ((1 - s) / (-np.log(s))) ** 2
     assert F["simultaneous"] / F["after"] == pytest.approx(factor, rel=1e-9)
+
+
+# ---------------------------------------------------------------------------
+# Exact dephasing mask
+# ---------------------------------------------------------------------------
+
+def test_dephase_mask_matches_mesolve():
+    from quantum_sensing.channels import op_dephase_mask
+    from quantum_sensing.dynamics import _mesolve
+    from quantum_sensing.conversions import phirms_to_chi
+
+    N, pn = 30, 0.15
+    rho = qt.ket2dm(qt.coherent(N, 1.5))
+    masked = op_dephase_mask(N, pn)(rho)
+
+    n_op = qt.num(N)
+    res = _mesolve(0 * n_op, rho, [0.0, 1.0],
+                   [np.sqrt(phirms_to_chi(pn)) * n_op])
+    diff = np.abs(masked.full() - res.states[-1].full()).max()
+    assert diff < 1e-8
+
+
+def test_dephasing_leaves_fock_input_invariant():
+    from quantum_sensing.channels import op_dephase_mask
+    N = 30
+    rho = qt.ket2dm(qt.fock(N, 4))
+    out = op_dephase_mask(N, 0.5)(rho)
+    assert np.abs(out.full() - rho.full()).max() < 1e-14
