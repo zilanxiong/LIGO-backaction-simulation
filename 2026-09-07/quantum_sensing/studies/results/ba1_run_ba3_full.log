@@ -57,3 +57,18 @@ sqz_cat: <n> = 2.0000
   f=   31.6 Hz  kappa=  0.9488  QFI=   7.0901  N= 50  conv=True  (50.8s)
   f=   21.5 Hz  kappa=  2.0495  QFI=   3.1223  N= 80  conv=True  (84.7s)
   f=   14.7 Hz  kappa=  4.4209  QFI=   0.6502  N=155  conv=True  (196.7s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.3220  N=553  conv=True  (756.4s)
+
+fock: <n> = 2.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=   9.9342  N= 20  conv=True  (14.2s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=   9.9342  N= 20  conv=True  (5.3s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=   9.9342  N= 20  conv=True  (5.6s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=   9.9341  N= 20  conv=True  (10.8s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=   9.9334  N= 20  conv=True  (3.3s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=   9.9297  N= 20  conv=True  (4.1s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=   9.9111  N= 20  conv=True  (11.1s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=   9.8221  N= 20  conv=True  (15.9s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=   9.4223  N= 20  conv=True  (17.3s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   7.9118  N= 40  conv=True  (22.9s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   4.5795  N= 70  conv=True  (43.9s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   1.5587  N=213  conv=True  (253.9s)
