@@ -58,7 +58,8 @@ N_TARGET = 2.0
 ETA_OUT = 0.9
 FREQS_HZ = np.geomspace(1000.0, 10.0, 13)   # high -> low so kappa grows
 PARAM = "epsilon_a"
-N_MAX = 400
+N_MAX = 800   # kappa(10 Hz) ~ 9.5 pumps ~kappa^2 <x^2>/2 photons; wide
+              # states need cutoffs of several hundred there
 
 F_SCALING_HZ = 30.0                          # kappa ~ 1: BA-dominated
 N_SCALING = [1.0, 2.0, 5.0, 10.0]            # optimized states exist here
