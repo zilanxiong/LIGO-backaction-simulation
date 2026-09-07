@@ -127,31 +127,38 @@ def _evolve_stage2(V, d, kappa_ba, eta_ch, epsilon_a, epsilon_p, t_final=1.0):
 # ---------------------------------------------------------------------------
 
 def gaussian_rp_channel(V, d, *, epsilon_a=0.0, epsilon_p=0.0, kappa_ba=0.0,
-                        eta_in=1.0, eta_ch=1.0, eta_out=1.0, t_final=1.0,
-                        signal_order="simultaneous"):
+                        eta_in=1.0, eta_mid=1.0, eta_ch=1.0, eta_out=1.0,
+                        t_final=1.0, signal_order="simultaneous"):
     """Evolve Gaussian moments (V, d) through the RP sensing channel.
 
     signal_order controls where the signal displacement acts relative to the
     back-action shear (all applied inside stage 2, between eta_in and
     eta_out):
-        "before"       (BA2)  displacement, then shear (+ channel loss);
-        "after"        (BA1)  shear (+ channel loss), then displacement;
+        "before"       (BA2)  displacement, [eta_mid], then shear (+ eta_ch);
+        "after"        (BA1)  shear (+ eta_ch), [eta_mid], then displacement;
         "simultaneous" (BA3)  joint evolution, exact — matches the Fock code
                               get_state_single_mode_rp, which adds H_BA to
-                              the signal Hamiltonian in one mesolve.
-    For epsilon_a sensing the three coincide when eta_ch = 1 (the signal
-    generator x commutes with H_BA).
+                              the signal Hamiltonian in one mesolve.  Has no
+                              'between' slot: eta_mid < 1 is rejected, use
+                              eta_ch for loss concurrent with the evolution.
+    For epsilon_a sensing the three coincide when eta_ch = eta_mid = 1 (the
+    signal generator x commutes with H_BA).
     """
     V, d = apply_loss(V, d, eta_in)
 
     if signal_order == "simultaneous":
+        if eta_mid < 1.0:
+            raise ValueError("simultaneous order has no 'between' stage: "
+                             "use eta_ch")
         V, d = _evolve_stage2(V, d, kappa_ba, eta_ch, epsilon_a, epsilon_p,
                               t_final)
     elif signal_order == "before":
         d = d + signal_displacement(epsilon_a, epsilon_p)
+        V, d = apply_loss(V, d, eta_mid)
         V, d = _evolve_stage2(V, d, kappa_ba, eta_ch, 0.0, 0.0, t_final)
     elif signal_order == "after":
         V, d = _evolve_stage2(V, d, kappa_ba, eta_ch, 0.0, 0.0, t_final)
+        V, d = apply_loss(V, d, eta_mid)
         d = d + signal_displacement(epsilon_a, epsilon_p)
     else:
         raise ValueError("signal_order must be 'before', 'after', "
@@ -178,7 +185,7 @@ def cfi_homodyne_gaussian(V, dd, angle=np.pi / 2):
 
 
 def gaussian_qfi_rp(V, d, *, param_type="epsilon_a", kappa_ba=0.0,
-                    eta_in=1.0, eta_ch=1.0, eta_out=1.0,
+                    eta_in=1.0, eta_mid=1.0, eta_ch=1.0, eta_out=1.0,
                     signal_order="simultaneous", homodyne_angle=None,
                     prec=1e-6):
     """QFI (or homodyne CFI, if homodyne_angle is given) for displacement
@@ -188,8 +195,8 @@ def gaussian_qfi_rp(V, d, *, param_type="epsilon_a", kappa_ba=0.0,
     single finite difference (linearity makes it step-size independent), and
     the covariance is parameter-independent.
     """
-    kwargs = dict(kappa_ba=kappa_ba, eta_in=eta_in, eta_ch=eta_ch,
-                  eta_out=eta_out, signal_order=signal_order)
+    kwargs = dict(kappa_ba=kappa_ba, eta_in=eta_in, eta_mid=eta_mid,
+                  eta_ch=eta_ch, eta_out=eta_out, signal_order=signal_order)
     V0, d0 = gaussian_rp_channel(V, d, **kwargs)
     _, d1 = gaussian_rp_channel(V, d, **{**kwargs, param_type: prec})
     dd = (d1 - d0) / prec
