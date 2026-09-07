@@ -37,7 +37,8 @@ def tail_population(rho, fraction=TAIL_FRACTION):
 
 def converged_qfi(state_factory, *, dynamics=None, param_type="epsilon_a",
                   N_start=20, N_step=10, N_max=200, rtol=1e-4, n_agree=2,
-                  tail_tol=TAIL_TOL, verbose=False, **channel_kwargs):
+                  tail_tol=TAIL_TOL, check_output_tail=True, verbose=False,
+                  **channel_kwargs):
     """Compute QFI with an automated Fock-cutoff convergence check.
 
     Parameters
@@ -57,40 +58,63 @@ def converged_qfi(state_factory, *, dynamics=None, param_type="epsilon_a",
         Number of consecutive cutoff increases that must agree within rtol.
     tail_tol : float
         Maximum allowed population in the top TAIL_FRACTION of Fock levels
-        of the *output* state at the accepted cutoff.
+        (input state always; output state if check_output_tail).
+    check_output_tail : bool
+        Set False when everything after the last dissipative stage is
+        unitary (e.g. injection-loss configs, or lossless channels): the
+        QFI is invariant under the (truncated, still unitary) final stage,
+        so shear-pumped output population near the cutoff cannot bias it
+        and would only inflate N.  The input-tail check still guards state
+        representability.
+
+    The accepted cutoff is the FIRST N of the run of n_agree+1 mutually
+    agreeing evaluations whose tail checks pass — so warm-starting a
+    subsequent call at that N does not ratchet the cutoff upward.
 
     Returns
     -------
     dict with qfi, N_basis, converged (bool), history (list of
-    (N, qfi, tail_pop) tuples).
+    (N, qfi, tail_in, tail_out) tuples).
     """
     if dynamics is None:
         dynamics = get_state_single_mode_rp
 
     history = []
-    qfi_prev = None
     agree = 0
     N = int(N_start)
     step = int(N_step)
 
+    def _tails_ok(entry):
+        _, _, tail_in, tail_out = entry
+        return tail_in < tail_tol and \
+            (not check_output_tail or tail_out < tail_tol)
+
     while True:
         psi = state_factory(N)
+        tail_in = tail_population(psi)
         qfi = calculate_qfi(dynamics, param_type=param_type,
                             rho=psi, N_basis=N, **channel_kwargs)
-        rho_out = dynamics(rho=psi, N_basis=N, **channel_kwargs)
-        tail = tail_population(rho_out)
-        history.append((N, qfi, tail))
+        if check_output_tail:
+            rho_out = dynamics(rho=psi, N_basis=N, **channel_kwargs)
+            tail_out = tail_population(rho_out)
+        else:
+            tail_out = 0.0
+        history.append((N, qfi, tail_in, tail_out))
         if verbose:
-            print(f"  N={N:4d}  qfi={qfi:.8g}  tail={tail:.2e}")
+            print(f"  N={N:4d}  qfi={qfi:.8g}  tail_in={tail_in:.2e}  "
+                  f"tail_out={tail_out:.2e}")
 
-        if qfi_prev is not None:
-            rel = abs(qfi - qfi_prev) / max(abs(qfi), 1e-300)
+        if len(history) > 1:
+            rel = abs(qfi - history[-2][1]) / max(abs(qfi), 1e-300)
             agree = agree + 1 if rel < rtol else 0
-        qfi_prev = qfi
 
-        if agree >= n_agree and tail < tail_tol:
-            return {"qfi": qfi, "N_basis": N, "converged": True,
-                    "history": history}
+        if agree >= n_agree:
+            # accept the earliest entry of the agreeing run that passes
+            # the tail checks
+            for entry in history[-(agree + 1):]:
+                if _tails_ok(entry):
+                    return {"qfi": entry[1], "N_basis": entry[0],
+                            "converged": True, "history": history}
         if N >= N_max:
             return {"qfi": qfi, "N_basis": N, "converged": False,
                     "history": history}

@@ -51,9 +51,12 @@ FREQS_HZ = np.geomspace(1000.0, 20.0, 8)  # high -> low so kappa grows
 PARAM = "epsilon_a"
 N_MAX = 220
 
+# For injection loss everything after the loss is unitary, so the QFI is
+# exactly cutoff-insensitive to shear-pumped output population; skip the
+# output-tail check there (see converged_qfi docstring).
 CONFIGS = {
-    "injection": {"eta_in": ETA_LOSS},
-    "detection": {"eta_out": ETA_LOSS},
+    "injection": ({"eta_in": ETA_LOSS}, {"check_output_tail": False}),
+    "detection": ({"eta_out": ETA_LOSS}, {"check_output_tail": True}),
 }
 
 
@@ -82,7 +85,7 @@ def main():
         F0 = lossless_qfi(factory)
         print(f"\n{state}: <n>={probes.mean_n(factory(160)):.4f} "
               f"lossless QFI = 8 Var(x) = {F0:.4f}")
-        for config, loss_kw in CONFIGS.items():
+        for config, (loss_kw, conv_kw) in CONFIGS.items():
             N_STEP = 20
             N_warm = 20
             for f_hz in FREQS_HZ:
@@ -94,7 +97,7 @@ def main():
                 res = converged_qfi(
                     factory, dynamics=get_state_ba3, param_type=PARAM,
                     kappa_ba=kappa, N_start=max(20, N_warm - N_STEP),
-                    N_step=N_STEP, N_max=N_MAX, **loss_kw)
+                    N_step=N_STEP, N_max=N_MAX, **conv_kw, **loss_kw)
                 N_warm = res["N_basis"]
                 rows.append(dict(
                     state=state, config=config, f_hz=f_hz, kappa_ba=kappa,

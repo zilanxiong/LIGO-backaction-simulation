@@ -1,0 +1,29 @@
+/usr/local/lib/python3.11/dist-packages/qutip/__init__.py:24: UserWarning: matplotlib not found: Graphics will not work.
+  warnings.warn("matplotlib not found: Graphics will not work.")
+
+coherent: <n>=2.0000 lossless QFI = 8 Var(x) = 4.0000
+  injection f= 1000.0 Hz kappa=  0.0002 QFI=   4.0000 N= 20 conv=True (0.4s)
+  injection f=  571.9 Hz kappa=  0.0011 QFI=   4.0000 N= 20 conv=True (0.4s)
+  injection f=  327.0 Hz kappa=  0.0058 QFI=   4.0000 N= 20 conv=True (0.3s)
+  injection f=  187.0 Hz kappa=  0.0232 QFI=   4.0000 N= 20 conv=True (0.4s)
+  injection f=  106.9 Hz kappa=  0.0789 QFI=   4.0000 N= 20 conv=True (0.6s)
+  injection f=   61.2 Hz kappa=  0.2503 QFI=   4.0000 N= 20 conv=True (0.5s)
+  injection f=   35.0 Hz kappa=  0.7748 QFI=   4.0000 N= 20 conv=True (0.9s)
+  injection f=   20.0 Hz kappa=  2.3789 QFI=   4.0000 N= 20 conv=True (1.0s)
+  detection f= 1000.0 Hz kappa=  0.0002 QFI=   3.6000 N= 20 conv=True (0.3s)
+  detection f=  571.9 Hz kappa=  0.0011 QFI=   3.6000 N= 20 conv=True (0.4s)
+  detection f=  327.0 Hz kappa=  0.0058 QFI=   3.6000 N= 20 conv=True (0.4s)
+  detection f=  187.0 Hz kappa=  0.0232 QFI=   3.5998 N= 20 conv=True (0.4s)
+  detection f=  106.9 Hz kappa=  0.0789 QFI=   3.5980 N= 20 conv=True (0.5s)
+  detection f=   61.2 Hz kappa=  0.2503 QFI=   3.5798 N= 20 conv=True (0.4s)
+  detection f=   35.0 Hz kappa=  0.7748 QFI=   3.4155 N= 40 conv=True (0.6s)
+  detection f=   20.0 Hz kappa=  2.3789 QFI=   2.3851 N=115 conv=True (2.7s)
+
+sqz_vac: <n>=2.0000 lossless QFI = 8 Var(x) = 0.4041
+  injection f= 1000.0 Hz kappa=  0.0002 QFI=   0.4440 N=115 conv=True (1.3s)
+  injection f=  571.9 Hz kappa=  0.0011 QFI=   0.4440 N= 95 conv=True (0.5s)
+  injection f=  327.0 Hz kappa=  0.0058 QFI=   0.4440 N= 75 conv=True (1.1s)
+  injection f=  187.0 Hz kappa=  0.0232 QFI=   0.4440 N= 75 conv=True (1.3s)
+  injection f=  106.9 Hz kappa=  0.0789 QFI=   0.4440 N= 75 conv=True (1.9s)
+  injection f=   61.2 Hz kappa=  0.2503 QFI=   0.4440 N= 75 conv=True (1.6s)
+  injection f=   35.0 Hz kappa=  0.7748 QFI=   0.4440 N= 75 conv=True (1.8s)
