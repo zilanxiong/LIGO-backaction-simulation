@@ -1,0 +1,28 @@
+
+coherent: <n> = 5.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=   2.2031  N= 40  conv=True  (0.2s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=   2.2031  N= 40  conv=True  (0.1s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=   2.2031  N= 40  conv=True  (0.3s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=   2.2031  N= 40  conv=True  (0.5s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=   2.2031  N= 40  conv=True  (0.1s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=   2.2030  N= 40  conv=True  (0.1s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=   2.2026  N= 40  conv=True  (0.1s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=   2.2006  N= 40  conv=True  (0.1s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=   2.1915  N= 40  conv=True  (1.7s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   2.1497  N= 70  conv=True  (2.3s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   1.9743  N=145  conv=True  (5.1s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   1.4313  N=543  conv=True  (46.7s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.5682  N=800  conv=False  (90.2s)
+
+sqz_vac: <n> = 5.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=   0.8061  N=183  conv=True  (4.6s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=   0.8061  N=163  conv=True  (1.7s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=   0.8061  N=163  conv=True  (1.7s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=   0.8061  N=163  conv=True  (1.5s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=   0.8061  N=163  conv=True  (1.2s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=   0.8063  N=163  conv=True  (1.6s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=   0.8072  N=163  conv=True  (2.5s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=   0.8115  N=163  conv=True  (1.5s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=   0.8320  N=163  conv=True  (2.5s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   0.9251  N=238  conv=True  (5.1s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   1.2229  N=381  conv=True  (13.3s)
