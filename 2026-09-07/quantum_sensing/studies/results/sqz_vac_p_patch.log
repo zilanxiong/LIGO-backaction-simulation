@@ -1,0 +1,9 @@
+f=14.68 kappa=4.421 QFI=1.63258 N=1075 conv=True
+f=10.00 kappa=9.530 QFI=0.43433 N=1700 conv=False
+patched 2026-09-07/quantum_sensing/studies/results/ba1_frequency_sweep_pn_ba1_detection.csv
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency.png
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_ba2_detection.png
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_pn_ba1_detection.png
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_ba3_full.png
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/strain_sql_ba3_full.png
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/strain_sql_pn_ba1_detection.png

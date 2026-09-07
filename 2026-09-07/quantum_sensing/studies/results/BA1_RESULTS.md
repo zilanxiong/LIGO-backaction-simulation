@@ -105,5 +105,33 @@ loss during the interaction.
   sign vs the single-loss runs (+0.17/+0.29 -> -0.38): with loss on both
   sides of the interaction its photon budget stops paying off.
 
-Files: `ba1_frequency_sweep[_injection|_ba2_detection|_ba2_injection|_ba3_full].csv`,
-matching `ba1_n_scaling*.csv`, `ba1_qfi_vs_frequency*.png`, `ba1_run*.log`.
+## Correctly oriented squeezed vacuum (sqz_vac_p)
+
+The original `sqz_vac` family is x-squeezed — squeezed ALONG the epsilon_a
+generator, i.e. a misaligned squeezer — and is kept only as the
+"wrong angle" reference.  `sqz_vac_p` is the LIGO orientation (p squeezed,
+x anti-squeezed; lossless QFI = 4 e^{2r} = 39.5 at <n> = 2).  Results
+across configs at <n> = 2:
+
+- Injection loss: QFI = 20.95 flat — the best state in that channel
+  (factor 47 above the wrong-angle 0.44).
+- Detection loss: best state above ~50 Hz (plateau 18.86) but the
+  steepest low-frequency collapse (0.39 at 10 Hz, below coherent): the
+  shear feeds its large anti-squeezed Var(x) straight into the readout
+  loss.  This is precisely the fixed-angle-squeezing problem that
+  frequency-dependent squeezing exists to fix.
+- BA3 physical channel: same story (14.98 plateau, 0.38 at 10 Hz).
+- Phase noise (pn_in = 0.1): plateau 14.48 — dephasing costs it far more
+  than the non-Gaussian states (its coherences are broadband in n).
+
+Validation/provenance: sqz_vac_p is Gaussian, so every loss-only row is
+checked against gaussian_qfi_rp; rows where the N_max = 800 Fock value
+was truncation-corrupted (the anti-squeezed state under kappa ~ 10 needs
+N >~ 1500) are replaced by the exact Gaussian value and marked
+N_basis = 0.  The two pn low-frequency points (non-Gaussian channel)
+were recomputed at N_max = 1700; the 10 Hz pn point (0.434) still carries
+the conservative unconverged flag.
+
+Files: `ba1_frequency_sweep[_injection|_ba2_detection|_ba2_injection|_ba3_full|_pn_ba1_detection].csv`,
+matching `ba1_n_scaling*.csv`, `ba1_qfi_vs_frequency*.png`,
+`strain_sql*.png`, `ba1_run*.log`.
