@@ -73,5 +73,37 @@ Placement comparison at fixed total efficiency (0.9): detection loss is
 strictly worse at low frequency (e.g. cat at 10 Hz: 0.48 vs 17.07) —
 the back-action penalty comes entirely from loss AFTER the shear.
 
-Files: `ba1_frequency_sweep[_injection].csv`, `ba1_n_scaling[_injection].csv`,
-`ba1_qfi_vs_frequency[_injection].png`, `ba1_run[_injection].log`.
+## BA2 orderings (signal first, then shear)
+
+`ba2_detection` and `ba2_injection` configs.  For epsilon_a the signal
+generator x commutes with the shear Hamiltonian x^2, so with no loss
+between the two unitaries BA2 must equal BA1 — confirmed numerically:
+max relative difference over all 78 (state, frequency) points is 7e-12
+(detection) and 1.4e-12 (injection).  Ordering matters only with loss
+interleaved (see below).
+
+## BA3 physical channel, all three loss slots
+
+`ba3_full` config: eta_in = 0.95 -> [signal + shear + CONCURRENT
+eta_ch = 0.99, Strang-split] -> eta_out = 0.90.  The physical LIGO
+ordering: signal and back-action act simultaneously, with intracavity
+loss during the interaction.
+
+- High-frequency plateaus sit ~4-12% below the BA1 detection-only run
+  (cat 10.80 vs 15.37, Fock 9.93 vs 12.18, sqz cat 9.24 vs 11.00,
+  optimized 7.36 vs 7.94, coherent 3.58 vs 3.60, sqz vac 0.42 vs 0.40)
+  — the extra injection + intracavity loss costs the non-Gaussian states
+  far more than the Gaussian ones.
+- The low-frequency collapse is unchanged in shape: all states converge
+  to ~0.26-0.41 at 10 Hz.
+- Coherent / squeezed-vacuum rows agree with the exact Gaussian ground
+  truth (signal_order="simultaneous") to <= 0.2% at every frequency,
+  including the four 10 Hz points flagged unconverged by the tail check
+  (coherent 0.3819 vs exact 0.3826).
+- <n>-scaling at 30 Hz: coherent 0.00, sqz_vac -0.84, cat -0.39,
+  sqz_cat -0.38, Fock +0.20, optimized +0.40.  Note squeezed cat flips
+  sign vs the single-loss runs (+0.17/+0.29 -> -0.38): with loss on both
+  sides of the interaction its photon budget stops paying off.
+
+Files: `ba1_frequency_sweep[_injection|_ba2_detection|_ba2_injection|_ba3_full].csv`,
+matching `ba1_n_scaling*.csv`, `ba1_qfi_vs_frequency*.png`, `ba1_run*.log`.

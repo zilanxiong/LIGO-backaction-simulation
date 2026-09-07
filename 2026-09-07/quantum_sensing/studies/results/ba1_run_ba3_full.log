@@ -91,3 +91,42 @@ opt_fock_sup: <n> = 2.0000
 
 <n> scaling at 30 Hz (kappa = 1.055):
   coherent      n=  1.0  QFI=   3.2491  N= 40  conv=True
+  coherent      n=  2.0  QFI=   3.2491  N= 40  conv=True
+  coherent      n=  5.0  QFI=   3.2491  N= 70  conv=True
+  coherent      n= 10.0  QFI=   3.2491  N= 70  conv=True
+  sqz_vac       n=  1.0  QFI=   0.6941  N= 40  conv=True
+  sqz_vac       n=  2.0  QFI=   0.4167  N= 70  conv=True
+  sqz_vac       n=  5.0  QFI=   0.1906  N=213  conv=True
+  sqz_vac       n= 10.0  QFI=   0.1003  N=288  conv=True
+  cat           n=  1.0  QFI=   7.4546  N= 40  conv=True
+  cat           n=  2.0  QFI=   6.6415  N= 40  conv=True
+  cat           n=  5.0  QFI=   3.8716  N= 70  conv=True
+  cat           n= 10.0  QFI=   3.2695  N= 70  conv=True
+  sqz_cat       n=  1.0  QFI=   5.8459  N= 40  conv=True
+  sqz_cat       n=  2.0  QFI=   6.6825  N= 70  conv=True
+  sqz_cat       n=  5.0  QFI=   5.4697  N=100  conv=True
+  sqz_cat       n= 10.0  QFI=   2.2991  N=175  conv=True
+  fock          n=  1.0  QFI=   6.1430  N= 40  conv=True
+  fock          n=  2.0  QFI=   7.5499  N= 40  conv=True
+  fock          n=  5.0  QFI=   9.2076  N= 40  conv=True
+  fock          n= 10.0  QFI=   9.5653  N= 70  conv=True
+  opt_fock_sup  n=  1.0  QFI=   1.9078  N= 40  conv=True
+  opt_fock_sup  n=  2.0  QFI=   6.3455  N= 40  conv=True
+  opt_fock_sup  n=  5.0  QFI=   4.2341  N= 70  conv=True
+  opt_fock_sup  n= 10.0  QFI=   6.4679  N= 70  conv=True
+
+QFI ~ n^s exponents:
+  Coherent           s = -0.000
+  Squeezed vac.      s = -0.842
+  Even cat           s = -0.390
+  Squeezed cat       s = -0.380
+  Fock               s = 0.196
+  Optimized (no-BA)  s = 0.397
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_ba3_full.png
+
+WARNING: 4 unconverged frequency sweep points (N_max=800):
+       state  f_hz  kappa_ba      qfi  N_basis  converged  n_target loss_config  eta
+    coherent  10.0   9.52988 0.381906      800      False       2.0    ba3_full  0.9
+         cat  10.0   9.52988 0.380209      800      False       2.0    ba3_full  0.9
+        fock  10.0   9.52988 0.411593      800      False       2.0    ba3_full  0.9
+opt_fock_sup  10.0   9.52988 0.411754      800      False       2.0    ba3_full  0.9
