@@ -36,6 +36,17 @@ from quantum_sensing.states import (
     STATE_COLORS, STATE_LABELS, STATE_MARKERS,
 )
 
+from quantum_sensing.gaussian import (
+    vacuum_state, coherent_state, squeezed_state,
+    gaussian_rp_channel, gaussian_qfi_rp,
+    qfi_gaussian_displacement, cfi_homodyne_gaussian,
+    fd_squeeze_angle, sql_homodyne_cfi, fd_squeezed_homodyne_cfi,
+)
+
+from quantum_sensing.convergence import (
+    converged_qfi, tail_population,
+)
+
 from quantum_sensing.gkp import (
     discrete_q, gkp_s_values, gkp, num_state,
     gkp_fock_coeff, gkp_fock,
