@@ -1,0 +1,132 @@
+
+coherent: <n> = 2.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=   3.5820  N= 20  conv=True  (0.6s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=   3.5820  N= 20  conv=True  (0.8s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=   3.5820  N= 20  conv=True  (0.7s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=   3.5819  N= 20  conv=True  (0.7s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=   3.5819  N= 20  conv=True  (0.7s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=   3.5814  N= 20  conv=True  (0.5s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=   3.5792  N= 20  conv=True  (0.5s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=   3.5687  N= 20  conv=True  (0.3s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=   3.5198  N= 20  conv=True  (0.5s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   3.3078  N= 40  conv=True  (1.6s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   2.5829  N=115  conv=True  (4.3s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   1.2793  N=360  conv=True  (45.5s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.3819  N=800  conv=False  (674.9s)
+
+sqz_vac: <n> = 2.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=   0.4198  N= 70  conv=True  (50.7s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=   0.4198  N= 70  conv=True  (45.5s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=   0.4198  N= 70  conv=True  (69.5s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=   0.4198  N= 70  conv=True  (83.7s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=   0.4198  N= 70  conv=True  (64.8s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=   0.4198  N= 70  conv=True  (45.4s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=   0.4198  N= 70  conv=True  (75.7s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=   0.4197  N= 70  conv=True  (66.7s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=   0.4193  N= 70  conv=True  (72.2s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   0.4173  N= 70  conv=True  (66.9s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   0.4083  N= 70  conv=True  (86.2s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   0.3711  N= 70  conv=True  (75.2s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.2607  N=145  conv=True  (160.2s)
+
+cat: <n> = 2.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=  10.7954  N= 20  conv=True  (22.7s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=  10.7954  N= 20  conv=True  (9.6s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=  10.7954  N= 20  conv=True  (2.6s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=  10.7952  N= 20  conv=True  (5.3s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=  10.7938  N= 20  conv=True  (22.9s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=  10.7859  N= 20  conv=True  (23.1s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=  10.7464  N= 20  conv=True  (10.0s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=  10.5599  N= 20  conv=True  (17.9s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=   9.7540  N= 20  conv=True  (23.9s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   7.1637  N= 40  conv=True  (44.9s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   3.4693  N=115  conv=True  (129.0s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   1.3367  N=360  conv=True  (302.8s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.3802  N=800  conv=False  (1322.6s)
+
+sqz_cat: <n> = 2.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=   9.2443  N= 70  conv=True  (48.0s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=   9.2443  N= 50  conv=True  (49.7s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=   9.2451  N= 30  conv=True  (26.5s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=   9.2441  N= 70  conv=True  (43.0s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=   9.2434  N= 50  conv=True  (53.3s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=   9.2402  N= 30  conv=True  (8.2s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=   9.2196  N= 70  conv=True  (58.5s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=   9.1263  N= 50  conv=True  (36.0s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=   8.7119  N= 50  conv=True  (10.2s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   7.0901  N= 50  conv=True  (50.8s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   3.1223  N= 80  conv=True  (84.7s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   0.6502  N=155  conv=True  (196.7s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.3220  N=553  conv=True  (756.4s)
+
+fock: <n> = 2.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=   9.9342  N= 20  conv=True  (14.2s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=   9.9342  N= 20  conv=True  (5.3s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=   9.9342  N= 20  conv=True  (5.6s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=   9.9341  N= 20  conv=True  (10.8s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=   9.9334  N= 20  conv=True  (3.3s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=   9.9297  N= 20  conv=True  (4.1s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=   9.9111  N= 20  conv=True  (11.1s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=   9.8221  N= 20  conv=True  (15.9s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=   9.4223  N= 20  conv=True  (17.3s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   7.9118  N= 40  conv=True  (22.9s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   4.5795  N= 70  conv=True  (43.9s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   1.5587  N=213  conv=True  (253.9s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.4116  N=800  conv=False  (766.6s)
+
+opt_fock_sup: <n> = 2.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=   7.3615  N= 20  conv=True  (15.7s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=   7.3615  N= 20  conv=True  (16.1s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=   7.3615  N= 20  conv=True  (16.3s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=   7.3615  N= 20  conv=True  (7.3s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=   7.3612  N= 20  conv=True  (2.8s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=   7.3598  N= 20  conv=True  (3.2s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=   7.3526  N= 20  conv=True  (6.8s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=   7.3183  N= 20  conv=True  (20.2s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=   7.1624  N= 20  conv=True  (10.7s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   6.5181  N= 40  conv=True  (4.2s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   4.4652  N= 70  conv=True  (60.4s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   1.5336  N=213  conv=True  (250.0s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.4118  N=800  conv=False  (737.6s)
+
+<n> scaling at 30 Hz (kappa = 1.055):
+  coherent      n=  1.0  QFI=   3.2491  N= 40  conv=True
+  coherent      n=  2.0  QFI=   3.2491  N= 40  conv=True
+  coherent      n=  5.0  QFI=   3.2491  N= 70  conv=True
+  coherent      n= 10.0  QFI=   3.2491  N= 70  conv=True
+  sqz_vac       n=  1.0  QFI=   0.6941  N= 40  conv=True
+  sqz_vac       n=  2.0  QFI=   0.4167  N= 70  conv=True
+  sqz_vac       n=  5.0  QFI=   0.1906  N=213  conv=True
+  sqz_vac       n= 10.0  QFI=   0.1003  N=288  conv=True
+  cat           n=  1.0  QFI=   7.4546  N= 40  conv=True
+  cat           n=  2.0  QFI=   6.6415  N= 40  conv=True
+  cat           n=  5.0  QFI=   3.8716  N= 70  conv=True
+  cat           n= 10.0  QFI=   3.2695  N= 70  conv=True
+  sqz_cat       n=  1.0  QFI=   5.8459  N= 40  conv=True
+  sqz_cat       n=  2.0  QFI=   6.6825  N= 70  conv=True
+  sqz_cat       n=  5.0  QFI=   5.4697  N=100  conv=True
+  sqz_cat       n= 10.0  QFI=   2.2991  N=175  conv=True
+  fock          n=  1.0  QFI=   6.1430  N= 40  conv=True
+  fock          n=  2.0  QFI=   7.5499  N= 40  conv=True
+  fock          n=  5.0  QFI=   9.2076  N= 40  conv=True
+  fock          n= 10.0  QFI=   9.5653  N= 70  conv=True
+  opt_fock_sup  n=  1.0  QFI=   1.9078  N= 40  conv=True
+  opt_fock_sup  n=  2.0  QFI=   6.3455  N= 40  conv=True
+  opt_fock_sup  n=  5.0  QFI=   4.2341  N= 70  conv=True
+  opt_fock_sup  n= 10.0  QFI=   6.4679  N= 70  conv=True
+
+QFI ~ n^s exponents:
+  Coherent           s = -0.000
+  Squeezed vac.      s = -0.842
+  Even cat           s = -0.390
+  Squeezed cat       s = -0.380
+  Fock               s = 0.196
+  Optimized (no-BA)  s = 0.397
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_ba3_full.png
+
+WARNING: 4 unconverged frequency sweep points (N_max=800):
+       state  f_hz  kappa_ba      qfi  N_basis  converged  n_target loss_config  eta
+    coherent  10.0   9.52988 0.381906      800      False       2.0    ba3_full  0.9
+         cat  10.0   9.52988 0.380209      800      False       2.0    ba3_full  0.9
+        fock  10.0   9.52988 0.411593      800      False       2.0    ba3_full  0.9
+opt_fock_sup  10.0   9.52988 0.411754      800      False       2.0    ba3_full  0.9
