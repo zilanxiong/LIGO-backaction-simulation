@@ -45,8 +45,11 @@ def coherent(n_target):
 
 
 def squeezed_vacuum(n_target):
+    """p-squeezed vacuum (r < 0 in the qutip convention): oriented so the
+    epsilon_a signal, which displaces p, is squeezed-quadrature-aligned —
+    the orientation that maximizes the lossless QFI 8 Var(x) = 4 e^{2r}."""
     r = np.arcsinh(np.sqrt(n_target))
-    return lambda N: qt.squeeze(N, r) * qt.fock(N, 0)
+    return lambda N: qt.squeeze(N, -r) * qt.fock(N, 0)
 
 
 def fock(n_target):
@@ -71,7 +74,7 @@ def squeezed_cat(n_target, sqz_fraction=0.5):
     photon budget into squeezing (r = arcsinh(sqrt(f n))) and alpha solved
     numerically for the total <n>."""
     r = np.arcsinh(np.sqrt(sqz_fraction * n_target))
-    build = lambda a, N: (qt.squeeze(N, r) * _cat(a, N)).unit()
+    build = lambda a, N: (qt.squeeze(N, -r) * _cat(a, N)).unit()
     alpha = _solve_scale(build, n_target)
     return lambda N: build(alpha, N)
 
@@ -87,7 +90,24 @@ def optimized(n_target, state_type="fock_sup", loss_config="loss_ch",
         raise ValueError(f"no optimized {state_type} entry at "
                          f"N_target={n_target}, eta={eta}, pn={pn}")
     best = max(entries, key=lambda e: e["qfi"])
-    return lambda N: reconstruct_state(best, N_basis=N).unit()
+
+    # The stored states were optimized for epsilon_p sensing (x displacement,
+    # generator p); the RP study senses epsilon_a (generator x).  Orientation
+    # in phase space is a gauge choice, so rotate by pi/2 if that raises the
+    # lossless QFI 8 Var(x).
+    psi = reconstruct_state(best, N_basis=_N_REF).unit()
+    a = qt.destroy(_N_REF)
+    x = (a + a.dag()) / np.sqrt(2)
+    p = (a - a.dag()) / (1j * np.sqrt(2))
+    var = lambda op: (qt.expect(op * op, psi) - qt.expect(op, psi) ** 2).real
+    rotate = var(p) > var(x)
+
+    def factory(N):
+        s = reconstruct_state(best, N_basis=N).unit()
+        if rotate:
+            s = (1j * (np.pi / 2) * qt.num(N)).expm() * s
+        return s
+    return factory
 
 
 PROBE_FAMILIES = {

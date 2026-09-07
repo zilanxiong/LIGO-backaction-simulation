@@ -2,28 +2,124 @@
   warnings.warn("matplotlib not found: Graphics will not work.")
 
 coherent: <n>=2.0000 lossless QFI = 8 Var(x) = 4.0000
-  injection f= 1000.0 Hz kappa=  0.0002 QFI=   4.0000 N= 20 conv=True (0.4s)
-  injection f=  571.9 Hz kappa=  0.0011 QFI=   4.0000 N= 20 conv=True (0.4s)
-  injection f=  327.0 Hz kappa=  0.0058 QFI=   4.0000 N= 20 conv=True (0.3s)
-  injection f=  187.0 Hz kappa=  0.0232 QFI=   4.0000 N= 20 conv=True (0.4s)
-  injection f=  106.9 Hz kappa=  0.0789 QFI=   4.0000 N= 20 conv=True (0.6s)
-  injection f=   61.2 Hz kappa=  0.2503 QFI=   4.0000 N= 20 conv=True (0.5s)
-  injection f=   35.0 Hz kappa=  0.7748 QFI=   4.0000 N= 20 conv=True (0.9s)
-  injection f=   20.0 Hz kappa=  2.3789 QFI=   4.0000 N= 20 conv=True (1.0s)
-  detection f= 1000.0 Hz kappa=  0.0002 QFI=   3.6000 N= 20 conv=True (0.3s)
-  detection f=  571.9 Hz kappa=  0.0011 QFI=   3.6000 N= 20 conv=True (0.4s)
-  detection f=  327.0 Hz kappa=  0.0058 QFI=   3.6000 N= 20 conv=True (0.4s)
-  detection f=  187.0 Hz kappa=  0.0232 QFI=   3.5998 N= 20 conv=True (0.4s)
-  detection f=  106.9 Hz kappa=  0.0789 QFI=   3.5980 N= 20 conv=True (0.5s)
-  detection f=   61.2 Hz kappa=  0.2503 QFI=   3.5798 N= 20 conv=True (0.4s)
-  detection f=   35.0 Hz kappa=  0.7748 QFI=   3.4155 N= 40 conv=True (0.6s)
-  detection f=   20.0 Hz kappa=  2.3789 QFI=   2.3851 N=115 conv=True (2.7s)
+  injection f= 1000.0 Hz kappa=  0.0002 QFI=   4.0000 N= 20 conv=True (0.2s)
+  injection f=  571.9 Hz kappa=  0.0011 QFI=   4.0000 N= 20 conv=True (0.1s)
+  injection f=  327.0 Hz kappa=  0.0058 QFI=   4.0000 N= 20 conv=True (0.0s)
+  injection f=  187.0 Hz kappa=  0.0232 QFI=   4.0000 N= 20 conv=True (0.1s)
+  injection f=  106.9 Hz kappa=  0.0789 QFI=   4.0000 N= 20 conv=True (0.5s)
+  injection f=   61.2 Hz kappa=  0.2503 QFI=   4.0000 N= 20 conv=True (0.1s)
+  injection f=   35.0 Hz kappa=  0.7748 QFI=   4.0000 N= 20 conv=True (0.1s)
+  injection f=   20.0 Hz kappa=  2.3789 QFI=   4.0000 N= 20 conv=True (0.1s)
+  detection f= 1000.0 Hz kappa=  0.0002 QFI=   3.6000 N= 20 conv=True (0.1s)
+  detection f=  571.9 Hz kappa=  0.0011 QFI=   3.6000 N= 20 conv=True (0.1s)
+  detection f=  327.0 Hz kappa=  0.0058 QFI=   3.6000 N= 20 conv=True (0.2s)
+  detection f=  187.0 Hz kappa=  0.0232 QFI=   3.5998 N= 20 conv=True (0.1s)
+  detection f=  106.9 Hz kappa=  0.0789 QFI=   3.5980 N= 20 conv=True (0.1s)
+  detection f=   61.2 Hz kappa=  0.2503 QFI=   3.5798 N= 20 conv=True (0.1s)
+  detection f=   35.0 Hz kappa=  0.7748 QFI=   3.4155 N= 40 conv=True (0.1s)
+  detection f=   20.0 Hz kappa=  2.3789 QFI=   2.3851 N=115 conv=True (4.3s)
 
-sqz_vac: <n>=2.0000 lossless QFI = 8 Var(x) = 0.4041
-  injection f= 1000.0 Hz kappa=  0.0002 QFI=   0.4440 N=115 conv=True (1.3s)
-  injection f=  571.9 Hz kappa=  0.0011 QFI=   0.4440 N= 95 conv=True (0.5s)
-  injection f=  327.0 Hz kappa=  0.0058 QFI=   0.4440 N= 75 conv=True (1.1s)
-  injection f=  187.0 Hz kappa=  0.0232 QFI=   0.4440 N= 75 conv=True (1.3s)
-  injection f=  106.9 Hz kappa=  0.0789 QFI=   0.4440 N= 75 conv=True (1.9s)
-  injection f=   61.2 Hz kappa=  0.2503 QFI=   0.4440 N= 75 conv=True (1.6s)
-  injection f=   35.0 Hz kappa=  0.7748 QFI=   0.4440 N= 75 conv=True (1.8s)
+sqz_vac: <n>=2.0000 lossless QFI = 8 Var(x) = 39.5959
+  injection f= 1000.0 Hz kappa=  0.0002 QFI=  20.9513 N= 70 conv=True (1.2s)
+  injection f=  571.9 Hz kappa=  0.0011 QFI=  20.9513 N= 70 conv=True (0.4s)
+  injection f=  327.0 Hz kappa=  0.0058 QFI=  20.9513 N= 70 conv=True (0.4s)
+  injection f=  187.0 Hz kappa=  0.0232 QFI=  20.9513 N= 70 conv=True (0.9s)
+  injection f=  106.9 Hz kappa=  0.0789 QFI=  20.9513 N= 70 conv=True (0.9s)
+  injection f=   61.2 Hz kappa=  0.2503 QFI=  20.9513 N= 70 conv=True (0.5s)
+  injection f=   35.0 Hz kappa=  0.7748 QFI=  20.9513 N= 70 conv=True (0.2s)
+  injection f=   20.0 Hz kappa=  2.3789 QFI=  20.9513 N= 70 conv=True (1.5s)
+  detection f= 1000.0 Hz kappa=  0.0002 QFI=  18.8562 N= 70 conv=True (1.2s)
+  detection f=  571.9 Hz kappa=  0.0011 QFI=  18.8562 N= 70 conv=True (0.5s)
+  detection f=  327.0 Hz kappa=  0.0058 QFI=  18.8559 N= 70 conv=True (0.9s)
+  detection f=  187.0 Hz kappa=  0.0232 QFI=  18.8509 N= 70 conv=True (1.3s)
+  detection f=  106.9 Hz kappa=  0.0789 QFI=  18.7956 N= 70 conv=True (0.6s)
+  detection f=   61.2 Hz kappa=  0.2503 QFI=  18.2636 N= 70 conv=True (1.5s)
+  detection f=   35.0 Hz kappa=  0.7748 QFI=  14.3834 N=100 conv=True (2.1s)
+  detection f=   20.0 Hz kappa=  2.3789 QFI=   4.7964 N=345 conv=True (25.0s)
+
+cat: <n>=2.0000 lossless QFI = 8 Var(x) = 36.5227
+  injection f= 1000.0 Hz kappa=  0.0002 QFI=  17.0731 N= 20 conv=True (0.0s)
+  injection f=  571.9 Hz kappa=  0.0011 QFI=  17.0731 N= 20 conv=True (0.0s)
+  injection f=  327.0 Hz kappa=  0.0058 QFI=  17.0731 N= 20 conv=True (0.0s)
+  injection f=  187.0 Hz kappa=  0.0232 QFI=  17.0731 N= 20 conv=True (0.0s)
+  injection f=  106.9 Hz kappa=  0.0789 QFI=  17.0731 N= 20 conv=True (0.1s)
+  injection f=   61.2 Hz kappa=  0.2503 QFI=  17.0731 N= 20 conv=True (0.3s)
+  injection f=   35.0 Hz kappa=  0.7748 QFI=  17.0731 N= 20 conv=True (0.1s)
+  injection f=   20.0 Hz kappa=  2.3789 QFI=  17.0731 N= 20 conv=True (0.1s)
+  detection f= 1000.0 Hz kappa=  0.0002 QFI=  15.3658 N= 20 conv=True (0.1s)
+  detection f=  571.9 Hz kappa=  0.0011 QFI=  15.3658 N= 20 conv=True (0.5s)
+  detection f=  327.0 Hz kappa=  0.0058 QFI=  15.3655 N= 20 conv=True (0.4s)
+  detection f=  187.0 Hz kappa=  0.0232 QFI=  15.3606 N= 20 conv=True (0.1s)
+  detection f=  106.9 Hz kappa=  0.0789 QFI=  15.3060 N= 20 conv=True (0.1s)
+  detection f=   61.2 Hz kappa=  0.2503 QFI=  14.7813 N= 20 conv=True (0.1s)
+  detection f=   35.0 Hz kappa=  0.7748 QFI=  10.9809 N= 40 conv=True (1.1s)
+  detection f=   20.0 Hz kappa=  2.3789 QFI=   3.2412 N=115 conv=True (3.8s)
+
+sqz_cat: <n>=2.0000 lossless QFI = 8 Var(x) = 39.5900
+  injection f= 1000.0 Hz kappa=  0.0002 QFI=  20.9184 N= 70 conv=True (0.4s)
+  injection f=  571.9 Hz kappa=  0.0011 QFI=  20.9184 N= 70 conv=True (1.1s)
+  injection f=  327.0 Hz kappa=  0.0058 QFI=  20.9184 N= 70 conv=True (0.9s)
+  injection f=  187.0 Hz kappa=  0.0232 QFI=  20.9184 N= 70 conv=True (0.2s)
+  injection f=  106.9 Hz kappa=  0.0789 QFI=  20.9184 N= 70 conv=True (1.0s)
+  injection f=   61.2 Hz kappa=  0.2503 QFI=  20.9184 N= 70 conv=True (0.8s)
+  injection f=   35.0 Hz kappa=  0.7748 QFI=  20.9184 N= 70 conv=True (0.5s)
+  injection f=   20.0 Hz kappa=  2.3789 QFI=  20.9184 N= 70 conv=True (2.0s)
+  detection f= 1000.0 Hz kappa=  0.0002 QFI=  18.8266 N= 70 conv=True (0.4s)
+  detection f=  571.9 Hz kappa=  0.0011 QFI=  18.8266 N= 70 conv=True (1.7s)
+  detection f=  327.0 Hz kappa=  0.0058 QFI=  18.8262 N= 70 conv=True (1.5s)
+  detection f=  187.0 Hz kappa=  0.0232 QFI=  18.8213 N= 70 conv=True (1.2s)
+  detection f=  106.9 Hz kappa=  0.0789 QFI=  18.7660 N= 70 conv=True (1.9s)
+  detection f=   61.2 Hz kappa=  0.2503 QFI=  18.2344 N= 70 conv=True (1.1s)
+  detection f=   35.0 Hz kappa=  0.7748 QFI=  14.3588 N=100 conv=True (2.5s)
+  detection f=   20.0 Hz kappa=  2.3789 QFI=   4.7909 N=345 conv=True (27.5s)
+
+fock: <n>=2.0000 lossless QFI = 8 Var(x) = 20.0000
+  injection f= 1000.0 Hz kappa=  0.0002 QFI=  13.5357 N= 20 conv=True (0.0s)
+  injection f=  571.9 Hz kappa=  0.0011 QFI=  13.5357 N= 20 conv=True (0.1s)
+  injection f=  327.0 Hz kappa=  0.0058 QFI=  13.5357 N= 20 conv=True (0.2s)
+  injection f=  187.0 Hz kappa=  0.0232 QFI=  13.5357 N= 20 conv=True (0.1s)
+  injection f=  106.9 Hz kappa=  0.0789 QFI=  13.5357 N= 20 conv=True (0.5s)
+  injection f=   61.2 Hz kappa=  0.2503 QFI=  13.5357 N= 20 conv=True (0.2s)
+  injection f=   35.0 Hz kappa=  0.7748 QFI=  13.5357 N= 20 conv=True (0.3s)
+  injection f=   20.0 Hz kappa=  2.3789 QFI=  13.5357 N= 20 conv=True (0.0s)
+  detection f= 1000.0 Hz kappa=  0.0002 QFI=  12.1821 N= 20 conv=True (0.0s)
+  detection f=  571.9 Hz kappa=  0.0011 QFI=  12.1821 N= 20 conv=True (0.0s)
+  detection f=  327.0 Hz kappa=  0.0058 QFI=  12.1820 N= 20 conv=True (0.0s)
+  detection f=  187.0 Hz kappa=  0.0232 QFI=  12.1802 N= 20 conv=True (0.1s)
+  detection f=  106.9 Hz kappa=  0.0789 QFI=  12.1599 N= 20 conv=True (0.7s)
+  detection f=   61.2 Hz kappa=  0.2503 QFI=  11.9618 N= 20 conv=True (0.4s)
+  detection f=   35.0 Hz kappa=  0.7748 QFI=  10.3580 N= 20 conv=True (0.1s)
+  detection f=   20.0 Hz kappa=  2.3789 QFI=   4.7415 N= 70 conv=True (1.6s)
+
+opt_fock_sup: <n>=2.0000 lossless QFI = 8 Var(x) = 29.7980
+  injection f= 1000.0 Hz kappa=  0.0002 QFI=  15.5970 N= 20 conv=True (0.0s)
+  injection f=  571.9 Hz kappa=  0.0011 QFI=  15.5970 N= 20 conv=True (0.2s)
+  injection f=  327.0 Hz kappa=  0.0058 QFI=  15.5970 N= 20 conv=True (0.1s)
+  injection f=  187.0 Hz kappa=  0.0232 QFI=  15.5970 N= 20 conv=True (0.1s)
+  injection f=  106.9 Hz kappa=  0.0789 QFI=  15.5970 N= 20 conv=True (0.3s)
+  injection f=   61.2 Hz kappa=  0.2503 QFI=  15.5970 N= 20 conv=True (0.6s)
+  injection f=   35.0 Hz kappa=  0.7748 QFI=  15.5970 N= 20 conv=True (0.5s)
+  injection f=   20.0 Hz kappa=  2.3789 QFI=  15.5970 N= 20 conv=True (0.0s)
+  detection f= 1000.0 Hz kappa=  0.0002 QFI=  14.0373 N= 20 conv=True (0.0s)
+  detection f=  571.9 Hz kappa=  0.0011 QFI=  14.0373 N= 20 conv=True (0.0s)
+  detection f=  327.0 Hz kappa=  0.0058 QFI=  14.0371 N= 20 conv=True (0.2s)
+  detection f=  187.0 Hz kappa=  0.0232 QFI=  14.0333 N= 20 conv=True (0.3s)
+  detection f=  106.9 Hz kappa=  0.0789 QFI=  13.9906 N= 20 conv=True (0.1s)
+  detection f=   61.2 Hz kappa=  0.2503 QFI=  13.5767 N= 20 conv=True (0.1s)
+  detection f=   35.0 Hz kappa=  0.7748 QFI=  10.3883 N= 40 conv=True (0.3s)
+  detection f=   20.0 Hz kappa=  2.3789 QFI=   2.6254 N=115 conv=True (3.5s)
+
+Band metrics (flat weight):
+       state    config  metric_i  metric_ii  metric_iii
+         cat detection 10.089219   3.241175  105.767105
+         cat injection 17.073098  17.073098  136.584787
+    coherent detection  3.360705   2.385137   27.378204
+    coherent injection  4.000000   4.000000   32.000000
+        fock detection  9.979415   4.741466   87.947550
+        fock injection 13.535694  13.535694  108.285550
+opt_fock_sup detection  8.817718   2.625404   96.726021
+opt_fock_sup injection 15.597043  15.597043  124.776342
+     sqz_cat detection 13.355938   4.790868  131.450847
+     sqz_cat injection 20.918423  20.918423  167.347382
+     sqz_vac detection 13.375253   4.796406  131.658099
+     sqz_vac injection 20.951323  20.951323  167.610583
