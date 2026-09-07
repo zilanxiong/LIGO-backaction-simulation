@@ -40,3 +40,4 @@ cat: <n> = 2.0000
   f=   68.1 Hz  kappa=  0.2008  QFI=  14.9854  N= 20  conv=True  (3.7s)
   f=   46.4 Hz  kappa=  0.4379  QFI=  13.6852  N= 20  conv=True  (3.6s)
   f=   31.6 Hz  kappa=  0.9488  QFI=   9.5375  N= 40  conv=True  (12.0s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   3.9592  N=115  conv=True  (44.2s)

@@ -24,3 +24,5 @@ sqz_vac: <n> = 2.0000
   f=  100.0 Hz  kappa=  0.0909  QFI=   0.4198  N= 70  conv=True  (75.7s)
   f=   68.1 Hz  kappa=  0.2008  QFI=   0.4197  N= 70  conv=True  (66.7s)
   f=   46.4 Hz  kappa=  0.4379  QFI=   0.4193  N= 70  conv=True  (72.2s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   0.4173  N= 70  conv=True  (66.9s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   0.4083  N= 70  conv=True  (86.2s)
