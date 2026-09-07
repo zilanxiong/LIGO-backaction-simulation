@@ -97,3 +97,29 @@ opt_fock_sup: <n> = 2.0000
   sqz_vac       n=  1.0  QFI=   0.7484  N= 40  conv=True
   sqz_vac       n=  2.0  QFI=   0.4440  N=115  conv=True
   sqz_vac       n=  5.0  QFI=   0.2014  N=190  conv=True
+  sqz_vac       n= 10.0  QFI=   0.1056  N=333  conv=True
+  cat           n=  1.0  QFI=  14.3037  N= 20  conv=True
+  cat           n=  2.0  QFI=  17.0731  N= 20  conv=True
+  cat           n=  5.0  QFI=  13.7456  N= 40  conv=True
+  cat           n= 10.0  QFI=   6.6375  N= 40  conv=True
+  sqz_cat       n=  1.0  QFI=   8.9639  N= 40  conv=True
+  sqz_cat       n=  2.0  QFI=  12.2196  N= 70  conv=True
+  sqz_cat       n=  5.0  QFI=  17.7393  N=100  conv=True
+  sqz_cat       n= 10.0  QFI=  16.7167  N=175  conv=True
+  fock          n=  1.0  QFI=   9.7600  N= 20  conv=True
+  fock          n=  2.0  QFI=  13.5357  N= 20  conv=True
+  fock          n=  5.0  QFI=  18.9478  N= 20  conv=True
+  fock          n= 10.0  QFI=  21.1909  N= 20  conv=True
+  opt_fock_sup  n=  1.0  QFI=   2.4358  N= 20  conv=True
+  opt_fock_sup  n=  2.0  QFI=   8.8257  N= 20  conv=True
+  opt_fock_sup  n=  5.0  QFI=   5.6577  N= 20  conv=True
+  opt_fock_sup  n= 10.0  QFI=   9.6455  N= 20  conv=True
+
+QFI ~ n^s exponents:
+  Coherent           s = -0.000
+  Squeezed vac.      s = -0.852
+  Even cat           s = -0.320
+  Squeezed cat       s = 0.289
+  Fock               s = 0.341
+  Optimized (no-BA)  s = 0.450
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_injection.png

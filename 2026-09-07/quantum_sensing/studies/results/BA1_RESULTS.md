@@ -43,5 +43,35 @@ No state approaches Heisenberg (s = 2) — the 10% detection loss after the
 shear bounds the useful n-scaling, and states optimized without back-action
 do not transfer their advantage to the BA1 channel.
 
-Files: `ba1_frequency_sweep.csv`, `ba1_n_scaling.csv`,
-`ba1_qfi_vs_frequency.png`, `ba1_run.log`.
+## Injection-loss variant (eta_in = 0.9, BEFORE the shear)
+
+Run with `python sweep_ba1_frequency.py injection`. Confirms the analytic
+control exactly: with the loss before the shear, everything downstream is
+unitary and the shear preserves x, so the QFI is frequency-INDEPENDENT for
+every state, 10 Hz - 1 kHz, all points converged:
+
+| state             | QFI (all freqs) | detection-loss high-f plateau |
+|-------------------|-----------------|-------------------------------|
+| cat               | 17.07           | 15.37                         |
+| fock              | 13.54           | 12.18                         |
+| squeezed cat      | 12.22           | 11.00                         |
+| optimized (no-BA) | 8.83            | 7.94                          |
+| coherent          | 4.00            | 3.60                          |
+| squeezed vacuum   | 0.44            | 0.40                          |
+
+Notably the coherent state's QFI is exactly 4 (the lossless value):
+injection loss shrinks the displacement but not the vacuum covariance, and
+the epsilon_a QFI depends only on Var(x). For the non-Gaussian states the
+loss does bite (17.07 < lossless 8 Var(x)), but frequency-uniformly.
+
+<n>-scaling exponents at 30 Hz are close to the detection-loss ones
+(coherent 0.00, sqz_vac -0.85, cat -0.32, sqz_cat +0.29, fock +0.34,
+optimized +0.45): the scaling behaviour is set by how each family spends
+photons on Var(x) versus loss-vulnerable structure, not by loss placement.
+
+Placement comparison at fixed total efficiency (0.9): detection loss is
+strictly worse at low frequency (e.g. cat at 10 Hz: 0.48 vs 17.07) —
+the back-action penalty comes entirely from loss AFTER the shear.
+
+Files: `ba1_frequency_sweep[_injection].csv`, `ba1_n_scaling[_injection].csv`,
+`ba1_qfi_vs_frequency[_injection].png`, `ba1_run[_injection].log`.
