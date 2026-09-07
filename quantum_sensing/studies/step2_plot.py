@@ -67,6 +67,7 @@ def main():
         ax.axvline(f_k1, color="#999999", lw=1, alpha=0.6, zorder=0)
         ax.set_facecolor(SURFACE)
         ax.set_xscale("log")
+        ax.set_yscale("log")
         ax.grid(True, which="both", color="#e7e7e4", lw=0.7, zorder=0)
         ax.tick_params(colors="#444444")
         for s in ["top", "right"]:
@@ -75,10 +76,11 @@ def main():
         ax.set_title(TITLES[placement], fontsize=10.5, loc="left",
                      color="#333333")
 
-    axes[0].set_ylabel(r"QFI for $\epsilon_p$")
-    axes[0].text(f_k1 * 1.06, axes[0].get_ylim()[0] + 0.4, r"$\kappa_{BA}=1$",
+    axes[0].set_ylabel(r"QFI for $\epsilon_p$  (log scale)")
+    axes[0].text(f_k1 * 1.06, axes[0].get_ylim()[0] * 1.15, r"$\kappa_{BA}=1$",
                  fontsize=8, color="#666666", rotation=90, va="bottom")
-    axes[1].legend(fontsize=8.5, frameon=False, loc="center right",
+    axes[0].legend(fontsize=8.5, frameon=True, loc="upper right",
+                   facecolor=SURFACE, edgecolor="#dddddd", framealpha=0.9,
                    title="dotted = no back-action", title_fontsize=8)
 
     fig.suptitle(r"Radiation-pressure back-action, KLMTV $\kappa_{BA}(\Omega)$"
