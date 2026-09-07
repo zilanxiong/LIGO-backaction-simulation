@@ -42,18 +42,11 @@ def _fmt_freq_axes(ax):
     ax.set_xlabel("frequency  $\\Omega/2\\pi$  [Hz]")
     ax.set_ylabel("minimum detectable signal  "
                   "$\\epsilon_{\\min} = 1/\\sqrt{F_Q}$")
-    sec = ax.secondary_xaxis(
-        "top",
-        functions=(lambda f: kimble_K(2 * np.pi * np.maximum(f, 1e-3)),
-                   lambda K: 1.0))
-    sec.set_xlabel("Kimble factor  $\\mathcal{K}(\\Omega)$", fontsize=10)
-    sec.set_xticks([])
-    # annotate K at a few frequencies instead (monotone but nonlinear axis)
     return ax
 
 
 def _k_annotations(ax, y):
-    for f in (20, 31, 100, 450):
+    for f in (20, 100, 450):
         K = kimble_K(2 * np.pi * f)
         ax.annotate(f"$\\mathcal{{K}}={K:.2g}$", (f, y), fontsize=8,
                     color="#999999", ha="center")
@@ -76,8 +69,11 @@ def fig_a(df):
             s = sub[sub.state == kind].sort_values("freq_hz")
             if s.empty:
                 continue
-            ax.plot(s.freq_hz, s.eps_min, "o-", ms=4, lw=1.8,
-                    color=COLORS[kind], label=LABELS[kind])
+            mk = dict(marker="o", ms=4)
+            if kind == "sqz_vac":
+                mk = dict(marker="o", ms=7, mfc="none")
+            ax.plot(s.freq_hz, s.eps_min, "-", lw=1.8,
+                    color=COLORS[kind], label=LABELS[kind], **mk)
         ax.plot(f_grid, conv, "--", color=REF_GRAY, lw=1.4,
                 label="conventional IFO, fixed homodyne\n(Buonanno–Chen "
                       "2001 / KLMTV)")
@@ -131,8 +127,11 @@ def fig_c(df):
             s = sub[sub.state == kind].sort_values("n_target")
             if s.empty:
                 continue
-            ax.plot(s.n_actual, s.qfi, "o-", ms=5, lw=1.8,
-                    color=COLORS[kind], label=LABELS[kind])
+            mk = dict(marker="o", ms=5)
+            if kind == "sqz_vac":
+                mk = dict(marker="o", ms=8, mfc="none")
+            ax.plot(s.n_actual, s.qfi, "-", lw=1.8,
+                    color=COLORS[kind], label=LABELS[kind], **mk)
         ax.axhline(4 / (1 - eta), color=REF_GRAY, ls="--", lw=1.4,
                    label="loss ceiling $4/(1-\\eta)$")
         # lossless squeezed-vacuum reference: F = 4 e^{2r} ~ 16 n
