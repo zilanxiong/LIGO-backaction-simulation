@@ -104,3 +104,44 @@ def test_ba3_matches_get_state_single_mode_rp():
     rho_a = get_state_ba3(rho=psi, N_basis=N_BASIS, **kw)
     rho_b = qs.get_state_single_mode_rp(rho=psi, N_basis=N_BASIS, **kw)
     assert (rho_a - rho_b).norm() < 1e-6
+
+
+# ---------------------------------------------------------------------------
+# Concurrent intracavity loss (eta_ch) in BA3
+# ---------------------------------------------------------------------------
+
+def test_ba3_concurrent_loss_matches_gaussian():
+    # Strang-split Fock BA3 with eta_ch vs exact Gaussian simultaneous
+    # evolution, all three loss slots populated.
+    from quantum_sensing import gaussian as g
+    from quantum_sensing.channels import get_state_ba3
+
+    N = 70
+    kappa, eta_in, eta_ch, eta_out = 1.0, 0.95, 0.85, 0.9
+    psi = qt.squeeze(N, 0.6) * qt.fock(N, 0)
+    F_fock = qs.calculate_qfi(
+        get_state_ba3, param_type="epsilon_a", rho=psi, N_basis=N,
+        kappa_ba=kappa, eta_in=eta_in, eta_ch=eta_ch, eta_out=eta_out)
+
+    V, d = g.squeezed_state(0.6, 0.0)
+    F_gauss = g.gaussian_qfi_rp(V, d, param_type="epsilon_a",
+                                kappa_ba=kappa, eta_in=eta_in,
+                                eta_ch=eta_ch, eta_out=eta_out,
+                                signal_order="simultaneous")
+    assert F_fock == pytest.approx(F_gauss, rel=5e-3)
+
+
+def test_ba3_eta_ch_ordering_factor():
+    # BA3 with concurrent loss sits between BA1 and BA2 at the analytic
+    # mean-damping factor [(1-sqrt(eta))/ln(1/sqrt(eta))]^2 (epsilon_a).
+    from quantum_sensing import gaussian as g
+
+    eta_ch = 0.85
+    V, d = g.squeezed_state(0.8, 0.3)
+    F = {so: g.gaussian_qfi_rp(V, d, param_type="epsilon_a", kappa_ba=1.3,
+                               eta_ch=eta_ch, signal_order=so)
+         for so in ("after", "before", "simultaneous")}
+    assert F["before"] / F["after"] == pytest.approx(eta_ch, rel=1e-9)
+    s = np.sqrt(eta_ch)
+    factor = ((1 - s) / (-np.log(s))) ** 2
+    assert F["simultaneous"] / F["after"] == pytest.approx(factor, rel=1e-9)
