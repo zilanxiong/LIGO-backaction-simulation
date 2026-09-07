@@ -1,0 +1,13 @@
+
+coherent: <n> = 2.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=   3.3605  N= 20  conv=True  (0.4s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=   3.3605  N= 20  conv=True  (0.4s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=   3.3605  N= 20  conv=True  (0.4s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=   3.3604  N= 20  conv=True  (0.2s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=   3.3604  N= 20  conv=True  (0.1s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=   3.3600  N= 20  conv=True  (0.3s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=   3.3581  N= 20  conv=True  (0.1s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=   3.3491  N= 20  conv=True  (0.3s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=   3.3072  N= 20  conv=True  (0.1s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   3.1242  N= 40  conv=True  (1.0s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   2.4839  N=115  conv=True  (4.2s)
