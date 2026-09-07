@@ -58,18 +58,48 @@ def op_shear(N_basis, kappa_ba, t_final=1.0):
     return lambda rho: _apply_unitary(U, rho)
 
 
+def op_loss_kraus(N_basis, eta, trace_tol=1e-14):
+    """Exact bosonic loss channel (transmissivity eta) via Kraus operators
+    E_k = sqrt((1-eta)^k / k!) eta^{n/2} a^k, built iteratively.  Equivalent
+    to the mesolve Lindblad loss (kappa = -ln eta over unit time) but exact
+    and much faster at large cutoffs.  The Kraus sum is truncated on the
+    state: since the channel is trace preserving, terms are added until the
+    accumulated trace reaches 1 - trace_tol (the number of terms needed
+    scales with (1-eta) <n> of the state, not with the cutoff)."""
+    a = qt.destroy(N_basis)
+    E0 = (0.5 * np.log(eta) * qt.num(N_basis)).expm()  # eta^{n/2}
+
+    def _apply(rho):
+        E = E0
+        out = None
+        cum = 0.0
+        target = rho.tr().real
+        for k in range(N_basis):
+            if k > 0:
+                E = E * a * np.sqrt((1 - eta) / k)
+            term = E * rho * E.dag()
+            out = term if out is None else out + term
+            cum += term.tr().real
+            if cum >= target - trace_tol:
+                break
+        return out
+    return _apply
+
+
 def op_loss_dephase(N_basis, eta=1.0, pn=0.0):
-    """Loss (transmission eta) and/or dephasing (rms pn), via mesolve with
-    the same rate conventions as dynamics._apply_noise_stage."""
+    """Loss (transmission eta) and/or dephasing (rms pn).  Pure loss uses
+    the exact Kraus channel; any dephasing falls back to mesolve with the
+    rate conventions of dynamics._apply_noise_stage."""
+    if pn == 0.0:
+        if eta >= 1.0:
+            return lambda rho: rho
+        return op_loss_kraus(N_basis, eta)
+
     a = qt.destroy(N_basis)
     n_op = a.dag() * a
-    c_ops = []
+    c_ops = [np.sqrt(phirms_to_chi(pn)) * n_op]
     if eta < 1.0:
         c_ops.append(np.sqrt(loss_to_kappa(1 - eta)) * a)
-    if pn > 0.0:
-        c_ops.append(np.sqrt(phirms_to_chi(pn)) * n_op)
-    if not c_ops:
-        return lambda rho: rho
 
     def _apply(rho):
         res = qt.mesolve(0 * n_op, rho, [0.0, 1.0], c_ops,
