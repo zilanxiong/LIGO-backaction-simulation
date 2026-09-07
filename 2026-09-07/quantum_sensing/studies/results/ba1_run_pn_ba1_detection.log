@@ -87,3 +87,48 @@ opt_fock_sup: <n> = 2.0000
   f=   31.6 Hz  kappa=  0.9488  QFI=   7.0566  N= 40  conv=True  (1.2s)
   f=   21.5 Hz  kappa=  2.0495  QFI=   5.0601  N= 70  conv=True  (1.7s)
   f=   14.7 Hz  kappa=  4.4209  QFI=   1.9814  N=315  conv=True  (24.0s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.5504  N=800  conv=False  (93.7s)
+
+<n> scaling at 30 Hz (kappa = 1.055):
+  coherent      n=  1.0  QFI=   3.1697  N= 40  conv=True
+  coherent      n=  2.0  QFI=   3.0732  N= 40  conv=True
+  coherent      n=  5.0  QFI=   2.8162  N= 70  conv=True
+  coherent      n= 10.0  QFI=   2.4719  N=100  conv=True
+  sqz_vac       n=  1.0  QFI=   0.6987  N= 40  conv=True
+  sqz_vac       n=  2.0  QFI=   0.4466  N= 70  conv=True
+  sqz_vac       n=  5.0  QFI=   0.2523  N=213  conv=True
+  sqz_vac       n= 10.0  QFI=   0.1735  N=356  conv=True
+  cat           n=  1.0  QFI=   8.5346  N= 40  conv=True
+  cat           n=  2.0  QFI=   8.4040  N= 40  conv=True
+  cat           n=  5.0  QFI=   4.6803  N= 70  conv=True
+  cat           n= 10.0  QFI=   2.6350  N=100  conv=True
+  sqz_cat       n=  1.0  QFI=   6.5278  N= 40  conv=True
+  sqz_cat       n=  2.0  QFI=   8.2596  N= 70  conv=True
+  sqz_cat       n=  5.0  QFI=   9.1621  N=100  conv=True
+  sqz_cat       n= 10.0  QFI=   5.4527  N=243  conv=True
+  fock          n=  1.0  QFI=   6.9693  N= 40  conv=True
+  fock          n=  2.0  QFI=   9.1950  N= 40  conv=True
+  fock          n=  5.0  QFI=  13.2218  N= 40  conv=True
+  fock          n= 10.0  QFI=  16.3958  N= 70  conv=True
+  opt_fock_sup  n=  1.0  QFI=   1.9090  N= 40  conv=True
+  opt_fock_sup  n=  2.0  QFI=   6.8943  N= 40  conv=True
+  opt_fock_sup  n=  5.0  QFI=   4.4883  N= 70  conv=True
+  opt_fock_sup  n= 10.0  QFI=   7.3890  N= 70  conv=True
+
+QFI ~ n^s exponents:
+  Coherent           s = -0.106
+  Squeezed vac.      s = -0.607
+  Even cat           s = -0.528
+  Squeezed cat       s = -0.052
+  Fock               s = 0.375
+  Optimized (no-BA)  s = 0.443
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_pn_ba1_detection.png
+
+WARNING: 6 unconverged frequency sweep points (N_max=800):
+       state  f_hz  kappa_ba      qfi  N_basis  converged  n_target      loss_config  eta
+    coherent  10.0   9.52988 0.388618      800      False       2.0 pn_ba1_detection  0.9
+     sqz_vac  10.0   9.52988 0.276567      800      False       2.0 pn_ba1_detection  0.9
+         cat  10.0   9.52988 0.474806      800      False       2.0 pn_ba1_detection  0.9
+     sqz_cat  10.0   9.52988 0.332950      800      False       2.0 pn_ba1_detection  0.9
+        fock  10.0   9.52988 0.516913      800      False       2.0 pn_ba1_detection  0.9
+opt_fock_sup  10.0   9.52988 0.550417      800      False       2.0 pn_ba1_detection  0.9
