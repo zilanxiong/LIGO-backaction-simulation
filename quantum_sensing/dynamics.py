@@ -16,6 +16,19 @@ from .conversions import loss_to_kappa, phirms_to_chi, ba_to_g
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+# Tight ODE tolerances for every mesolve call in this module.  The SLD/QFI and
+# CFI routines differentiate these channels by central differences with step
+# ~1e-5; QuTiP's default tolerances (atol 1e-8, rtol 1e-6) leave solver noise
+# of the same order as the difference, which corrupts the derivative (QFI can
+# come out wildly wrong, even negative, at large N_basis with the back-action
+# shear).  nsteps is raised because H_BA ~ x^2 is stiff at large cutoffs.
+SOLVER_OPTIONS = {"atol": 1e-12, "rtol": 1e-10, "nsteps": 100_000}
+
+
+def _mesolve(H, rho, tlist, c_ops):
+    return qt.mesolve(H, rho, tlist, c_ops, options=dict(SOLVER_OPTIONS))
+
+
 def _ensure_dm(state, N_basis=None):
     """Convert ket -> density matrix if needed."""
     if state.isket:
@@ -42,7 +55,7 @@ def _apply_noise_stage(rho, eta_vals, pn_vals, ops, n_ops):
         return rho
 
     H_zero = 0 * ops[0].dag() * ops[0]
-    res = qt.mesolve(H_zero, rho, [0, t_stage], c_ops)
+    res = _mesolve(H_zero, rho, [0, t_stage], c_ops)
     return res.states[-1]
 
 
@@ -127,7 +140,7 @@ def get_state_mzi_heis(
         chiB = phirms_to_chi(pn_arms[1], t_final)
         L_arms.append(np.sqrt(chiB) * NB)
 
-    res_arms = qt.mesolve(H, rho_dm, np.linspace(0, t_final, 2), L_arms)
+    res_arms = _mesolve(H, rho_dm, np.linspace(0, t_final, 2), L_arms)
     rho_dm = res_arms.states[-1]
 
     # --- Stage 3: Output noise (C, D) ---
@@ -173,7 +186,7 @@ def get_state_arms(
     # Sensing
     H = Delta * ax.dag() * ax
     t_list = [0.0, t_final]
-    result = qt.mesolve(H, rho0, t_list, [])
+    result = _mesolve(H, rho0, t_list, [])
     rho_sensed = result.states[-1]
 
     # Loss and dephasing
@@ -193,7 +206,7 @@ def get_state_arms(
 
     if len(c_ops) > 0:
         H1 = 0 * ax.dag() * ax
-        result1 = qt.mesolve(H1, rho_sensed, t_list, c_ops)
+        result1 = _mesolve(H1, rho_sensed, t_list, c_ops)
         return result1.states[-1]
 
     return rho_sensed
@@ -252,7 +265,7 @@ def get_state_single_mode(
         rho1 = rho0
     else:
         H_zero = 0 * n_op
-        res_in = qt.mesolve(H_zero, rho0, [0, t_in], L_in)
+        res_in = _mesolve(H_zero, rho0, [0, t_in], L_in)
         rho1 = res_in.states[-1]
 
     # --- Stage 2: Sensing channel ---
@@ -272,7 +285,7 @@ def get_state_single_mode(
     if sigma_p > 0.0:
         L_ch.append(1j * np.sqrt(sigma_p) * (a.dag() - a))
 
-    res_ch = qt.mesolve(H, rho1, [0.0, t_final], L_ch)
+    res_ch = _mesolve(H, rho1, [0.0, t_final], L_ch)
     rho_sensed = res_ch.states[-1]
 
     # --- Stage 3: Output noise ---
@@ -289,7 +302,7 @@ def get_state_single_mode(
         return rho_sensed
 
     H_zero = 0 * n_op
-    res_out = qt.mesolve(H_zero, rho_sensed, [0, t_out], L_out)
+    res_out = _mesolve(H_zero, rho_sensed, [0, t_out], L_out)
     return res_out.states[-1]
 
 
