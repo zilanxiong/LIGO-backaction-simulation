@@ -15,7 +15,7 @@ def _dm(kind, n, N, **kw):
 def test_frame_vs_direct_loss_placements():
     """At K = 1 (cheap for the direct method) the sheared-frame chain must
     match the direct Fock channel for all three loss placements."""
-    K, eta, N = 1.0, 0.8, 220
+    K, eta, N = 1.0, 0.8, 140
     rho = _dm("cat", 2.0, N)
     for place, direct_name in (("pre", "inj"), ("post", "det"),
                                ("conc", "conc")):
@@ -35,7 +35,7 @@ def test_frame_high_K_matches_gaussian():
         gq = gaussian_qfi(sqz_cov(r, 0.0), K,
                           {"pre": "inj", "post": "det", "conc": "conc"}[place],
                           eta)
-        N = 260
+        N = 200
         q = qfi_chain(_dm("sqz_vac", 2.0, N, theta=0.0), K, N,
                       [("loss", eta, place)])
         tol = 6e-3 if place == "conc" else 2e-3
@@ -44,25 +44,44 @@ def test_frame_high_K_matches_gaussian():
 
 def test_pn_chain_orderings_differ():
     """PN before vs after the SB block are different channels at K > 0."""
-    K, chi, N = 2.0, 0.1, 200
+    K, chi, N = 2.0, 0.1, 150
     rho = _dm("sqz_vac", 2.0, N, theta=0.0)
     q_pre = qfi_chain(rho, K, N, [("pn", chi, "pre")])
     q_post = qfi_chain(rho, K, N, [("pn", chi, "post")])
     assert abs(q_pre - q_post) / q_pre > 1e-3
 
 
-def test_pn_at_zero_K_placement_irrelevant():
-    """With no back-action, PN placement around a commuting block is moot."""
-    chi, N = 0.1, 160
+def test_pn_mesolve_matches_exact_map():
+    """Pre-SB dephasing via mesolve must match the exact map
+    rho_mn -> rho_mn exp(-chi (m-n)^2 / 2) (cf. ordering-verification)."""
+    import numpy as _np
+    chi, N = 0.1, 120
     rho = _dm("cat", 2.0, N)
-    q_pre = qfi_chain(rho, 0.0, N, [("pn", chi, "pre")])
-    q_post = qfi_chain(rho, 0.0, N, [("pn", chi, "post")])
-    assert abs(q_pre - q_post) / q_pre < 1e-8
+    m = _np.arange(N)
+    fac = _np.exp(-chi * (m[:, None] - m[None, :]) ** 2 / 2.0)
+    rho_exact = qt.Qobj(rho.full() * fac)
+    x = qt.destroy(N) + qt.destroy(N).dag()
+
+    def dyn_exact(eps):
+        U = (-1j * eps * x).expm()
+        return U * rho_exact * U.dag()
+
+    from chains import qfi_chain as _qc, PREC_DIFF
+    from numpy.linalg import eigh as _eigh
+    outs = [dyn_exact(e).full() for e in (PREC_DIFF, -PREC_DIFF, 0.0)]
+    drho = (outs[0] - outs[1]) / (2 * PREC_DIFF)
+    evals, evecs = _eigh(outs[2])
+    drot = evecs.conj().T @ drho @ evecs
+    den = evals[:, None] + evals[None, :]
+    msk = _np.abs(den) > 1e-10
+    q_exact = float(_np.real(_np.sum(2 * _np.abs(drot[msk]) ** 2 / den[msk])))
+    q_chain = _qc(rho, 0.0, N, [("pn", chi, "pre")])
+    assert abs(q_chain - q_exact) / q_exact < 2e-3, (q_chain, q_exact)
 
 
 def test_two_noise_chain_runs():
     """PN -> SB -> loss vs loss -> SB -> PN: both run and differ at K > 0."""
-    K, N = 2.0, 220
+    K, N = 2.0, 150
     rho = _dm("sqz_vac", 2.0, N, theta=0.0)
     q1 = qfi_chain(rho, K, N, [("pn", 0.1, "pre"), ("loss", 0.9, "post")])
     q2 = qfi_chain(rho, K, N, [("loss", 0.9, "pre"), ("pn", 0.1, "post")])
