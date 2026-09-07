@@ -44,6 +44,17 @@ def _noise_ops(N, k, kind):
     raise ValueError(kind)
 
 
+def _exact_dephase(rho, n_like, chi, t=1.0):
+    """Exact map for D[n_like] with Hermitian n_like: in its eigenbasis
+    rho_ij -> rho_ij exp(-chi t (l_i - l_j)^2 / 2). Avoids the stiff
+    mesolve (rates ~ chi K^2 n^2) for sheared-frame dephasing."""
+    evals, evecs = np.linalg.eigh(n_like.full())
+    r = evecs.conj().T @ rho.full() @ evecs
+    d = evals[:, None] - evals[None, :]
+    r = r * np.exp(-chi * t * d**2 / 2.0)
+    return qt.Qobj(evecs @ r @ evecs.conj().T)
+
+
 def _lindblad_step(rho, ops_rates, N, t=1.0, H=None):
     if H is None:
         H = 0 * qt.qeye(N)
@@ -74,8 +85,11 @@ def apply_chain(rho0, eps, K, N, stages):
     rho = rho0
     # --- pre-SB noise: bare operators (k = 0) ---
     for kind, strength, _ in pre:
-        rate = -np.log(strength) if kind == "loss" else strength
-        rho = _lindblad_step(rho, [(_noise_ops(N, 0.0, kind), rate)], N)
+        if kind == "pn":
+            rho = _exact_dephase(rho, _noise_ops(N, 0.0, "pn"), strength)
+        else:
+            rho = _lindblad_step(rho, [(_noise_ops(N, 0.0, kind),
+                                        -np.log(strength))], N)
 
     # --- SB block ---
     U_s = (-1j * eps * x).expm()          # signal (B dropped: final-unitary)
@@ -88,16 +102,21 @@ def apply_chain(rho0, eps, K, N, stages):
         H = eps * x
         for j in range(N_TROTTER):
             k_mid = K * (j + 0.5) * dt
-            ops = []
-            for kind, strength, _ in conc:
-                rate = -np.log(strength) if kind == "loss" else strength
-                ops.append((_noise_ops(N, k_mid, kind), rate))
-            rho = _lindblad_step(rho, ops, N, t=dt, H=H)
+            loss_ops = [(_noise_ops(N, k_mid, kd), -np.log(st))
+                        for kd, st, _ in conc if kd == "loss"]
+            rho = _lindblad_step(rho, loss_ops, N, t=dt, H=H)
+            for kd, st, _ in conc:
+                if kd == "pn":
+                    rho = _exact_dephase(rho, _noise_ops(N, k_mid, "pn"),
+                                         st, t=dt)
 
     # --- post-SB noise: fully sheared operators (k = K) ---
     for kind, strength, _ in post:
-        rate = -np.log(strength) if kind == "loss" else strength
-        rho = _lindblad_step(rho, [(_noise_ops(N, K, kind), rate)], N)
+        if kind == "pn":
+            rho = _exact_dephase(rho, _noise_ops(N, K, "pn"), strength)
+        else:
+            rho = _lindblad_step(rho, [(_noise_ops(N, K, kind),
+                                        -np.log(strength))], N)
 
     return rho
 
