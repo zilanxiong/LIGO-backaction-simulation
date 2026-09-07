@@ -26,3 +26,111 @@ sqz_vac: <n> = 5.0000
   f=   46.4 Hz  kappa=  0.4379  QFI=   0.8320  N=163  conv=True  (2.5s)
   f=   31.6 Hz  kappa=  0.9488  QFI=   0.9251  N=238  conv=True  (5.1s)
   f=   21.5 Hz  kappa=  2.0495  QFI=   1.2229  N=381  conv=True  (13.3s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   1.0774  N=800  conv=False  (66.3s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.3849  N=800  conv=False  (39.8s)
+
+sqz_vac_p: <n> = 5.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=  17.7375  N=183  conv=True  (1.6s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=  17.7375  N=163  conv=True  (1.1s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=  17.7374  N=163  conv=True  (1.5s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=  17.7369  N=163  conv=True  (2.1s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=  17.7340  N=163  conv=True  (1.3s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=  17.7174  N=163  conv=True  (1.6s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=  17.6347  N=163  conv=True  (1.5s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=  17.2472  N=163  conv=True  (1.9s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=  15.6428  N=193  conv=True  (2.0s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=  11.1807  N=336  conv=True  (6.5s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   5.9420  N=800  conv=True  (57.0s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   2.4923  N=800  conv=False  (40.5s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   4.8178  N=800  conv=False  (42.0s)
+
+cat: <n> = 5.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=  28.0530  N= 40  conv=True  (0.1s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=  28.0530  N= 40  conv=True  (0.1s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=  28.0529  N= 40  conv=True  (0.8s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=  28.0521  N= 40  conv=True  (0.5s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=  28.0464  N= 40  conv=True  (0.6s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=  28.0147  N= 40  conv=True  (0.1s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=  27.8560  N= 40  conv=True  (0.1s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=  27.1071  N= 40  conv=True  (0.1s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=  23.8994  N= 40  conv=True  (0.9s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=  14.0493  N= 70  conv=True  (2.4s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   3.4027  N=145  conv=True  (4.0s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   1.4511  N=543  conv=True  (48.3s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   7.6620  N=800  conv=False  (91.3s)
+
+sqz_cat: <n> = 5.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=  24.2520  N=115  conv=True  (1.6s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=  24.2520  N= 95  conv=True  (1.6s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=  24.2520  N= 95  conv=True  (1.6s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=  24.2517  N= 95  conv=True  (1.0s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=  24.2497  N= 95  conv=True  (1.1s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=  24.2385  N= 95  conv=True  (1.1s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=  24.1823  N= 95  conv=True  (1.4s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=  23.9137  N= 95  conv=True  (2.9s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=  22.6938  N= 95  conv=True  (1.8s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=  17.9127  N=170  conv=True  (3.0s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   7.1807  N=313  conv=True  (6.7s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   1.3127  N=800  conv=False  (59.2s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.5439  N=800  conv=False  (46.2s)
+
+fock: <n> = 5.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=  26.4196  N= 20  conv=True  (0.0s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=  26.4196  N= 20  conv=True  (0.2s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=  26.4196  N= 20  conv=True  (0.3s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=  26.4193  N= 20  conv=True  (0.2s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=  26.4175  N= 20  conv=True  (0.2s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=  26.4073  N= 20  conv=True  (0.2s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=  26.3562  N= 20  conv=True  (0.2s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=  26.1125  N= 20  conv=True  (0.6s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=  25.0198  N= 20  conv=True  (0.1s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=  20.9314  N= 40  conv=True  (0.7s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=  12.0955  N=115  conv=True  (3.3s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   4.3226  N=360  conv=True  (20.1s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   1.3804  N=800  conv=False  (61.2s)
+
+opt_fock_sup: <n> = 5.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=   5.4884  N= 20  conv=True  (0.0s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=   5.4884  N= 20  conv=True  (0.4s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=   5.4884  N= 20  conv=True  (0.0s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=   5.4884  N= 20  conv=True  (0.1s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=   5.4884  N= 20  conv=True  (0.1s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=   5.4885  N= 20  conv=True  (0.0s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=   5.4891  N= 20  conv=True  (0.2s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=   5.4918  N= 20  conv=True  (0.2s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=   5.5029  N= 40  conv=True  (1.2s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=   5.5185  N= 70  conv=True  (0.8s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   5.1861  N=145  conv=True  (2.8s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   3.2196  N=390  conv=True  (25.0s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   1.2621  N=800  conv=False  (67.0s)
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_paper_pn_ba1.png
+
+WARNING: 10 unconverged frequency sweep points (N_max=800):
+       state      f_hz  kappa_ba      qfi  N_basis  converged  n_target  loss_config  eta
+    coherent 10.000000  9.529880 0.568173      800      False       5.0 paper_pn_ba1  0.9
+     sqz_vac 14.677993  4.420859 1.077383      800      False       5.0 paper_pn_ba1  0.9
+     sqz_vac 10.000000  9.529880 0.384881      800      False       5.0 paper_pn_ba1  0.9
+   sqz_vac_p 14.677993  4.420859 2.492349      800      False       5.0 paper_pn_ba1  0.9
+   sqz_vac_p 10.000000  9.529880 4.817779      800      False       5.0 paper_pn_ba1  0.9
+         cat 10.000000  9.529880 7.661982      800      False       5.0 paper_pn_ba1  0.9
+     sqz_cat 14.677993  4.420859 1.312692      800      False       5.0 paper_pn_ba1  0.9
+     sqz_cat 10.000000  9.529880 0.543938      800      False       5.0 paper_pn_ba1  0.9
+        fock 10.000000  9.529880 1.380412      800      False       5.0 paper_pn_ba1  0.9
+opt_fock_sup 10.000000  9.529880 1.262067      800      False       5.0 paper_pn_ba1  0.9
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/strain_sql_paper_pn_ba1.png
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-LIGO-backaction-simulation/71d26389-b03f-5554-8a21-641c01bb86b6/scratchpad/paper_highN.py", line 12, in <module>
+    fams["opt_fock_sup"] = probes.optimized(5.0, "fock_sup")
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/probes.py", line 97, in optimized
+    entries = [e for e in load_state_params(state_type, loss_config, eta, pn)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/states.py", line 88, in load_state_params
+    h5_path = _get_data_dir() / "states.h5"
+              ^^^^^^^^^^^^^^^
+  File "/home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/states.py", line 38, in _get_data_dir
+    raise RuntimeError(
+RuntimeError: Data directory not configured. Either:
+  - Call quantum_sensing.set_data_dir('/path/to/consolidated_data')
+  - Set QUANTUM_SENSING_DATA_DIR environment variable
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/strain_sql_paper_pn_ba1.png
