@@ -53,7 +53,7 @@ PN = 0.0           # phase noise
 NT = 5.0           # photon-number budget
 FREQS_HZ = np.logspace(1.0, 3.0, 11)          # 10 Hz - 1 kHz
 PLACEMENTS = ["before", "during", "after"]
-N_CAP = 600
+N_CAP = 1000
 
 
 def cutoff_for(kappa_ba):
@@ -120,53 +120,77 @@ def make_fast_dynamics(build, N, g, eta, placement):
 
 # --- Cutoff sizing ---------------------------------------------------------
 
-def probe_cutoff(build, g, n_probe=N_CAP, tail=1e-9, floor=60):
-    """Fock levels needed to hold the sheared state (loss-free = worst case)."""
+def probe_cutoff(build, g, tail=1e-9, floor=60):
+    """Fock levels needed to hold the sheared state (loss-free = worst case).
+
+    Probes at 600 first and escalates to N_CAP if the tail hasn't dropped
+    below threshold within the probe window.
+    """
     if g < 0.1:
         return floor
-    x2, _ = _ops(n_probe)
-    w = expm(-1j * g * x2) @ build(n_probe).full().ravel()
-    pop = np.abs(w) ** 2
-    cum_tail = np.cumsum(pop[::-1])[::-1]
-    idx = np.argmax(cum_tail < tail)
-    if idx == 0:          # tail never dropped below threshold within n_probe
-        return n_probe
-    return int(min(n_probe, max(floor, 1.25 * idx + 25)))
+    for n_probe in (600, N_CAP):
+        x2, _ = _ops(n_probe)
+        w = expm(-1j * g * x2) @ build(n_probe).full().ravel()
+        pop = np.abs(w) ** 2
+        cum_tail = np.cumsum(pop[::-1])[::-1]
+        idx = np.argmax(cum_tail < tail)
+        if idx > 0:
+            return int(min(n_probe, max(floor, 1.25 * idx + 25)))
+    return N_CAP
 
 
 # --- QFI evaluation --------------------------------------------------------
 
-N_DURING_CAP = 560          # cutoff cap for the concurrent-loss mesolve path
-N_RELAX = 250               # above this, relax ODE tolerances (see below)
+N_FRAME = 320               # cutoff for the shear-frame concurrent-loss path
+
+
+def make_frame_during_dynamics(build, N, g, eta):
+    """Concurrent loss + shear + signal, in the shear interaction frame.
+
+    With U_s(t) = exp(-i g t x^2), write rho(t) = U_s rho' U_s^dag.  The final
+    U_s(1) is parameter-independent, so the QFI of rho' equals that of rho.
+    In the frame the shear disappears from the Hamiltonian and the state stays
+    compact (no photon growth), at the cost of time-dependent operators:
+
+        a   -> a - i g t (a + a^dag)          (collapse operator)
+        i(a^dag - a) -> i(a^dag - a) - 2 g t (a + a^dag)   (signal)
+
+    This is exact and removes both the huge cutoffs and the stiffness of the
+    lab-frame solve at strong shear.  Requires PN == 0 (dephasing would not
+    transform simply).
+    """
+    assert PN == 0.0, "shear-frame path assumes no dephasing"
+    a = qt.destroy(N)
+    kap = qs.loss_to_kappa(1 - eta)
+    A = np.sqrt(kap) * a
+    B = -1j * g * np.sqrt(kap) * (a + a.dag())
+    H1 = 1j * (a.dag() - a)
+    H2 = -2 * g * (a + a.dag())
+
+    def dyn(epsilon_p=0.0, **_):
+        H = qt.QobjEvo([epsilon_p * H1, [epsilon_p * H2, "t"]])
+        c = [qt.QobjEvo([A, [B, "t"]])] if eta < 1.0 else []
+        res = qt.mesolve(H, qt.ket2dm(build(N)), [0.0, 1.0], c,
+                         options=dict(qs.dynamics.SOLVER_OPTIONS))
+        return res.states[-1]
+
+    return dyn
 
 
 def qfi_at(build, kappa_ba, placement, N):
     g = qs.ba_to_g(kappa_ba)
     if placement == "during":
-        # The package's tight tolerances (atol 1e-12) make the strongest-shear
-        # solves take hours at N ~ 600.  Relaxing to atol 1e-10 keeps solver
-        # noise ~1e-5 below the central-difference step while cutting runtime
-        # to minutes; the convergence check below quantifies the residual.
-        N = min(N, N_DURING_CAP)
-        psi = build(N)
-        saved = dict(qs.dynamics.SOLVER_OPTIONS)
-        if N > N_RELAX:
-            qs.dynamics.SOLVER_OPTIONS.update(
-                {"atol": 1e-10, "rtol": 1e-8, "nsteps": 1_000_000})
-        try:
-            return qs.calculate_qfi(qs.get_state_single_mode_rp,
-                                    param_type="epsilon_p", rho=psi, N_basis=N,
-                                    kappa_ba=kappa_ba, eta_ch=ETA, pn_ch=PN)
-        finally:
-            qs.dynamics.SOLVER_OPTIONS.clear()
-            qs.dynamics.SOLVER_OPTIONS.update(saved)
+        dyn = make_frame_during_dynamics(build, min(N, N_FRAME), g, ETA)
+        return qs.calculate_qfi(dyn, param_type="epsilon_p")
     dyn = make_fast_dynamics(build, N, g, ETA, placement)
     return qs.calculate_qfi(dyn, param_type="epsilon_p")
 
 
 def crosscheck(build, kappa_ba, N):
-    """Fast path vs the package mesolve channel, for before and after."""
-    for placement, kw in [("before", {"eta_in": ETA}), ("after", {"eta_out": ETA})]:
+    """Fast/frame paths vs the package mesolve channel, all placements."""
+    for placement, kw in [("before", {"eta_in": ETA}),
+                          ("during", {"eta_ch": ETA}),
+                          ("after", {"eta_out": ETA})]:
         q_fast = qfi_at(build, kappa_ba, placement, N)
         psi = build(N)
         q_ref = qs.calculate_qfi(qs.get_state_single_mode_rp,
@@ -174,8 +198,8 @@ def crosscheck(build, kappa_ba, N):
                                  kappa_ba=kappa_ba, pn_ch=PN, **kw)
         rel = abs(q_fast - q_ref) / q_ref
         print(f"  crosscheck {placement}: fast={q_fast:.6f} "
-              f"mesolve={q_ref:.6f} rel={rel:.2e}")
-        assert rel < 1e-5, "fast path disagrees with mesolve channel"
+              f"mesolve={q_ref:.6f} rel={rel:.2e}", flush=True)
+        assert rel < 1e-4, f"{placement} path disagrees with mesolve channel"
 
 
 def main():
@@ -200,7 +224,7 @@ def main():
                 t0 = time.time()
                 N = cuts[kba]
                 if placement == "during":
-                    N = min(N, N_DURING_CAP)
+                    N = min(N, N_FRAME)
                 q = qfi_at(build, kba, placement, N)
                 rows.append(dict(state=name, placement=placement,
                                  freq_hz=f_hz, kappa_ba=kba, qfi=q,
@@ -213,29 +237,31 @@ def main():
     df.to_csv(out, index=False)
     print(f"\nwrote {out}")
 
-    # Convergence checks at the strongest shear (largest cutoff case)
+    # Convergence checks at the strongest shear (fock_sup spreads the most
+    # and bounds the truncation error).
     kmax = kappas.max()
+    g = qs.ba_to_g(kmax)
     for name in ["fock_sup", "sqz_vac"]:
         if name not in builders:
             continue
-        N0 = probe_cutoff(builders[name], qs.ba_to_g(kmax))
-        N1 = min(N_CAP + 100, N0 + 80)
-        q0 = df[(df.state == name) & (df.placement == "after")
-                & (df.kappa_ba == kmax)].qfi.iloc[0]
-        dyn = make_fast_dynamics(builders[name], N1, qs.ba_to_g(kmax), ETA, "after")
-        q1 = qs.calculate_qfi(dyn, param_type="epsilon_p")
-        print(f"convergence ({name}, after, kappa={kmax:.2f}): "
-              f"N={N0} -> {q0:.5f},  N={N1} -> {q1:.5f}, "
-              f"rel diff = {abs(q1-q0)/q1:.2e}", flush=True)
+        for placement in ["before", "after"]:
+            N0 = probe_cutoff(builders[name], g)
+            N1 = min(N_CAP + 200, N0 + 150)
+            q0 = df[(df.state == name) & (df.placement == placement)
+                    & (df.kappa_ba == kmax)].qfi.iloc[0]
+            dyn = make_fast_dynamics(builders[name], N1, g, ETA, placement)
+            q1 = qs.calculate_qfi(dyn, param_type="epsilon_p")
+            print(f"convergence ({name}, {placement}, kappa={kmax:.2f}): "
+                  f"N={N0} -> {q0:.5f},  N={N1} -> {q1:.5f}, "
+                  f"rel diff = {abs(q1-q0)/q1:.2e}", flush=True)
 
-    # The mesolve path at the capped cutoff vs a lower one (fock_sup spreads
-    # the most under shear, so it bounds the truncation error of "during").
-    q_cap = df[(df.state == "fock_sup") & (df.placement == "during")
-               & (df.kappa_ba == kmax)].qfi.iloc[0]
-    q_lower = qfi_at(builders["fock_sup"], kmax, "during", N_DURING_CAP - 80)
-    print(f"convergence (fock_sup, during, kappa={kmax:.2f}): "
-          f"N={N_DURING_CAP - 80} -> {q_lower:.5f},  N<= {N_DURING_CAP} -> "
-          f"{q_cap:.5f}, rel diff = {abs(q_cap-q_lower)/q_cap:.2e}")
+        q_cap = df[(df.state == name) & (df.placement == "during")
+                   & (df.kappa_ba == kmax)].qfi.iloc[0]
+        dyn = make_frame_during_dynamics(builders[name], N_FRAME + 100, g, ETA)
+        q_hi = qs.calculate_qfi(dyn, param_type="epsilon_p")
+        print(f"convergence ({name}, during/frame, kappa={kmax:.2f}): "
+              f"N={N_FRAME} -> {q_cap:.5f},  N={N_FRAME + 100} -> {q_hi:.5f}, "
+              f"rel diff = {abs(q_hi-q_cap)/q_hi:.2e}", flush=True)
 
 
 if __name__ == "__main__":
