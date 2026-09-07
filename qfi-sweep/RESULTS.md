@@ -55,3 +55,22 @@ closed-form coherent+det-loss, below the BC2001 conventional curve,
 4/(1-eta) ceiling monotone, inj != det with conc bracketed, photon
 budgets). Any CSV row is independently recomputable from the stated
 conventions.
+
+## Noise-chain sweep (10 Hz - 1 kHz, chains.csv, figS3-S5)
+
+7. **Back-action-amplified phase noise destroys carrier-carrying probes.**
+   With chi = 0.1 dephasing after (or concurrent with) the BA block, the
+   coherent state's QFI collapses at low frequency (4 -> 0.05 at 10 Hz,
+   K = 9.4): its large mean field <x> != 0 couples to the K^2-amplified
+   sheared dephasing operator. Zero-mean states are nearly immune
+   (squeezed vacuum 39.6 -> 35.8, cat 36.5 -> 33.0, Fock 20 -> 18.1).
+   This is the first genuine ranking inversion mechanism found: phase
+   noise + back-action punishes displacement-based probes specifically.
+
+8. **PN placement matters little for zero-mean states** (figS4): for
+   squeezed vacuum the pre/conc/post band is only a few percent wide even
+   at K = 9.4 - unlike loss, whose placement band is wide (figS2).
+
+9. **Cross-validation:** the pn_pre chain rows reproduce the
+   ordering-verification exact-map tables digit-for-digit (coherent
+   2.336, sqz 36.044, cat 33.528 at the shared parameters).

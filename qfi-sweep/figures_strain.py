@@ -62,11 +62,12 @@ def _axes(ax):
     ax.set_ylabel("$\\sqrt{S_h}\\,/\\,\\sqrt{S_h^{\\rm SQL}}$")
 
 
-def fig_states(df, scen_col, lossless_key, lossy_key, lossy_title, out):
+def fig_states(df, scen_col, lossless_key, lossy_key, lossy_title, out,
+               left_title="lossless"):
     fig, axes = plt.subplots(1, 2, figsize=(11.2, 4.8), sharey=True)
     f_grid = np.logspace(1, 3, 300)
     for ax, key, title in zip(axes, (lossless_key, lossy_key),
-                              ("lossless", lossy_title)):
+                              (left_title, lossy_title)):
         sub = df[(df[scen_col] == key) & (df.n_target == 2.0)]
         sub = sub.drop_duplicates(subset=["state", "freq_hz"])
         for kind in COLORS:
@@ -89,7 +90,7 @@ def fig_states(df, scen_col, lossless_key, lossy_key, lossy_title, out):
 
 
 def fig_band(df, scen_col, keys, out, state="sqz_vac",
-             title="Loss placement band"):
+             title="Loss placement band", band_label="sequential bounds"):
     """Injection/detection band with the concurrent curve inside."""
     pre_k, conc_k, post_k, lossless_k = keys
     fig, ax = plt.subplots(figsize=(6.8, 4.8))
@@ -109,7 +110,7 @@ def fig_band(df, scen_col, keys, out, state="sqz_vac",
     f_pre, h_pre = curve(pre_k)
     f_post, h_post = curve(post_k)
     ax.fill_between(f_pre, h_pre, h_post, color="#0072B2", alpha=0.15,
-                    label="sequential bounds (loss before ... after BA)")
+                    label=band_label)
     ax.plot(f_pre, h_pre, "-", color="#0072B2", lw=1.5)
     ax.plot(f_post, h_post, "-.", color="#D55E00", lw=1.5)
     f_c, h_c = curve(conc_k)
@@ -135,6 +136,7 @@ def main():
     fig_band(df1, "scen",
              ("inj_0.9", "conc_0.9", "det_0.9", "none_1.0"),
              "figS2_loss_band_strain.png",
+             band_label="sequential bounds (loss before ... after BA)",
              title="Squeezed vacuum, $\\langle n\\rangle=2$: where 10% "
                    "loss sits")
 
@@ -147,11 +149,13 @@ def main():
         fig_band(df2, "scenario",
                  ("pn_pre", "pn_conc", "pn_post", "lossless"),
                  "figS4_pn_band_strain.png",
+                 band_label="sequential bounds (PN before ... after BA)",
                  title="Squeezed vacuum, $\\langle n\\rangle=2$: where "
                        "phase noise sits")
         fig_states(df2, "scenario", "pn_then_loss", "loss_then_pn",
                    "loss $\\to$ BA $\\to$ PN",
-                   "figS5_two_noise_strain.png")
+                   "figS5_two_noise_strain.png",
+                   left_title="PN $\\to$ BA $\\to$ loss")
 
 
 if __name__ == "__main__":
