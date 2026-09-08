@@ -134,3 +134,15 @@ RuntimeError: Data directory not configured. Either:
   - Call quantum_sensing.set_data_dir('/path/to/consolidated_data')
   - Set QUANTUM_SENSING_DATA_DIR environment variable
 figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/strain_sql_paper_pn_ba1.png
+sqz_vac       f= 14.68 QFI=1.0774 N=900 conv=True (108s)
+sqz_vac_p     f= 14.68 QFI=2.4364 N=1800 conv=False (844s)
+sqz_cat       f= 14.68 QFI=1.3127 N=700 conv=True (120s)
+coherent      f= 10.00 QFI=0.6286 N=1800 conv=False (840s)
+sqz_vac_p     f= 10.00 QFI=1.2425 N=1800 conv=False (892s)
+sqz_vac       f= 10.00 QFI=0.3591 N=1800 conv=False (837s)
+cat           f= 10.00 QFI=0.6297 N=1800 conv=False (858s)
+sqz_cat       f= 10.00 QFI=0.3909 N=1800 conv=False (879s)
+fock          f= 10.00 QFI=1.0780 N=1800 conv=False (733s)
+opt_fock_sup  f= 10.00 QFI=0.9833 N=1800 conv=False (769s)
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_paper_pn_ba1.png
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/strain_sql_paper_pn_ba1.png
