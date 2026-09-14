@@ -132,6 +132,33 @@ N_basis = 0.  The two pn low-frequency points (non-Gaussian channel)
 were recomputed at N_max = 1700; the 10 Hz pn point (0.434) still carries
 the conservative unconverged flag.
 
-Files: `ba1_frequency_sweep[_injection|_ba2_detection|_ba2_injection|_ba3_full|_pn_ba1_detection].csv`,
+## Optimized-state orientation fix (affects all sweeps)
+
+The campaign's Fock coefficients are stored in a frame rotated pi/2 from
+this package's quadratures; naive reconstruction aligned the optimized
+states' information quadrature with p instead of x, under-scoring
+opt_fock_sup everywhere (e.g. n = 2 detection plateau 7.94 -> 14.04 after
+the fix).  probes.optimized now applies the e^{i pi/2 n} rotation, pinned
+by a regression test reproducing the campaign's stored QFI (29.622)
+exactly.  All CSVs and figures were re-scored with the corrected
+orientation.
+
+## Paper operating point (n = 5, 200 mrad pn, 5% loss): with vs without BA
+
+`paper_pn_ba1` (pn -> shear -> signal -> loss) and `paper_pn_noba`
+(same, kappa forced to 0; opt_matched = campaign state optimized AT
+eta = 0.95, pn = 0.2, loss_out geometry):
+
+- NO back-action: opt_matched 29.62 > opt(lossless) 28.15 > cat 28.05 >
+  Fock 26.42 > sqz cat 24.25 > sqz vac (p) 17.74.  The previous paper's
+  claim holds in its own regime: the state optimized at the noise point
+  wins there (and reproduces the campaign's stored value exactly).
+- WITH back-action the ranking inverts in the BA-dominated band: at
+  21.5 Hz (kappa = 2) Fock holds 12.1 while opt(lossless) drops to 3.3
+  and the cat to 3.4.  The no-BA-optimized advantage is a plateau-only
+  effect; robustness to the shear is what none of the no-BA states were
+  optimized for.
+
+Files: `ba1_frequency_sweep[_injection|_ba2_detection|_ba2_injection|_ba3_full|_pn_ba1_detection|_paper_pn_ba1|_paper_pn_noba].csv`,
 matching `ba1_n_scaling*.csv`, `ba1_qfi_vs_frequency*.png`,
 `strain_sql*.png`, `ba1_run*.log`.

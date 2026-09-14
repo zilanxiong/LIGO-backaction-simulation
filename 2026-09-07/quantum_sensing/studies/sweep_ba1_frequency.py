@@ -184,6 +184,11 @@ def _merge_csv(path, new_df, states_run):
         old = pd.read_csv(path)
         old = old[~old["state"].isin(states_run)]
         new_df = pd.concat([old, new_df], ignore_index=True)
+    # CSV float roundtrips can perturb f_hz in the last digits, creating
+    # near-duplicate frequency rows across merges; normalize.
+    if "f_hz" in new_df.columns:
+        new_df["f_hz"] = new_df["f_hz"].round(6)
+        new_df = new_df.drop_duplicates(subset=["state", "f_hz"], keep="last")
     new_df.to_csv(path, index=False)
     return new_df
 
