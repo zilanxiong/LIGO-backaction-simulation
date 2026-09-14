@@ -269,7 +269,8 @@ def plot(df_freq, exps, path):
                  "detection loss "
                  f"($\\langle n\\rangle$ = {N_TARGET:g}, $\\eta$ = {ETA_LOSS})")
     elif LOSS_CONFIG == "paper_pn_ba1":
-        title = ("phase noise (200 mrad) $\\to$ BA1 $\\to$ 5% loss "
+        title = ("phase noise (200 mrad) $\\to$ backaction $\\to$ "
+                 "displacement $\\to$ 5% loss "
                  f"($\\langle n\\rangle$ = {N_TARGET:g})")
     else:
         title = ("BA3: $\\eta_{in}$=0.95 $\\to$ [signal+shear, "
