@@ -71,6 +71,7 @@ ETA_LOSS = 0.9
 LOSS_CONFIG = (sys.argv[1] if len(sys.argv) > 1 else "detection")
 DYNAMICS = get_state_ba1
 SKIP_SCALING = False
+KAPPA_ZERO = False
 if LOSS_CONFIG == "detection":
     LOSS_KW = {"eta_out": ETA_LOSS}
     CONV_KW = {"check_output_tail": True}
@@ -113,6 +114,18 @@ elif LOSS_CONFIG == "paper_pn_ba1":
     SUFFIX = "_paper_pn_ba1"
     N_MAX = 1600
     SKIP_SCALING = True
+elif LOSS_CONFIG == "paper_pn_noba":
+    # Control for paper_pn_ba1 with the back-action REMOVED (kappa forced
+    # to 0 in the channel; the CSV still records the physical kappa(Omega)
+    # so the strain conversion keeps the real signal transfer).  This is
+    # essentially the previous paper's channel: pn -> displacement -> loss.
+    # QFI is frequency-flat, so each state is evaluated once and broadcast.
+    N_TARGET = 5.0
+    LOSS_KW = {"pn_in": 0.2, "eta_out": 0.95}
+    CONV_KW = {"check_output_tail": True}
+    SUFFIX = "_paper_pn_noba"
+    SKIP_SCALING = True
+    KAPPA_ZERO = True
 elif LOSS_CONFIG == "ba3_full":
     # The physical case: simultaneous signal + back-action (BA3) with all
     # three loss slots populated at LIGO-ish values — injection 0.95,
@@ -134,7 +147,7 @@ F_SCALING_HZ = 30.0                          # kappa ~ 1: BA-dominated
 N_SCALING = [1.0, 2.0, 5.0, 10.0]            # optimized states exist here
 
 STATE_ORDER = ["coherent", "sqz_vac", "sqz_vac_p", "cat", "sqz_cat", "fock",
-               "opt_fock_sup"]
+               "opt_fock_sup", "opt_matched"]
 STATE_LABELS = {
     "coherent": "Coherent",
     "sqz_vac": "Sqz. vac. (x, wrong angle)",
@@ -142,7 +155,8 @@ STATE_LABELS = {
     "cat": "Even cat",
     "sqz_cat": "Squeezed cat",
     "fock": "Fock",
-    "opt_fock_sup": "Optimized (no-BA)",
+    "opt_fock_sup": "Optimized (no-BA, lossless)",
+    "opt_matched": "Optimized (no-BA, $\\eta$=0.95, pn=0.2)",
 }
 STATE_COLORS = {
     "coherent": "#7f7f7f",
@@ -152,6 +166,7 @@ STATE_COLORS = {
     "sqz_cat": "#9467bd",
     "fock": "#2ca02c",
     "opt_fock_sup": "#ff7f0e",
+    "opt_matched": "#8c564b",
 }
 
 # Optional second CLI arg "only=<state>": run just that probe family and
@@ -176,7 +191,14 @@ def _merge_csv(path, new_df, states_run):
 def build_probes(n_target):
     fams = {name: fam(n_target) for name, fam in probes.PROBE_FAMILIES.items()}
     fams["opt_fock_sup"] = probes.optimized(n_target, "fock_sup")
-    return {k: fams[k] for k in STATE_ORDER}
+    try:
+        # From the previous campaign, optimized AT this run's noise point
+        # (no back-action, detection-loss geometry).
+        fams["opt_matched"] = probes.optimized(
+            n_target, "fock_sup", loss_config="loss_out", eta=0.95, pn=0.2)
+    except ValueError:
+        pass  # slice not bundled at this N_target
+    return {k: fams[k] for k in STATE_ORDER if k in fams}
 
 
 def sweep_frequencies(state, factory, freqs_hz):
@@ -184,13 +206,15 @@ def sweep_frequencies(state, factory, freqs_hz):
     rows = []
     N_STEP = 20
     N_warm = 20
+    res = None
     for f_hz in freqs_hz:
         kappa = qs.rp_kappa(2 * np.pi * f_hz)
         t0 = time.time()
-        res = converged_qfi(
-            factory, dynamics=DYNAMICS, param_type=PARAM,
-            kappa_ba=kappa, **LOSS_KW, **CONV_KW,
-            N_start=max(20, N_warm - N_STEP), N_step=N_STEP, N_max=N_MAX)
+        if res is None or not KAPPA_ZERO:
+            res = converged_qfi(
+                factory, dynamics=DYNAMICS, param_type=PARAM,
+                kappa_ba=0.0 if KAPPA_ZERO else kappa, **LOSS_KW, **CONV_KW,
+                N_start=max(20, N_warm - N_STEP), N_step=N_STEP, N_max=N_MAX)
         N_warm = res["N_basis"]
         rows.append(dict(
             state=state, f_hz=f_hz, kappa_ba=kappa, qfi=res["qfi"],
@@ -272,6 +296,9 @@ def plot(df_freq, exps, path):
         title = ("phase noise (200 mrad) $\\to$ backaction $\\to$ "
                  "displacement $\\to$ 5% loss "
                  f"($\\langle n\\rangle$ = {N_TARGET:g})")
+    elif LOSS_CONFIG == "paper_pn_noba":
+        title = ("phase noise (200 mrad) $\\to$ displacement $\\to$ 5% loss "
+                 f"(NO backaction, $\\langle n\\rangle$ = {N_TARGET:g})")
     else:
         title = ("BA3: $\\eta_{in}$=0.95 $\\to$ [signal+shear, "
                  "$\\eta_{ch}$=0.99] $\\to$ $\\eta_{out}$=0.90 "

@@ -62,3 +62,23 @@ def test_sqz_vac_p_orientation():
     assert var_x == pytest.approx(np.exp(2 * r) / 2, rel=1e-6)
     assert var_p == pytest.approx(np.exp(-2 * r) / 2, rel=1e-5)
     assert probes.mean_n(psi) == pytest.approx(n_target, abs=1e-6)
+
+
+def test_optimized_state_reproduces_campaign_qfi():
+    # The reconstructed + reoriented optimized state must reproduce the
+    # previous campaign's stored QFI through the matching channel
+    # (pn before signal, detection loss; fock_sup_loss_out eta=0.95 pn=0.2,
+    # N_target=5, stored qfi = 29.622).  Guards the Julia<->Python
+    # Fock-phase convention in probes.optimized.
+    from quantum_sensing.channels import get_state_ba1
+    from quantum_sensing.sld import calculate_qfi
+    from quantum_sensing.states import load_state_params
+
+    qs.set_data_dir(str(Path(__file__).resolve().parents[1] / "data"))
+    best = max(load_state_params("fock_sup", "loss_out", 0.95, 0.2),
+               key=lambda e: e["qfi"])
+    psi = probes.optimized(5.0, "fock_sup", loss_config="loss_out",
+                           eta=0.95, pn=0.2)(120)
+    F = calculate_qfi(get_state_ba1, param_type="epsilon_a", rho=psi,
+                      N_basis=120, kappa_ba=0.0, pn_in=0.2, eta_out=0.95)
+    assert F == pytest.approx(best["qfi"], rel=1e-4)

@@ -40,19 +40,21 @@ from quantum_sensing import gaussian as g
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 STATE_ORDER = ["coherent", "sqz_vac", "sqz_vac_p", "cat", "sqz_cat", "fock",
-               "opt_fock_sup"]
+               "opt_fock_sup", "opt_matched"]
 STATE_LABELS = {
     "coherent": "Coherent",
     "sqz_vac": "Sqz. vac. (x, wrong angle)",
     "sqz_vac_p": "Squeezed vac. (p)",
     "cat": "Even cat",
     "sqz_cat": "Squeezed cat", "fock": "Fock",
-    "opt_fock_sup": "Optimized (no-BA)",
+    "opt_fock_sup": "Optimized (no-BA, lossless)",
+    "opt_matched": "Optimized (no-BA, $\\eta$=0.95, pn=0.2)",
 }
 STATE_COLORS = {
     "coherent": "#7f7f7f", "sqz_vac": "#f2a0a5", "sqz_vac_p": "#d62728",
     "cat": "#1f77b4",
     "sqz_cat": "#9467bd", "fock": "#2ca02c", "opt_fock_sup": "#ff7f0e",
+    "opt_matched": "#8c564b",
 }
 
 TITLES = {
@@ -66,6 +68,8 @@ TITLES = {
                           "detection loss ($\\eta$=0.9)"),
     "_paper_pn_ba1": ("phase noise (200 mrad) $\\to$ backaction $\\to$ "
                       "displacement $\\to$ 5% loss"),
+    "_paper_pn_noba": ("phase noise (200 mrad) $\\to$ displacement $\\to$ "
+                       "5% loss (NO backaction)"),
 }
 
 

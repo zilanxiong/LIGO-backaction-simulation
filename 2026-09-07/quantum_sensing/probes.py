@@ -93,14 +93,28 @@ def optimized(n_target, state_type="fock_sup", loss_config="loss_ch",
               eta=1.0, pn=0.0):
     """Best-QFI optimized state from states.h5 at N_target = n_target
     (states optimized WITHOUT back-action, from the previous campaign).
-    Requires set_data_dir to point at the states.h5 directory."""
+    Requires set_data_dir to point at the states.h5 directory.
+
+    Frame convention: the campaign's Fock coefficients are stored in a
+    frame rotated by pi/2 relative to this package's quadratures (Julia
+    vs Python Fock-phase convention) — reconstructed naively the state's
+    information quadrature aligns with p instead of x, under-scoring its
+    epsilon_a QFI.  The e^{i pi/2 n} rotation below restores the campaign
+    orientation; with it, the reconstructed state reproduces the stored
+    campaign QFI exactly through the matching channel (see
+    test_optimized_state_reproduces_campaign_qfi)."""
     entries = [e for e in load_state_params(state_type, loss_config, eta, pn)
                if abs(e["N_target"] - n_target) < 1e-6]
     if not entries:
         raise ValueError(f"no optimized {state_type} entry at "
                          f"N_target={n_target}, eta={eta}, pn={pn}")
     best = max(entries, key=lambda e: e["qfi"])
-    return lambda N: reconstruct_state(best, N_basis=N).unit()
+
+    def factory(N):
+        psi = reconstruct_state(best, N_basis=N).unit()
+        rot = (1j * (np.pi / 2) * qt.num(N)).expm()
+        return (rot * psi).unit()
+    return factory
 
 
 PROBE_FAMILIES = {
