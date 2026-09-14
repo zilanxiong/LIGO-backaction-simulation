@@ -1,0 +1,21 @@
+===== injection only=opt_fock_sup =====
+
+opt_fock_sup: <n> = 2.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=  15.5970  N= 20  conv=True  (0.1s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=  15.5970  N= 20  conv=True  (0.2s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=  15.5970  N= 20  conv=True  (0.1s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=  15.5970  N= 20  conv=True  (0.1s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=  15.5970  N= 20  conv=True  (0.1s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=  15.5970  N= 20  conv=True  (0.2s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=  15.5970  N= 20  conv=True  (0.1s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=  15.5970  N= 20  conv=True  (0.4s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=  15.5970  N= 20  conv=True  (0.5s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=  15.5970  N= 20  conv=True  (0.6s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=  15.5970  N= 20  conv=True  (0.7s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=  15.5970  N= 20  conv=True  (0.4s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=  15.5970  N= 20  conv=True  (0.4s)
+
+<n> scaling at 30 Hz (kappa = 1.055):
+  opt_fock_sup  n=  1.0  QFI=  14.4297  N= 20  conv=True
+  opt_fock_sup  n=  2.0  QFI=  15.5970  N= 20  conv=True
+  opt_fock_sup  n=  5.0  QFI=  13.8041  N= 20  conv=True
