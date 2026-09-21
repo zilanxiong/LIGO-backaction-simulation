@@ -159,3 +159,20 @@ opt_matched: <n> = 5.0000
   f=   46.4 Hz  kappa=  0.4379  QFI=  26.6398  N= 40  conv=True  (0.1s)
   f=   31.6 Hz  kappa=  0.9488  QFI=  19.0805  N= 70  conv=True  (0.4s)
   f=   21.5 Hz  kappa=  2.0495  QFI=   8.3252  N=145  conv=True  (4.6s)
+  f=   14.7 Hz  kappa=  4.4209  QFI=   2.6304  N=390  conv=True  (26.0s)
+  f=   10.0 Hz  kappa=  9.5299  QFI=   0.7374  N=1600  conv=False  (476.7s)
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_paper_pn_ba1.png
+
+WARNING: 9 unconverged frequency sweep points (N_max=1600):
+       state      f_hz  kappa_ba      qfi  N_basis  converged  n_target  loss_config  eta
+    coherent 10.000000  9.529880 0.628604     1800      False       5.0 paper_pn_ba1  0.9
+     sqz_vac 10.000000  9.529880 0.359057     1800      False       5.0 paper_pn_ba1  0.9
+   sqz_vac_p 14.677993  4.420859 2.436365     1800      False       5.0 paper_pn_ba1  0.9
+   sqz_vac_p 10.000000  9.529880 1.242463     1800      False       5.0 paper_pn_ba1  0.9
+         cat 10.000000  9.529880 0.629707     1800      False       5.0 paper_pn_ba1  0.9
+     sqz_cat 10.000000  9.529880 0.390924     1800      False       5.0 paper_pn_ba1  0.9
+        fock 10.000000  9.529880 1.077981     1800      False       5.0 paper_pn_ba1  0.9
+opt_fock_sup 10.000000  9.529880 0.598971     1600      False       5.0 paper_pn_ba1  0.9
+ opt_matched 10.000000  9.529880 0.737412     1600      False       5.0 paper_pn_ba1  0.9
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_paper_pn_ba1.png
+figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/strain_sql_paper_pn_ba1.png
