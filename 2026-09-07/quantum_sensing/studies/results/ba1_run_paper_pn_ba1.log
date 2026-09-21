@@ -146,3 +146,16 @@ fock          f= 10.00 QFI=1.0780 N=1800 conv=False (733s)
 opt_fock_sup  f= 10.00 QFI=0.9833 N=1800 conv=False (769s)
 figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/ba1_qfi_vs_frequency_paper_pn_ba1.png
 figure -> /home/user/LIGO-backaction-simulation/2026-09-07/quantum_sensing/studies/results/strain_sql_paper_pn_ba1.png
+
+opt_matched: <n> = 5.0000
+  f= 1000.0 Hz  kappa=  0.0002  QFI=  29.6218  N= 20  conv=True  (0.3s)
+  f=  681.3 Hz  kappa=  0.0006  QFI=  29.6218  N= 20  conv=True  (0.0s)
+  f=  464.2 Hz  kappa=  0.0021  QFI=  29.6218  N= 20  conv=True  (0.3s)
+  f=  316.2 Hz  kappa=  0.0064  QFI=  29.6211  N= 20  conv=True  (0.3s)
+  f=  215.4 Hz  kappa=  0.0167  QFI=  29.6171  N= 20  conv=True  (0.2s)
+  f=  146.8 Hz  kappa=  0.0400  QFI=  29.5947  N= 20  conv=True  (0.0s)
+  f=  100.0 Hz  kappa=  0.0909  QFI=  29.4824  N= 20  conv=True  (0.8s)
+  f=   68.1 Hz  kappa=  0.2008  QFI=  28.9505  N= 20  conv=True  (0.3s)
+  f=   46.4 Hz  kappa=  0.4379  QFI=  26.6398  N= 40  conv=True  (0.1s)
+  f=   31.6 Hz  kappa=  0.9488  QFI=  19.0805  N= 70  conv=True  (0.4s)
+  f=   21.5 Hz  kappa=  2.0495  QFI=   8.3252  N=145  conv=True  (4.6s)
