@@ -1,5 +1,10 @@
 # LIGO back-action simulation
 
+> **Archived as reference (2026-10-12).** Active development has moved to
+> [zilanxiong/ligo-backaction-qfi](https://github.com/zilanxiong/ligo-backaction-qfi),
+> which starts clean from the group's `quantum_sensing` package. This repository is
+> kept read-only for the exploratory studies, results and verification track it holds.
+
 Radiation-pressure back-action and the quantum Fisher information of optical
 probe states, for the project *"use the channel description to test QFI for
 states under radiation pressure"*.
