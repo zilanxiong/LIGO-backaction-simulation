@@ -3,6 +3,7 @@
 from quantum_sensing.conversions import (
     loss_to_kappa, kappa_to_loss,
     phirms_to_chi, chi_to_phirms,
+    ba_to_g, rp_power_ratio, rp_kappa,
     qfi_to_phi_min,
     dB_to_r, r_to_dB, var_to_dB, r_to_var,
     dB_to_n, n_to_dB, r_to_n, n_to_r,
@@ -10,11 +11,19 @@ from quantum_sensing.conversions import (
 )
 
 from quantum_sensing.dynamics import (
-    get_state_mzi_heis, get_state_arms, get_state_single_mode, apply_bs,
+    get_state_mzi_heis, get_state_arms, get_state_single_mode,
+    get_state_single_mode_rp, apply_bs,
 )
 
 from quantum_sensing.sld import (
     calculate_sld, calculate_qfi,
+)
+
+from quantum_sensing.cfi import (
+    calculate_cfi, compare_cfi,
+    calculate_cfi_photon_counting, calculate_cfi_homodyne,
+    calculate_cfi_heterodyne, calculate_cfi_sld_optimal,
+    calculate_cfi_projective,
 )
 
 from quantum_sensing.states import (

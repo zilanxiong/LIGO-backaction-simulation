@@ -19,6 +19,38 @@ def kappa_to_loss(kappa, time=1.0):
     return 1 - np.exp(-kappa * time)
 
 
+def ba_to_g(kappa_ba, time=1.0):
+    """Back-action Hamiltonian rate g in H_BA = g x^2 from the integrated
+    shear kappa_ba (b2 = a2 - kappa_ba a1): [x^2, p] = 2i x gives 2 g t = kappa_ba.
+    Matches Julia QuantumSensing.ba_to_g."""
+    return kappa_ba / (2 * time)
+
+
+_C_LIGHT = 299_792_458.0
+
+
+def rp_power_ratio(*, m=40.0, L=3995.0, lambda0=1064e-9, P_circ=360e3,
+                   gamma=2 * np.pi * 450.0):
+    """X = I0/I_SQL = 4 P_circ omega0 / (m L gamma^3 c), omega0 = 2 pi c / lambda0.
+
+    KLMTV (PRD 65, 022002) conventions: m is the mass of EACH mirror (the
+    DARM reduced mass m/4 is already inside the KLMTV prefactors); gamma is
+    the effective signal bandwidth [rad/s]. Current (O4) LIGO defaults\n    (360 kW, 2*pi*450 Hz) give X ~ 2.4e-3; kappa ~ 1 near 30 Hz.
+    """
+    omega0 = 2 * np.pi * _C_LIGHT / lambda0
+    return 4 * P_circ * omega0 / (m * L * gamma**3 * _C_LIGHT)
+
+
+def rp_kappa(Omega, *, gamma=2 * np.pi * 450.0, **kwargs):
+    """Dimensionless back-action gain kappa_ba(Omega) = 2 X gamma^4 /
+    [Omega^2 (gamma^2 + Omega^2)] for get_state_single_mode_rp; free test
+    mass, KLMTV Eq. (8). Anchor: rp_kappa(gamma) == rp_power_ratio().
+    Pass your own cavity parameters (m, L, lambda0, P_circ, gamma) for other
+    detectors."""
+    X = rp_power_ratio(gamma=gamma, **kwargs)
+    return 2 * X * gamma**4 / (Omega**2 * (gamma**2 + Omega**2))
+
+
 def phirms_to_chi(phirms, time=1.0):
     """Convert phase-noise rms (rad) to dephasing Lindblad rate."""
     return phirms ** 2 / time

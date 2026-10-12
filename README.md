@@ -15,10 +15,11 @@ project to-do list end to end and is the thing to read first.
 | directory | what it is |
 |---|---|
 | `backaction-qfi/` | **the study — fully self-contained**: channel, probe states, convergence check, runner, figures, tests, results and the report. Nothing outside it is imported |
-| `quantum-sensing-py/` | the group's single-mode sensing package, **untouched** (byte-identical to `main`). `backaction-qfi/` carries verbatim copies of the three modules it needs |
+| `quantum-sensing-py/` | **the group's single-mode sensing package, the live copy**: an unmodified snapshot of the upstream `quantum_sensing` package (from `shruti-jm/quantum-sensing`, `python/`), installed in editable mode by `pip install -r requirements.txt`. `import quantum_sensing` anywhere resolves here. `backaction-qfi/` carries verbatim copies of the three modules it needs |
 | `quantum-sensing-jl/` | the Julia original, including the GPU/CUDA path and classical Fisher information. Untouched |
 | `ligo_backaction/` | an independent verification track: a Gaussian covariance-matrix implementation of the same channel, exact for Gaussian states, plus analytic benchmarks (SQL, variational readout, FD squeezing). Used to validate the numbers, not to replace them |
 | `tests/` | 157 tests for the verification track (the study's own 108 live in `backaction-qfi/`); 265 in total |
+| `reference/` | frozen, comparison-only material: the earlier in-tree `quantum_sensing/` copy with its local additions (solver tolerances, CFI `rho` forwarding, `optimize.py`, studies, tests), plus `local-fixes.patch` with those two fixes as a diff against upstream. Nothing live imports it |
 | `scripts/`, `results/`, `FINDINGS.md` | the earlier broadband study on the verification track: interferometer calibration, cost metrics, two-frequency additivity |
 
 ```bash

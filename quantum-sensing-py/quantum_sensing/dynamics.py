@@ -9,7 +9,7 @@ to the Julia CPU module.
 import numpy as np
 import qutip as qt
 
-from .conversions import loss_to_kappa, phirms_to_chi
+from .conversions import loss_to_kappa, phirms_to_chi, ba_to_g
 
 
 # ---------------------------------------------------------------------------
@@ -219,6 +219,7 @@ def get_state_single_mode(
     t_final=1.0,
     N_basis=20,
     rho=None,
+    H_extra=None,
 ):
     """
     Single-mode channel with 3-stage noise pipeline:
@@ -256,6 +257,8 @@ def get_state_single_mode(
 
     # --- Stage 2: Sensing channel ---
     H = Delta * n_op + epsilon_a * (a.dag() + a) + 1j * epsilon_p * (a.dag() - a)
+    if H_extra is not None:
+        H = H + H_extra
 
     L_ch = []
     if eta_ch < 1.0:
@@ -293,6 +296,23 @@ def get_state_single_mode(
 # ---------------------------------------------------------------------------
 # Beam splitter  (Julia: apply_bs)
 # ---------------------------------------------------------------------------
+
+def get_state_single_mode_rp(*, kappa_ba=0.0, t_final=1.0, N_basis=20, **kwargs):
+    """Single-mode channel with radiation-pressure back-action:
+    H_BA = ba_to_g(kappa_ba, t_final) * x^2, x = (a + a†)/√2, i.e. the
+    ponderomotive shear b2 = a2 - kappa_ba a1. The GW-frame signal is the
+    epsilon_a term (phase-quadrature displacement), which commutes with H_BA.
+
+    Calibrate kappa_ba with  (KLMTV free-mass gain; aLIGO-like defaults give
+    kappa_ba ~ 1 at Omega ~ 2*pi*30 Hz for current LIGO). Mirrors Julia
+    QuantumSensing.get_state_single_mode_rp.
+    """
+    a = qt.destroy(N_basis)
+    x2 = (a + a.dag()) ** 2 / 2
+    return get_state_single_mode(
+        H_extra=ba_to_g(kappa_ba, t_final) * x2,
+        t_final=t_final, N_basis=N_basis, **kwargs)
+
 
 def apply_bs(rho_in, N_basis, reverse=False, theta=np.pi / 4):
     """
